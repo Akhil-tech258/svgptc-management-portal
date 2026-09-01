@@ -1,0 +1,437 @@
+SOFTWARE REQUIREMENTS SPECIFICATION
+
+Student No-Dues & Transfer Certificate Generator
+
+Real-Time Web Application | Version 1.1 | August 2026
+
+Document Control
+
+Document
+
+Software Requirements Specification
+
+System
+
+Student No-Dues & Transfer Certificate Generator
+
+Version
+
+1.1
+
+Deployment
+
+GitHub Pages + Render Web Service + Render PostgreSQL
+
+1. Introduction
+
+1.1 Purpose
+
+This SRS specifies a real-time, browser-based college system for managing student No-Dues clearance, department-wise approvals, certificate data verification, and generation of the Transfer Certificate (TC) and Study & Conduct Certificate. It is intended for actual deployment and use rather than only local demonstration.
+
+1.2 Scope
+
+The system has three roles: Student, Faculty/Department Incharge, and Clerk. Student master records are imported by the Clerk from Excel into PostgreSQL. Students register against an existing imported record, submit No-Dues requests, monitor live/current status, and view certificate information read-only. Online departments process requests through faculty accounts. Physical departments are completed physically and recorded by the Clerk. After No-Dues completion, the Clerk verifies and locks certificate data and generates certificates.
+
+1.3 Technology and Deployment
+
+Production deployment is explicitly defined as: GitHub Pages hosts the static frontend; Render Web Service runs the Node.js + Express.js backend/API; and Render PostgreSQL stores application data. The frontend never connects directly to PostgreSQL. All database access occurs through the backend API.
+
+1.4 Definitions
+
+PIN: Unique student identifier and primary key, e.g. 24018-CM-044.
+
+T. No.: Last three PIN characters with leading zeros removed.
+
+No-Dues: Department-wise clearance process before certificate generation.
+
+Clerk: Single administrative role with full system permissions.
+
+Faculty Incharge: Single active account responsible for one department's online No-Dues processing.
+
+Physical Department: Department whose approval is completed physically and recorded by the Clerk.
+
+Final Verification: Clerk review after which certificate data is locked.
+
+Certificate Version: A generated certificate revision; superseded versions remain internal records.
+
+2. Overall Description
+
+2.1 User Roles
+
+Student: Registers with Name + PIN + Department; logs in with Name + PIN; submits No-Dues; monitors department status; views certificate fields read-only.
+
+Faculty Incharge: Receives department requests/notifications; sees necessary student information; adds, clears and approves department dues/No-Dues.
+
+Clerk: Full administrative access to Excel import, student records, faculty accounts, departments, physical approvals, certificate correction, final verification, locking, generation and version records.
+
+2.2 Initial Departments
+
+Computer Lab
+
+IT Lab
+
+Library
+
+Accounts
+
+Scholarship
+
+Hostel
+
+Physical Director
+
+Physics Lab
+
+Chemistry Lab
+
+NSS/NCC
+
+DE Lab
+
+Departments are configurable. The Clerk may add departments and choose Online or Physical No-Dues handling. Library is initially configured as Physical.
+
+3. Functional Requirements
+
+FR-01: The Clerk shall upload student data using Excel.
+
+FR-02: The system shall validate every Excel row before modifying the database.
+
+FR-03: All mandatory fields required by the actual TC shall be present in valid imported rows.
+
+FR-04: An empty or invalid mandatory field rejects the entire row; partial records shall not be saved.
+
+FR-05: The validation preview shall show total, valid, rejected, new and existing/update rows.
+
+FR-06: After Clerk confirmation, valid rows shall be inserted or updated; an existing PIN identifies the existing student record.
+
+FR-07: Rejected rows and validation reasons shall be displayed on the website; no rejected-row Excel export is required.
+
+FR-08: DOB and Date of Admission shall use DD-MM-YYYY.
+
+FR-09: Date of Leaving shall be a text/string value entered by the Clerk during certificate generation, such as May/June 2026.
+
+FR-10: Any imported student may register.
+
+FR-11: Registration requires Name + PIN + Department.
+
+FR-12: The system shall verify that the PIN exists and Name and Department match the imported record.
+
+FR-13: Name matching shall be case-insensitive; PIN matching shall be exact.
+
+FR-14: Department shall be selected from a dropdown.
+
+FR-15: No student password shall be required.
+
+FR-16: Student login shall require Name + PIN.
+
+FR-17: Any registered student may submit a No-Dues request at any time.
+
+FR-18: Students shall see current department-wise No-Dues progress.
+
+FR-19: Each Online department shall have one active faculty incharge account.
+
+FR-20: Physical departments shall be completed physically and recorded by the Clerk.
+
+FR-21: When a due is found, the student shall see the department, exact reason and instruction to contact the responsible Lab Incharge physically.
+
+FR-22: Faculty shall add dues using free-text reasons.
+
+FR-23: Faculty shall be able to clear an individual due or clear all dues in their department.
+
+FR-24: After dues are cleared, the existing No-Dues request shall be re-checkable without a new request.
+
+FR-25: Faculty shall approve the department when no active due remains.
+
+FR-26: Students may re-notify a pending faculty request once every 48 hours.
+
+FR-27: No additional escalation workflow is required; the student may contact the responsible person physically.
+
+FR-28: Faculty dashboards shall show actionable information plus simple statistics such as pending requests, active dues, approved requests and cleared dues.
+
+FR-29: New requests shall create an in-dashboard notification and notification badge/count.
+
+FR-30: Faculty shall see only information necessary to process No-Dues, including Name, PIN, Admission No., Department, request status/date and department dues.
+
+FR-31: Faculty shall only act on their assigned department.
+
+FR-32: The Clerk dashboard shall show college-wide statistics and important pending actions.
+
+FR-33: There shall be one Clerk role with full Clerk permissions.
+
+FR-34: Clerk authentication shall use username + password + device biometric authentication where supported.
+
+FR-35: Raw biometric data shall not be stored; device-backed WebAuthn/passkey authentication should be used.
+
+FR-36: Clerk shall create, activate/deactivate and manage faculty accounts, including department, role, username and initial password.
+
+FR-37: Faculty usernames shall be flexible unique strings with no forced naming pattern.
+
+FR-38: Faculty password reset shall be performed by the Clerk; no self-service reset is required.
+
+FR-39: Clerk shall create/manage departments and configure Online or Physical No-Dues handling.
+
+FR-40: Department credentials represent the incharge position; a new incharge may receive the existing department credentials.
+
+FR-41: After No-Dues becomes Completed, certificate information shall become visible to the student.
+
+FR-42: Student certificate information shall be read-only.
+
+FR-43: If information is incorrect, the student shall contact the Clerk physically; no online correction-request feature is required.
+
+FR-44: Clerk shall be able to correct information before final verification.
+
+FR-45: Clerk shall perform final verification of all certificate data.
+
+FR-46: Final Verify shall lock certificate data.
+
+FR-47: An explicit Edit/Unlock action shall be required for post-verification corrections; data must be verified and locked again before generation.
+
+FR-48: Conduct & Character shall be one field with values such as Good, Satisfactory and Poor, plus Other. Other permits custom Clerk wording; it is not an additional separate field.
+
+FR-49: The same Conduct & Character value shall be used for TC and Study & Conduct Certificate.
+
+FR-50: Fees Paid shall be a Yes/No dropdown.
+
+FR-51: Promotion/qualification status shall be a free-text field.
+
+FR-52: Only fields confirmed from the actual certificate designs shall be implemented.
+
+FR-53: Certificate generation date shall automatically be the date on which the Clerk generates the certificate.
+
+FR-54: The applicable Study & Conduct certificate date shall use the same generation date.
+
+FR-55: Admission From shall use imported Date of Admission.
+
+FR-56: Admission To shall use the Clerk-entered Date of Leaving string.
+
+FR-57: T. No. shall be derived from the last three PIN characters with leading zeros removed.
+
+FR-58: TC and Study & Conduct Certificate shall be generated only from final verified data.
+
+FR-59: Each generated certificate shall have a generation record, date and version.
+
+FR-60: Corrections after generation shall follow unlock → correction → final verification → new version.
+
+FR-61: Superseded certificate versions shall remain internal records only and shall not be exposed to students as current/downloadable certificates.
+
+FR-62: The latest generated version shall be the current certificate version.
+
+4. Data Requirements
+
+4.1 Confirmed Student Master Data
+
+PIN (unique primary key)
+
+Admission No.
+
+Student Name
+
+Father/Guardian Name
+
+Date of Birth (DD-MM-YYYY)
+
+Nationality
+
+Religion
+
+Course/Branch
+
+Date of Admission (DD-MM-YYYY)
+
+All additional fields that appear on the supplied TC and are intended as imported student/master data shall also be mandatory.
+
+4.2 Certificate-Time Data
+
+Date of Leaving (string/text, e.g. May/June 2026)
+
+Fees Paid (Yes/No)
+
+Promotion/Qualification status (free text)
+
+Conduct & Character (single dropdown/custom-value field)
+
+4.3 Department Data
+
+At minimum: department name, No-Dues method (Online/Physical), active state, and assigned incharge account.
+
+5. Business Rules
+
+PIN values are unique.
+
+Invalid/incomplete imported rows are rejected as complete rows.
+
+Student registration is possible only when the student already exists in imported data.
+
+Registration = Name + PIN + Department; login = Name + PIN.
+
+Name matching is case-insensitive; PIN matching is exact.
+
+Any registered student may request No-Dues.
+
+Faculty can act only for their assigned department.
+
+Physical department approval is recorded by the Clerk.
+
+Re-notification is available once every 48 hours while pending.
+
+Students cannot directly edit official certificate data.
+
+Final verification and locking are required before certificate generation.
+
+Corrections after generation create a new version while retaining the old version internally.
+
+Students see current/final certificate status, not superseded versions.
+
+6. Real-Time Deployment Architecture
+
+The production architecture shall be:
+
+GitHub Pages — Static frontend: HTML, CSS, JavaScript and frontend assets.
+
+Render Web Service — Node.js + Express.js backend, REST APIs, authentication/authorization and business logic.
+
+Render PostgreSQL — Production relational database for students, faculty, departments, No-Dues, notifications, certificate data and generation/version records.
+
+Data flow:
+
+Browser → GitHub Pages frontend → HTTPS API → Render Node.js/Express backend → Render PostgreSQL
+
+The browser shall never connect directly to PostgreSQL. Database credentials shall remain server-side in Render environment variables/secrets.
+
+6.1 Real-Time Behaviour
+
+New No-Dues submissions shall become available to the responsible faculty through the backend/database workflow.
+
+Faculty actions shall update the PostgreSQL record and the student's next dashboard refresh shall show the latest status.
+
+Notification badges/counts shall reflect current pending requests.
+
+The 48-hour Re-notify control shall be calculated from the stored request/notification timestamp.
+
+Certificate generation shall use the latest verified and locked database values.
+
+7. Non-Functional Requirements
+
+Security: Backend-enforced role authorization, secure password hashing, HTTPS in production, protected secrets, server-side validation.
+
+Privacy: Student sees only their own records; faculty sees only necessary department-related information.
+
+Integrity: PostgreSQL constraints and backend validation protect PIN uniqueness, mandatory data and workflow state.
+
+Availability: System should remain accessible through the deployed services during normal operation.
+
+Performance: Common dashboard/API operations should respond promptly under expected college usage.
+
+Responsive UI: Support modern desktop and mobile browsers.
+
+Maintainability: Keep frontend, backend routes/controllers/services and database modules separated and maintainable.
+
+Auditability: Retain certificate generation/version records and important administrative state changes.
+
+Usability: Minimal role-focused UI; avoid unnecessary controls and avoid generic white/blue-heavy common UI styling.
+
+Backup/Recovery: Production PostgreSQL data should use the hosting platform's available backup/recovery facilities and a defined operational backup policy before real college use.
+
+8. Security Requirements
+
+All role permissions shall be enforced on the backend.
+
+Students may access only their own data.
+
+Faculty may modify only dues belonging to their assigned department.
+
+Clerk-only operations require Clerk authorization.
+
+Passwords must never be stored in plaintext.
+
+HTTPS must be used for deployed frontend/API communication.
+
+Excel and API inputs must be validated server-side.
+
+Use parameterized queries or safe database/ORM mechanisms.
+
+Raw biometric information must not be stored.
+
+Certificate generation must use verified/locked data.
+
+Database connection strings and secrets must be stored as server-side environment variables, not in GitHub Pages frontend code.
+
+9. UI/UX Requirements
+
+Design shall be minimal and role-specific rather than using a generic login/dashboard template.
+
+Do not use the common white-and-blue visual combination as the default design direction.
+
+College logo and college/branch picture shall use configurable placeholders.
+
+Logo/picture configuration should be centralized so replacing the image once updates all pages that use it.
+
+Do not repeat college imagery on every page unnecessarily.
+
+Buttons and controls shall reflect the actual responsibilities of each role.
+
+Student, Faculty and Clerk interfaces shall not expose controls belonging to other roles.
+
+10. Explicitly Out of Scope
+
+Online payment or online settlement of dues.
+
+Online student correction-request workflow.
+
+Separate rejected-row Excel export.
+
+Multiple Clerk permission levels.
+
+Multiple simultaneous faculty incharges per department.
+
+Student passwords.
+
+Automatic escalation beyond the 48-hour re-notification/physical-contact process.
+
+Student access to superseded certificate versions.
+
+Inventing certificate fields not present on the actual college forms.
+
+11. Final Certificate Mapping
+
+The actual supplied TC, Study & Conduct Certificate and No-Dues designs are the authoritative source for final field mapping. Before implementation, every certificate field shall be mapped to its display label, database field, data type, source (imported/system/Clerk), validation rule and certificate position. This prevents accidental omission or invention of fields.
+
+12. End-to-End Acceptance Criteria
+
+Excel validation previews all rows before database modification.
+
+Invalid rows are rejected completely and reasons are shown on the website.
+
+Valid confirmed rows are inserted/updated in Render PostgreSQL.
+
+Student registration validates Name + PIN + Department against imported data.
+
+Student login works with Name + PIN using case-insensitive name matching.
+
+Any registered student can submit No-Dues.
+
+Faculty receives notifications and can manage only their department.
+
+Due reasons are free text; individual and Clear All actions are supported.
+
+Students see department, due reason and physical-contact instruction.
+
+Re-notification is available every 48 hours while pending.
+
+Physical department approval can be recorded by the Clerk.
+
+After No-Dues completion, certificate fields become read-only for the student.
+
+Clerk can correct, final-verify, lock and generate certificates.
+
+Certificate generation records the current version and generation date.
+
+Superseded versions remain internal records only.
+
+Production communication follows GitHub Pages → Render backend → Render PostgreSQL; PostgreSQL is never exposed directly to the browser.
+
+13. Implementation Note
+
+This SRS is the baseline requirements document. The next implementation artifact should be a final database schema/data dictionary and API specification derived from these requirements and the exact supplied certificate forms. Any new requirement should be recorded as a controlled change rather than silently changing the workflow.
+
+End of SRS — Version 1.1

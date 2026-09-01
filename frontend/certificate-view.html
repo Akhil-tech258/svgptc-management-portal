@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Official Transfer & Study Certificate</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* Certificate-specific styles */
+    body {
+      background-color: #0b0f19;
+    }
+    .print-bar {
+      background-color: #1e293b;
+      padding: 0.8rem 2rem;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Action Bar (Hidden when printing) -->
+  <div class="print-bar no-print">
+    <div style="display:flex; align-items:center; gap:1rem;">
+      <a href="javascript:window.close()" class="btn btn-sm btn-secondary">&larr; Close / Return</a>
+      <span style="font-size:0.9rem; color:#94a3b8;">
+        Official Certificate Document | <strong id="doc-version-banner" style="color:#d97706;">Current Version</strong>
+      </span>
+    </div>
+    <div style="display:flex; gap:0.6rem; align-items:center;">
+      <button class="theme-toggle-btn" onclick="API.toggleTheme()" title="Toggle Light/Dark Theme">🌙 Dark</button>
+      <button class="btn btn-sm btn-primary" onclick="window.print()">
+        🖨️ Print / Save as PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="main-container" style="padding-top: 1rem;">
+
+    <!-- ======================================================== -->
+    <!-- 1. TRANSFER CERTIFICATE (TC) -->
+    <!-- ======================================================== -->
+    <div class="cert-container" id="tc-document">
+      <img src="assets/logo.png" class="cert-watermark" alt="Watermark Crest">
+
+      <!-- College Header -->
+      <div class="cert-header">
+        <div style="display:flex; align-items:center; justify-content:center; gap:1.2rem; margin-bottom:0.5rem;">
+          <img id="cert-crest-img" src="assets/logo.png" style="width:65px; height:65px; object-fit:contain;" alt="Crest">
+          <div>
+            <div class="college-title" id="cert-college-name">SRI VENKATESWARA GOVERNMENT POLYTECHNIC (SVGP)</div>
+            <div class="college-sub" id="cert-college-sub">Government Autonomous Polytechnic | Approved by AICTE &amp; SBTET AP</div>
+            <div class="college-code" id="cert-college-code">INSTITUTION CODE: 018 | TIRUPATI, ANDHRA PRADESH</div>
+          </div>
+        </div>
+        <div class="cert-title-badge">TRANSFER CERTIFICATE</div>
+      </div>
+
+      <!-- Meta Row -->
+      <div class="cert-meta-row">
+        <div>T. No: <span id="tc-t-no" style="font-size:1.1rem; text-decoration:underline;">--</span></div>
+        <div>Admission No: <span id="tc-adm-no">--</span></div>
+        <div>Date of Issue: <span id="tc-issue-date">--</span></div>
+      </div>
+
+      <!-- Field Mapping Table according to SRS Section 3 & 4 -->
+      <table class="cert-table">
+        <tbody>
+          <tr>
+            <td class="col-num">1.</td>
+            <td class="col-label">Name of the Student (in full)</td>
+            <td class="col-sep">:</td>
+            <td class="col-val" id="tc-name">--</td>
+          </tr>
+          <tr>
+            <td class="col-num">2.</td>
+            <td class="col-label">Father's / Guardian's Name</td>
+            <td class="col-sep">:</td>
+            <td class="col-val" id="tc-father">--</td>
+          </tr>
+          <tr>
+            <td class="col-num">3.</td>
+            <td class="col-label">Permanent Student PIN</td>
+            <td class="col-sep">:</td>
+            <td class="col-val" id="tc-pin" style="font-family:monospace;">--</td>
+          </tr>
+          <tr>
+            <td class="col-num">4.</td>
+            <td class="col-label">Nationality and Religion</td>
+            <td class="col-sep">:</td>
+            <td class="col-val"><span id="tc-nat">--</span> / <span id="tc-rel">--</span></td>
+          </tr>
+          <tr>
+            <td class="col-num">5.</td>
+            <td class="col-label">Date of Birth (as recorded in Admission Register)</td>
+            <td class="col-sep">:</td>
+            <td class="col-val" id="tc-dob">--</td>
+          </tr>
+          <tr>
+            <td class="col-num">6.</td>
+            <td class="col-label">Course / Branch of Study</td>
+            <td class="col-sep">:</td>
+            <td class="col-val" id="tc-course">--</td>
+          </tr>
+          <tr>
+            <td class="col-num">7.</td>
+            <td class="col-label">Date of Admission (Admission From)</td>
+            <td class="col-sep">:</td>
+            <td class="col-val" id="tc-doa">--</td>
+          </tr>
+          <tr>
+            <td class="col-num">8.</td>
+            <td class="col-label">Date of Leaving College (Admission To)</td>
+            <td class="col-sep">:</td>
+            <td class="col-val" id="tc-leaving">--</td>
+          </tr>
+          <tr>
+            <td class="col-num">9.</td>
+            <td class="col-label">Whether the student has paid all College Dues</td>
+            <td class="col-sep">:</td>
+            <td class="col-val" id="tc-dues-paid">--</td>
+          </tr>
+          <tr>
+            <td class="col-num">10.</td>
+            <td class="col-label">Whether qualified for Promotion / Examination Result</td>
+            <td class="col-sep">:</td>
+            <td class="col-val" id="tc-promotion">--</td>
+          </tr>
+          <tr>
+            <td class="col-num">11.</td>
+            <td class="col-label">General Conduct and Character</td>
+            <td class="col-sep">:</td>
+            <td class="col-val" id="tc-conduct">--</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Signatures Footer -->
+      <div class="cert-footer-signatures">
+        <div class="signature-block">
+          <br><br>
+          <div class="signature-line">Clerk / Senior Assistant</div>
+        </div>
+        <div class="signature-block">
+          <div style="border:1px dashed #9ca3af; width:90px; height:90px; border-radius:50%; margin:0 auto 0.5rem; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:#6b7280;">
+            COLLEGE SEAL
+          </div>
+        </div>
+        <div class="signature-block">
+          <br><br>
+          <div class="signature-line">Head of Section / Incharge</div>
+        </div>
+        <div class="signature-block">
+          <br><br>
+          <div class="signature-line">Principal</div>
+        </div>
+      </div>
+
+      <div class="cert-version-tag" id="tc-version-tag">
+        Sri Venkateswara Government Polytechnic, Tirupati
+      </div>
+    </div>
+
+
+    <!-- ======================================================== -->
+    <!-- 2. STUDY & CONDUCT CERTIFICATE -->
+    <!-- ======================================================== -->
+    <div class="cert-container" id="conduct-document" style="margin-top: 3rem;">
+      <img src="assets/logo.png" class="cert-watermark" alt="Watermark Crest">
+
+      <!-- College Header -->
+      <div class="cert-header">
+        <div style="display:flex; align-items:center; justify-content:center; gap:1.2rem; margin-bottom:0.5rem;">
+          <img id="cert-crest-img-2" src="assets/logo.png" style="width:65px; height:65px; object-fit:contain;" alt="Crest">
+          <div>
+            <div class="college-title" id="cert-college-name-2">SRI VENKATESWARA GOVERNMENT POLYTECHNIC (SVGP)</div>
+            <div class="college-sub" id="cert-college-sub-2">Government Autonomous Polytechnic | Approved by AICTE &amp; SBTET AP</div>
+            <div class="college-code" id="cert-college-code-2">INSTITUTION CODE: 018 | TIRUPATI, ANDHRA PRADESH</div>
+          </div>
+        </div>
+        <div class="cert-title-badge">STUDY &amp; CONDUCT CERTIFICATE</div>
+      </div>
+
+      <!-- Meta Row -->
+      <div class="cert-meta-row">
+        <div>Ref: GITP/SCC/<span id="sc-ref-no">--</span></div>
+        <div>Date: <span id="sc-issue-date">--</span></div>
+      </div>
+
+      <!-- Conduct Certificate Paragraph -->
+      <div class="cert-conduct-paragraph">
+        This is to certify that Mr. / Ms. <span class="fill-in" id="sc-name" style="min-width:200px;">--</span>,
+        Son / Daughter of <span class="fill-in" id="sc-father" style="min-width:180px;">--</span>,
+        bearing Permanent Student PIN <span class="fill-in" id="sc-pin" style="min-width:140px; font-family:monospace;">--</span>,
+        is / was a bonafide student of this institution in the department of
+        <span class="fill-in" id="sc-course" style="min-width:160px;">--</span>.
+        <br><br>
+        He / She has studied in this Institution from <span class="fill-in" id="sc-doa">--</span>
+        to <span class="fill-in" id="sc-leaving">--</span>.
+        <br><br>
+        During his / her period of study in this college, his / her Conduct and Character
+        has been found to be <span class="fill-in" id="sc-conduct" style="min-width:120px; font-size:1.1rem;">--</span>.
+      </div>
+
+      <!-- Signatures Footer -->
+      <div class="cert-footer-signatures" style="margin-top: 5rem;">
+        <div class="signature-block">
+          <br><br>
+          <div class="signature-line">Senior Assistant</div>
+        </div>
+        <div class="signature-block">
+          <div style="border:1px dashed #9ca3af; width:90px; height:90px; border-radius:50%; margin:0 auto 0.5rem; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:#6b7280;">
+            COLLEGE SEAL
+          </div>
+        </div>
+        <div class="signature-block">
+          <br><br>
+          <div class="signature-line">Principal / Head of Institution</div>
+        </div>
+      </div>
+
+      <div class="cert-version-tag" id="sc-version-tag">
+        Sri Venkateswara Government Polytechnic, Tirupati
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/certificate.js"></script>
+</body>
+</html>

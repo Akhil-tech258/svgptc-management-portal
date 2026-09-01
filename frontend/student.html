@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>svgptc management - Student Clearance Portal</title>
+  <meta property="og:title" content="svgptc management - Student Portal">
+  <meta property="og:description" content="Official Student Clearance and No-Dues Application Portal for SVGP Tirupati.">
+  <meta property="og:image" content="assets/clg.jpg">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Sticky Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <a href="index.html" class="brand-wrapper">
+        <img id="college-crest-img" src="assets/logo.png" alt="SBTET Logo" class="college-crest">
+        <div class="brand-text">
+          <h1 id="college-name-display">SRI VENKATESWARA GOVERNMENT POLYTECHNIC (SVGP)</h1>
+          <p>Student No-Dues Clearance Portal</p>
+        </div>
+      </a>
+
+      <div class="header-actions">
+        <button class="theme-toggle-btn" onclick="API.toggleTheme()" title="Toggle Light/Dark Theme">🌙 Dark</button>
+        <div id="student-logged-in-badge" style="display:none;" class="user-badge">
+          🎓 <span id="student-badge-name">Student</span> (<span id="student-badge-pin">PIN</span>)
+          <button class="btn btn-sm btn-secondary" style="margin-left:0.5rem;" onclick="API.logout('student.html')">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+
+
+    <!-- Auth View (Shown when not logged in) -->
+    <div id="auth-section" style="max-width: 480px; margin: 2rem auto;">
+      <div class="card">
+        <div class="tabs-nav" style="justify-content: center; margin-bottom: 1.5rem;">
+          <button class="tab-btn active" id="tab-login" onclick="switchAuthTab('login')">Student Login</button>
+          <button class="tab-btn" id="tab-register" onclick="switchAuthTab('register')">New Registration</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="student-login-form">
+          <div class="form-group">
+            <label for="login-pin">Student PIN (Permanent Identification Number)</label>
+            <input type="text" id="login-pin" class="form-control" placeholder="e.g. 23018-CM-001" required>
+          </div>
+          <div class="form-group">
+            <label for="login-name">Student Full Name (Case-insensitive)</label>
+            <input type="text" id="login-name" class="form-control" placeholder="Enter student full name" required>
+          </div>
+          <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem;">
+            * Verified against SVGP college master records imported by Clerk.
+          </p>
+          <button type="submit" class="btn btn-primary btn-block" id="btn-login-submit">Login to Portal</button>
+        </form>
+
+        <!-- Registration Form -->
+        <form id="student-register-form" style="display:none;">
+          <div class="form-group">
+            <label for="reg-pin">Student PIN (Primary Key)</label>
+            <input type="text" id="reg-pin" class="form-control" placeholder="e.g. 23018-CM-001" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-name">Student Full Name (Case-insensitive)</label>
+            <input type="text" id="reg-name" class="form-control" placeholder="Full name as registered in college" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-dept">Course / Department</label>
+            <select id="reg-dept" class="form-control" required>
+              <option value="">-- Select Branch / Course --</option>
+            </select>
+          </div>
+          <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem;">
+            * Your details must already exist in the college master records imported by the Clerk.
+          </p>
+          <button type="submit" class="btn btn-primary btn-block" id="btn-register-submit">Register Account</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Dashboard View (Shown after login) -->
+    <div id="dashboard-section" style="display:none;">
+      
+      <!-- Student Profile Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Student Clearance Record</h2>
+          <span id="overall-status-badge" class="badge badge-pending">Loading...</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; font-size: 0.9rem;">
+          <div><strong style="color:var(--text-secondary);">Student Name:</strong> <span id="dash-student-name">...</span></div>
+          <div><strong style="color:var(--text-secondary);">PIN:</strong> <span id="dash-student-pin" style="font-family:var(--font-mono); color:var(--accent-gold);">...</span></div>
+          <div><strong style="color:var(--text-secondary);">Admission No:</strong> <span id="dash-admission-no">...</span></div>
+          <div><strong style="color:var(--text-secondary);">Course / Branch:</strong> <span id="dash-course-branch">...</span></div>
+          <div><strong style="color:var(--text-secondary);">Father's / Guardian's Name:</strong> <span id="dash-father-name">...</span></div>
+          <div><strong style="color:var(--text-secondary);">Date of Birth (DOB):</strong> <span id="dash-dob">...</span></div>
+          <div><strong style="color:var(--text-secondary);">Nationality / Religion:</strong> <span id="dash-nat-rel">...</span></div>
+          <div><strong style="color:var(--text-secondary);">Admission Date:</strong> <span id="dash-doa">...</span></div>
+          <div><strong style="color:var(--text-secondary);">T. Number:</strong> <span id="dash-t-no" style="font-weight:bold; color:var(--accent-gold);">...</span></div>
+        </div>
+      </div>
+
+      <!-- No-Dues Action Banner (If not yet submitted) -->
+      <div id="no-dues-prompt-card" class="card" style="display:none; border-left: 4px solid var(--accent-gold); text-align:center; padding: 2rem;">
+        <h3 style="margin-bottom:0.5rem;">Ready to Initiate No-Dues Clearance?</h3>
+        <p style="color:var(--text-secondary); max-width:600px; margin:0 auto 1.5rem;">
+          Submitting a clearance request will notify all respective online and physical departments to review your records.
+        </p>
+        <button id="btn-submit-nodues" class="btn btn-primary" onclick="submitNoDues()">
+          🚀 Submit No-Dues Clearance Request
+        </button>
+      </div>
+
+      <!-- Department Clearances Tracker -->
+      <div id="tracker-section" class="card" style="display:none;">
+        <div class="card-header">
+          <h3>Department-wise Clearance Status</h3>
+          <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+            <button class="btn btn-sm btn-secondary" onclick="loadDashboard()">🔄 Refresh Status</button>
+          </div>
+        </div>
+        <div id="department-grid" class="clearance-grid">
+          <!-- Dynamically populated department cards -->
+        </div>
+      </div>
+
+      <!-- Verified Student Master Dossier (Read-Only) -->
+      <div id="certificate-section" class="card" style="display:none; border-top: 4px solid var(--status-approved);">
+        <div class="card-header">
+          <div>
+            <h3>Official Clearance Dossier &amp; Academic Details (Read-Only)</h3>
+            <p style="font-size:0.8rem; color:var(--text-secondary);">Verified institutional record for Transfer and Conduct Certificate processing by Clerk.</p>
+          </div>
+          <div id="cert-view-btn-container"></div>
+        </div>
+
+        <div id="cert-details-container" style="background:var(--bg-surface); padding:1.2rem; border-radius:var(--radius-sm); margin-bottom:1rem;">
+          <!-- Populated dynamically -->
+        </div>
+
+        <div class="due-alert-box" style="background: rgba(70, 146, 199, 0.1); border-color: rgba(70, 146, 199, 0.3);">
+          <span style="color:var(--accent-gold); font-weight:600;">ℹ️ Official Issuance Notice:</span>
+          <span style="color:var(--text-secondary); font-size:0.85rem; margin-left:0.4rem;">
+            Official printed Transfer Certificates (TC) and Study &amp; Conduct Certificates are issued exclusively by the Administrative Office with official college crest and Principal's signature.
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/student.js"></script>
+</body>
+</html>
+

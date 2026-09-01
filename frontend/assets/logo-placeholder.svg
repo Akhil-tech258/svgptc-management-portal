@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="50%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Outer Shield -->
+  <path d="M 60,10 L 98,24 L 98,62 C 98,86 78,104 60,112 C 42,104 22,86 22,62 L 22,24 Z" 
+        fill="url(#shieldGrad)" stroke="url(#goldGrad)" stroke-width="3" />
+  
+  <!-- Inner Laurel / Rays -->
+  <path d="M 60,20 L 90,32 L 90,62 C 90,81 74,96 60,103 C 46,96 30,81 30,62 L 30,32 Z" 
+        fill="none" stroke="#f59e0b" stroke-opacity="0.3" stroke-width="1.5" stroke-dasharray="3,2" />
+        
+  <!-- Academic Torch / Book Icon -->
+  <g transform="translate(42, 38) scale(0.6)">
+    <!-- Open Book -->
+    <path d="M 30,22 C 22,14 10,15 2,17 L 2,47 C 10,45 22,44 30,52 C 38,44 50,45 58,47 L 58,17 C 50,15 38,14 30,22 Z" 
+          fill="#fef3c7" stroke="#d97706" stroke-width="2" />
+    <line x1="30" y1="22" x2="30" y2="52" stroke="#d97706" stroke-width="2" />
+    
+    <!-- Torch Flame Above -->
+    <path d="M 30,0 C 34,7 38,11 35,16 C 33,13 32,12 30,12 C 28,12 27,13 25,16 C 22,11 26,7 30,0 Z" 
+          fill="url(#goldGrad)" />
+  </g>
+  
+  <!-- Star -->
+  <polygon points="60,82 62.5,89 70,89 64,93.5 66.5,100 60,95.5 53.5,100 56,93.5 50,89 57.5,89" 
+           fill="url(#goldGrad)" />
+</svg>

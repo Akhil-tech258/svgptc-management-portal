@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>svgptc management - Clerk Administration</title>
+  <meta property="og:title" content="svgptc management - Clerk Administration">
+  <meta property="og:description" content="College Clerk Administrative Dashboard for Student No-Dues and Certificate Issuance.">
+  <meta property="og:image" content="assets/clg.jpg">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Sticky Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <a href="index.html" class="brand-wrapper">
+        <img id="college-crest-img" src="assets/logo.png" alt="SBTET Logo" class="college-crest">
+        <div class="brand-text">
+          <h1 id="college-name-display">SRI VENKATESWARA GOVERNMENT POLYTECHNIC (SVGP)</h1>
+          <p>College Clerk Administrative Office</p>
+        </div>
+      </a>
+
+      <div class="header-actions">
+        <button class="theme-toggle-btn" onclick="API.toggleTheme()" title="Toggle Light/Dark Theme">🌙 Dark</button>
+        <div id="clerk-logged-in-badge" style="display:none;" class="user-badge">
+          🏛️ Clerk: <span id="clerk-badge-user" style="font-weight:bold; color:var(--accent-gold);">Admin</span>
+          <button class="btn btn-sm btn-secondary" style="margin-left:0.6rem;" onclick="API.logout('clerk.html')">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+
+    <!-- Auth View (Shown when not logged in) -->
+    <div id="auth-section" style="max-width: 450px; margin: 3rem auto;">
+      <div class="card">
+        <div class="card-header" style="text-align: center; border-bottom: none;">
+          <h2 style="width: 100%;">Clerk Administrator Login</h2>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); text-align: center; margin-bottom: 1.5rem;">
+          Authorized Clerk personnel only. Secure administrative portal.
+        </p>
+
+        <form id="clerk-login-form">
+          <div class="form-group">
+            <label for="clerk-username">Clerk Username</label>
+            <input type="text" id="clerk-username" class="form-control" placeholder="Enter Clerk Username" required>
+          </div>
+          <div class="form-group">
+            <label for="clerk-password">Password</label>
+            <div class="password-input-group">
+              <input type="password" id="clerk-password" class="form-control" placeholder="Enter Password" required>
+              <button type="button" class="password-toggle-btn" onclick="API.togglePassword('clerk-password', this)" title="Toggle Password Visibility">👁️</button>
+            </div>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-block" id="btn-clerk-login" style="margin-top:1.5rem;">
+            🔐 Sign In to Administrative Console
+          </button>
+        </form>
+      </div>
+    </div>
+
+
+
+    <!-- Admin Dashboard View (Shown after login) -->
+    <div id="dashboard-section" style="display: none;">
+
+      <!-- College-Wide Stats Counters -->
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Master Students</div>
+          <div class="stat-value" id="stat-total-master">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Registered Students</div>
+          <div class="stat-value" id="stat-reg-students" style="color:var(--accent-gold);">0</div>
+        </div>
+        <div class="stat-box" onclick="switchClerkTab('departments')" style="cursor: pointer; border: 1px solid var(--accent-blue);" title="Click to view all college departments">
+          <div class="stat-label" style="color:var(--accent-blue);">Total Departments ↗</div>
+          <div class="stat-value" id="stat-total-departments" style="color:var(--accent-blue);">0</div>
+        </div>
+        <div class="stat-box" onclick="switchClerkTab('faculty')" style="cursor: pointer; border: 1px solid var(--accent-gold);" title="Click to view all faculty incharge accounts">
+          <div class="stat-label" style="color:var(--accent-gold);">Faculty Incharges ↗</div>
+          <div class="stat-value" id="stat-total-faculty" style="color:var(--accent-gold);">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">In-Progress No-Dues</div>
+          <div class="stat-value" id="stat-pending-nodues" style="color:var(--status-pending);">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Completed No-Dues</div>
+          <div class="stat-value" id="stat-completed-nodues" style="color:var(--status-approved);">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Active College Dues</div>
+          <div class="stat-value" id="stat-active-dues" style="color:var(--status-due);">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Certificates Issued</div>
+          <div class="stat-value" id="stat-certs-issued">0</div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="tabs-nav">
+        <button class="tab-btn active" id="tab-overview" onclick="switchClerkTab('overview')">📊 Overview Dashboard</button>
+        <button class="tab-btn" id="tab-excel" onclick="switchClerkTab('excel')">📁 Student Master &amp; Import <span class="tab-badge" id="tab-badge-master" style="background:var(--accent-gold); margin-left:0.3rem;">0</span></button>
+        <button class="tab-btn" id="tab-certificates" onclick="switchClerkTab('certificates')">📜 Certificate Management &amp; Lock</button>
+        <button class="tab-btn" id="tab-physical" onclick="switchClerkTab('physical')">🏛️ Physical Clearances</button>
+        <button class="tab-btn" id="tab-faculty" onclick="switchClerkTab('faculty')">👥 Faculty Clearance Roles <span class="tab-badge" id="tab-badge-faculty" style="background:#10b981; margin-left:0.3rem;">0</span></button>
+        <button class="tab-btn" id="tab-departments" onclick="switchClerkTab('departments')">🏛️ Academic Departments <span class="tab-badge" id="tab-badge-branches" style="background:#3b82f6; margin-left:0.3rem;">9</span></button>
+      </div>
+
+      <!-- TAB 0: REAL-TIME OVERVIEW DASHBOARD -->
+      <div id="pane-overview" class="tab-pane">
+        <div class="card" style="border-top: 4px solid var(--accent-primary);">
+          <div class="card-header" style="flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <h3>🏛️ Real-Time Institutional Operations Dashboard</h3>
+              <p style="font-size:0.82rem; color:var(--text-secondary); margin-top:0.2rem;">
+                Live operational intelligence: Academic Departments (9 Diploma Branches), Faculty Clearance Roles (8 Sections), and Student Clearance metrics.
+              </p>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="loadClerkDashboard()">
+              🔄 Refresh Real-Time Data
+            </button>
+          </div>
+
+          <!-- Quick Navigation Matrix -->
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem;">
+            <div class="card" style="border-left: 4px solid #3b82f6; cursor: pointer;" onclick="switchClerkTab('departments')">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <h4 style="margin:0 0 0.2rem 0; color:var(--text-primary);">🏛️ Academic Departments</h4>
+                  <p style="margin:0; font-size:0.8rem; color:var(--text-secondary);">9 Diploma Engineering &amp; Pharmacy Courses (CIVIL, MECH, EEE, ECE, CME, BME, CHE, ECE-II, PHARM).</p>
+                </div>
+                <button class="btn btn-sm btn-secondary" onclick="switchClerkTab('departments')">Manage &rarr;</button>
+              </div>
+            </div>
+
+            <div class="card" style="border-left: 4px solid #10b981; cursor: pointer;" onclick="switchClerkTab('faculty')">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <h4 style="margin:0 0 0.2rem 0; color:var(--text-primary);">👥 Faculty Clearance Roles</h4>
+                  <p style="margin:0; font-size:0.8rem; color:var(--text-secondary);">8 Institutional Clearance Roles (Accounts, Hostel, Library, Scholarship, Physical Director, Labs, NSS/NCC).</p>
+                </div>
+                <button class="btn btn-sm btn-secondary" onclick="switchClerkTab('faculty')">Manage &rarr;</button>
+              </div>
+            </div>
+
+            <div class="card" style="border-left: 4px solid var(--accent-gold); cursor: pointer;" onclick="switchClerkTab('excel')">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <h4 style="margin:0 0 0.2rem 0; color:var(--text-primary);">📁 Enrolled Student Master</h4>
+                  <p style="margin:0; font-size:0.8rem; color:var(--text-secondary);">Bulk import student rosters or manage student verification status.</p>
+                </div>
+                <button class="btn btn-sm btn-secondary" onclick="switchClerkTab('excel')">View &rarr;</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Faculty Clearance Roles Status -->
+          <div style="margin-top: 2rem;">
+            <h4 style="margin-bottom: 0.8rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+              <span>📋</span> Live Faculty Clearance Roles &amp; Incharge Status
+            </h4>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Clearance Role Name</th>
+                    <th>Scope</th>
+                    <th>Clearance Mode</th>
+                    <th>Assigned Incharge Username</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="overview-clearance-roles-body">
+                  <!-- Dynamically populated from live DB -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- TAB 1: EXCEL MASTER IMPORT & STUDENT MANAGEMENT -->
+      <div id="pane-excel" class="tab-pane" style="display: none;">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>Student Master Data &amp; Bulk Enrollment</h3>
+              <p style="font-size:0.82rem; color:var(--text-secondary); margin-top:0.2rem;">
+                Enroll individual students directly or bulk import via Microsoft Excel (.xlsx, .xls).
+              </p>
+            </div>
+            <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+              <button class="btn btn-sm btn-primary" onclick="openAddSingleStudentModal()">
+                + Add Single Student
+              </button>
+            </div>
+          </div>
+
+
+          <!-- Modern High-Engagement Drag & Drop Target Area -->
+          <div id="excel-drop-zone" class="modern-drop-zone" onclick="document.getElementById('excel-file-input').click()">
+            <input type="file" id="excel-file-input" accept=".xlsx, .xls" style="display: none;" onchange="handleExcelFileSelected(event)">
+            
+            <div class="drop-icon-circle">
+              <span id="drop-icon-symbol">📊</span>
+            </div>
+            
+            <h4 class="drop-headline" id="drop-headline-text">Drag &amp; Drop Student Excel Workbook Here</h4>
+            <p class="drop-subtext" id="drop-subtext-text">
+              Drop any student spreadsheet (.xlsx, .xls) directly into this area. Dynamic header detection automatically identifies column mappings and validates every row.
+            </p>
+            
+            <div class="drop-divider">
+              <span>OR</span>
+            </div>
+
+            <button type="button" class="btn btn-primary drop-browse-button" onclick="event.stopPropagation(); document.getElementById('excel-file-input').click()">
+              <span>📂</span> Choose Excel File from Device
+            </button>
+            
+            <div style="margin-top: 1.2rem; font-size: 0.78rem; color: var(--text-muted);">
+              Supports files up to 10MB • Compatible with all polytechnic/SBTET spreadsheet templates
+            </div>
+          </div>
+
+          <!-- File Selected Status Card -->
+          <div id="file-selected-status-card" style="display: none;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <div style="font-size: 2.4rem;">📗</div>
+              <div>
+                <div style="font-weight: 700; font-size: 1rem; color: var(--text-primary);" id="selected-file-name">filename.xlsx</div>
+                <div style="font-size: 0.82rem; color: var(--text-muted);" id="selected-file-meta">10.4 KB • Analyzing &amp; validating student rows...</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.8rem; align-items: center;">
+              <span id="file-status-indicator" class="badge badge-pending">Validating...</span>
+              <button class="btn btn-sm btn-secondary" onclick="resetSelectedFile()">Replace File</button>
+            </div>
+          </div>
+
+          <!-- Preview & Validation Results Box (Visible after file analysis) -->
+          <div id="excel-preview-box" style="display: none;">
+            <div class="card-header">
+              <h4>Validation Preview</h4>
+              <button class="btn btn-success" id="btn-commit-import" onclick="commitImport()">
+                ✓ Confirm &amp; Commit Valid Rows to Database
+              </button>
+            </div>
+
+            <!-- Summary Chips -->
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+              <div class="user-badge">Total Rows: <strong id="preview-total" style="margin-left:0.3rem;">0</strong></div>
+              <div class="user-badge" style="border-color: var(--status-approved);">Valid Rows: <strong id="preview-valid" style="color:var(--status-approved); margin-left:0.3rem;">0</strong></div>
+              <div class="user-badge" style="border-color: var(--status-due);">Rejected Rows: <strong id="preview-rejected" style="color:var(--status-due); margin-left:0.3rem;">0</strong></div>
+              <div class="user-badge">New Records: <strong id="preview-new" style="margin-left:0.3rem;">0</strong></div>
+              <div class="user-badge">Update Existing: <strong id="preview-updates" style="margin-left:0.3rem;">0</strong></div>
+            </div>
+
+            <!-- Rejected Rows Notice -->
+            <div id="rejected-rows-table-box" style="margin-bottom: 1.5rem; display: none;">
+              <h5 style="color: var(--status-due); margin-bottom: 0.5rem;">⚠️ Rejected Rows &amp; Validation Reasons (Partial rows not saved):</h5>
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Excel Row #</th>
+                      <th>PIN</th>
+                      <th>Student Name</th>
+                      <th>Rejection Reasons</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rejected-rows-body">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Valid Rows Preview -->
+            <div>
+              <h5>Valid Rows Preview (Ready for insertion/update):</h5>
+              <div class="table-responsive" style="max-height: 350px;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Row #</th>
+                      <th>Action</th>
+                      <th>PIN</th>
+                      <th>Student Name</th>
+                      <th>Admission No</th>
+                      <th>Course/Branch</th>
+                      <th>DOB</th>
+                      <th>Admission Date</th>
+                    </tr>
+                  </thead>
+                  <tbody id="valid-rows-body">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Enrolled Student Master Directory & Search -->
+        <div class="card" style="margin-top: 2rem;">
+          <div class="card-header">
+            <div>
+              <h3>Enrolled Student Master Directory</h3>
+              <p style="font-size:0.82rem; color:var(--text-secondary); margin-top:0.2rem;">
+                Search by Student PIN, Name, or Branch to view details, clearance status, or edit student master records.
+              </p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; width: 100%; max-width: 620px; flex-wrap: wrap;">
+              <input type="text" id="master-search-input" class="form-control" style="flex:1; min-width:180px;" placeholder="Search by PIN, Name, or Branch..." onkeyup="if(event.key==='Enter') searchMasterStudents()">
+              <button class="btn btn-primary" onclick="searchMasterStudents()">🔍 Search</button>
+              <button class="btn btn-secondary" onclick="resetMasterSearch()">Reset</button>
+              <button class="btn btn-danger" style="background:#dc2626;" onclick="purgeAllStudentData()">🗑️ Purge All Student Data</button>
+            </div>
+          </div>
+
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>PIN</th>
+                  <th>Admission No</th>
+                  <th>Student Name</th>
+                  <th>Father / Guardian Name</th>
+                  <th>Branch / Program</th>
+                  <th>DOB</th>
+                  <th>Admission Date</th>
+                  <th>No-Dues Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="master-students-table-body">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TAB 2: CERTIFICATE MANAGEMENT & LOCK -->
+      <div id="pane-certificates" class="tab-pane" style="display: none;">
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>Transfer &amp; Study/Conduct Certificate Generation</h3>
+              <p style="font-size:0.82rem; color:var(--text-secondary); margin-top:0.2rem;">
+                Workflow: Dues Cleared &rarr; Enter Certificate Data &rarr; Final Verify &amp; Lock &rarr; Generate Versioned Certificate.
+              </p>
+            </div>
+            <button class="btn btn-sm btn-secondary" onclick="loadCertificateStudents()">🔄 Refresh</button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>PIN</th>
+                  <th>Student Name</th>
+                  <th>Course / Branch</th>
+                  <th>No-Dues Status</th>
+                  <th>Leaving Date</th>
+                  <th>Fees Paid</th>
+                  <th>Lock Status</th>
+                  <th>Current Version</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="cert-students-body">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: PHYSICAL CLEARANCES -->
+      <div id="pane-physical" class="tab-pane" style="display: none;">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>Physical Department Clearances</h3>
+              <p style="font-size:0.82rem; color:var(--text-secondary); margin-top:0.2rem;">
+                Departments configured as "Physical" (e.g. Library) are completed in person and recorded here by the Clerk.
+              </p>
+            </div>
+          </div>
+
+          <form id="record-physical-form" onsubmit="recordPhysicalClearance(event)" style="max-width: 600px; background:var(--bg-surface); padding:1.5rem; border-radius:var(--radius-sm); margin-bottom: 2rem;">
+            <div class="form-group">
+              <label for="phys-student-pin">Student PIN *</label>
+              <input type="text" id="phys-student-pin" class="form-control" placeholder="e.g. 24018-CM-044" required>
+            </div>
+            <div class="form-group">
+              <label for="phys-department-id">Physical Department *</label>
+              <select id="phys-department-id" class="form-control" required>
+                <!-- Populated with physical departments -->
+              </select>
+            </div>
+            <button type="submit" class="btn btn-success" id="btn-save-physical">
+              ✓ Record Physical Approval
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- TAB 4: FACULTY CLEARANCE ROLES & INCHARGES -->
+      <div id="pane-faculty" class="tab-pane" style="display: none;">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>👥 Faculty Clearance Roles &amp; Incharge Accounts</h3>
+              <p style="font-size:0.82rem; color:var(--text-secondary); margin-top:0.2rem;">
+                Manage the 8 institutional clearance roles (Accounts, Hostel, Library, Scholarship, Physical Director, Physics Lab, Chemistry Lab, NSS/NCC) and configure incharge access.
+              </p>
+            </div>
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+              <!-- Filter Buttons -->
+              <div class="btn-group" style="display:inline-flex; border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--border-color);">
+                <button type="button" id="fac-filter-all" class="btn btn-sm btn-primary" onclick="filterFacultyScope('ALL_FILTER')" style="border-radius:0;">🔘 All Roles</button>
+                <button type="button" id="fac-filter-common" class="btn btn-sm btn-secondary" onclick="filterFacultyScope('COMMON')" style="border-radius:0;">🌐 Common Roles</button>
+                <button type="button" id="fac-filter-branch" class="btn btn-sm btn-secondary" onclick="filterFacultyScope('BRANCH')" style="border-radius:0;">🏛️ Branch Specific Roles</button>
+              </div>
+              <button class="btn btn-sm btn-primary" onclick="openCreateFacultyModal()">+ New Faculty Incharge</button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Clearance Role / Section</th>
+                  <th>Branch Scope</th>
+                  <th>Clearance Mode</th>
+                  <th>Assigned Username</th>
+                  <th>Status</th>
+                  <th>Scope Actions</th>
+                  <th>Account Actions</th>
+                </tr>
+              </thead>
+              <tbody id="faculty-accounts-body">
+                <!-- Populated dynamically from live DB -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: ACADEMIC DEPARTMENTS & BRANCHES -->
+      <div id="pane-departments" class="tab-pane" style="display: none;">
+        
+        <!-- Academic Branches / Programs Management Card -->
+        <div class="card" style="border-left: 4px solid var(--accent-gold); margin-bottom: 2rem;">
+          <div class="card-header">
+            <div>
+              <h3>🏛️ Academic Departments &amp; Polytechnic Branches (9 Courses)</h3>
+              <p style="font-size:0.82rem; color:var(--text-secondary); margin-top:0.2rem;">
+                Official Diploma engineering and pharmacy academic branches offered at SVGP Tirupati (CIVIL, MECH, EEE, ECE, CME, BME, CHE, ECE-II, PHARM).
+              </p>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="openAddBranchModal()">+ Add New Branch</button>
+          </div>
+
+          <div id="branches-chips-container" style="display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem;">
+            <!-- Populated dynamically with branch chips -->
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Branch Code</th>
+                  <th>Branch / Program Full Name</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="branches-table-body">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Clearance Sections / Departments Configuration Card -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>⚙️ Faculty Clearance Sections Configuration</h3>
+              <p style="font-size:0.82rem; color:var(--text-secondary); margin-top:0.2rem;">
+                Configure Online vs Physical clearance mode and whether the role applies to All Branches (Common) or a Specific Branch.
+              </p>
+            </div>
+            <div style="display:flex; gap:0.5rem;">
+              <select id="filter-dept-branch" class="form-control" style="width: auto; padding: 0.4rem 0.6rem; font-size:0.85rem;" onchange="filterDeptsByBranch(this.value)">
+                <option value="ALL">All Branches &amp; Common</option>
+              </select>
+              <button class="btn btn-sm btn-primary" onclick="openAddDeptModal()">+ Add Clearance Section</button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Clearance Section Name</th>
+                  <th>Applicable Branch</th>
+                  <th>Clearance Mode</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="departments-table-body">
+                <!-- Populated dynamically from live DB -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+
+    <!-- MODAL: EDIT CERTIFICATE DATA -->
+    <div id="modal-edit-cert" class="modal-backdrop" style="display: none;">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3>Edit Certificate Data</h3>
+          <button class="modal-close" onclick="closeEditCertModal()">&times;</button>
+        </div>
+        <form id="form-edit-cert" onsubmit="submitCertData(event)">
+          <div class="modal-body">
+            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1.2rem;">
+              Editing details for <strong id="cert-modal-student-name">Student</strong> (PIN: <span id="cert-modal-pin" style="font-family:var(--font-mono); color:var(--accent-gold);"></span>).
+            </p>
+
+            <div class="form-group">
+              <label for="cert-date-of-leaving">Date of Leaving (Text String, e.g. "May/June 2026") *</label>
+              <input type="text" id="cert-date-of-leaving" class="form-control" placeholder="May/June 2026" required>
+            </div>
+
+            <div class="form-group">
+              <label for="cert-fees-paid">College Fees Paid *</label>
+              <select id="cert-fees-paid" class="form-control" required>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="cert-promotion-status">Whether Qualified for Promotion / Class (Free Text) *</label>
+              <input type="text" id="cert-promotion-status" class="form-control" placeholder="e.g. Passed Diploma in First Class with Distinction" required>
+            </div>
+
+            <div class="form-group">
+              <label for="cert-conduct">Conduct &amp; Character *</label>
+              <select id="cert-conduct" class="form-control" onchange="toggleConductCustomInput(this.value)" required>
+                <option value="Good">Good</option>
+                <option value="Satisfactory">Satisfactory</option>
+                <option value="Poor">Poor</option>
+                <option value="Other">Other (Specify Custom Wording)</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="group-conduct-custom" style="display: none;">
+              <label for="cert-conduct-custom">Custom Conduct &amp; Character Wording</label>
+              <input type="text" id="cert-conduct-custom" class="form-control" placeholder="e.g. Exemplary and Highly Commendable">
+            </div>
+
+            <p style="font-size:0.78rem; color:var(--text-muted);">
+              * Note: Saving updates the draft certificate data. You must perform "Final Verify &amp; Lock" before generating certificates.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeEditCertModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="btn-save-cert-data">Save Certificate Data</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: CERTIFICATE AUDIT HISTORY -->
+    <div id="modal-audit-history" class="modal-backdrop" style="display: none;">
+      <div class="modal-dialog" style="max-width: 750px;">
+        <div class="modal-header">
+          <h3>Certificate Generation History &amp; Versions</h3>
+          <button class="modal-close" onclick="closeAuditModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">
+            Student PIN: <strong id="audit-modal-pin" style="font-family:var(--font-mono); color:var(--accent-gold);"></strong>. Superseded versions remain internal Clerk records.
+          </p>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Version</th>
+                  <th>Generated Date</th>
+                  <th>Generated By</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="audit-table-body">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeAuditModal()">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: CREATE FACULTY ACCOUNT -->
+    <div id="modal-create-faculty" class="modal-backdrop" style="display: none;">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3>Create Faculty Incharge Account</h3>
+          <button class="modal-close" onclick="closeCreateFacultyModal()">&times;</button>
+        </div>
+        <form id="form-create-faculty" onsubmit="submitCreateFaculty(event)">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="new-fac-dept">Assigned Department *</label>
+              <select id="new-fac-dept" class="form-control" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="new-fac-username">Incharge Username (Flexible unique identifier) *</label>
+              <input type="text" id="new-fac-username" class="form-control" placeholder="e.g. faculty_physics" required>
+            </div>
+            <div class="form-group">
+              <label for="new-fac-password">Initial Password *</label>
+              <div class="password-input-group">
+                <input type="password" id="new-fac-password" class="form-control" placeholder="••••••••" required>
+                <button type="button" class="password-toggle-btn" onclick="API.togglePassword('new-fac-password', this)" title="Toggle Password Visibility">👁️</button>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeCreateFacultyModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Create Account</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: RESET FACULTY PASSWORD -->
+    <div id="modal-reset-faculty-pass" class="modal-backdrop" style="display: none;">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3>Reset Faculty Password</h3>
+          <button class="modal-close" onclick="closeResetPassModal()">&times;</button>
+        </div>
+        <form id="form-reset-pass" onsubmit="submitResetFacultyPassword(event)">
+          <div class="modal-body">
+            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">
+              Resetting password for: <strong id="reset-fac-username">faculty</strong>
+            </p>
+            <div class="form-group">
+              <label for="reset-new-password">New Password *</label>
+              <div class="password-input-group">
+                <input type="password" id="reset-new-password" class="form-control" placeholder="••••••••" required minlength="4">
+                <button type="button" class="password-toggle-btn" onclick="API.togglePassword('reset-new-password', this)" title="Toggle Password Visibility">👁️</button>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeResetPassModal()">Cancel</button>
+            <button type="submit" class="btn btn-danger">Update Password</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: SET FACULTY BRANCH SCOPE -->
+    <div id="modal-set-faculty-scope" class="modal-backdrop" style="display: none;">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3>🏛️ Make Faculty Branch-Separated</h3>
+          <button class="modal-close" onclick="closeSetFacultyScopeModal()">&times;</button>
+        </div>
+        <form id="form-set-faculty-scope" onsubmit="submitSetFacultyScope(event)">
+          <div class="modal-body">
+            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">
+              Select the specific SVGP diploma branch for: <strong id="scope-fac-username" style="color:var(--accent-gold);">faculty</strong>
+            </p>
+            <div class="form-group">
+              <label for="scope-branch-select">Select Diploma Branch / Course *</label>
+              <select id="scope-branch-select" class="form-control" required>
+                <!-- Populated dynamically with the 9 official branches -->
+              </select>
+            </div>
+            <p style="font-size:0.78rem; color:var(--text-muted);">
+              * Once set to branch-separated, this faculty member will only clear students enrolled in the selected branch.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeSetFacultyScopeModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Branch Scope</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: ADD BRANCH / PROGRAM -->
+    <div id="modal-add-branch" class="modal-backdrop" style="display: none;">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3>Add New College Branch / Program</h3>
+          <button class="modal-close" onclick="closeAddBranchModal()">&times;</button>
+        </div>
+        <form id="form-add-branch" onsubmit="submitAddBranch(event)">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="branch-code-input">Branch Code (Short identifier, e.g. MECH, CIVIL, AIML) *</label>
+              <input type="text" id="branch-code-input" class="form-control" placeholder="e.g. MECH" required uppercase style="text-transform:uppercase;">
+            </div>
+            <div class="form-group">
+              <label for="branch-name-input">Branch Full Name *</label>
+              <input type="text" id="branch-name-input" class="form-control" placeholder="e.g. Mechanical Engineering" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeAddBranchModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Create Branch</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: ADD DEPARTMENT -->
+    <div id="modal-add-dept" class="modal-backdrop" style="display: none;">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3>Add College Department</h3>
+          <button class="modal-close" onclick="closeAddDeptModal()">&times;</button>
+        </div>
+        <form id="form-add-dept" onsubmit="submitAddDepartment(event)">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="dept-name-input">Department Name *</label>
+              <input type="text" id="dept-name-input" class="form-control" placeholder="e.g. Mechanical Workshop / Surveying Lab" required>
+            </div>
+            <div class="form-group">
+              <label for="dept-branch-select">Applicable Branch / Scope *</label>
+              <select id="dept-branch-select" class="form-control" required>
+                <option value="ALL">All Branches (Common: e.g. Library, Accounts, Hostel, Physics, Chemistry)</option>
+                <!-- Populated dynamically with configured branches -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="dept-type-select">No-Dues Clearance Method *</label>
+              <select id="dept-type-select" class="form-control" required>
+                <option value="Online">Online (Managed via Faculty Account)</option>
+                <option value="Physical">Physical (Signed physically, recorded by Clerk)</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeAddDeptModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Department</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: ADD SINGLE STUDENT -->
+    <div id="modal-add-single-student" class="modal-backdrop" style="display: none;">
+      <div class="modal-dialog" style="max-width: 650px;">
+        <div class="modal-header">
+          <h3>Enroll Single Student Directly</h3>
+          <button class="modal-close" onclick="closeAddSingleStudentModal()">&times;</button>
+        </div>
+        <form id="form-add-single-student" onsubmit="submitAddSingleStudent(event)">
+          <div class="modal-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label for="single-pin-input">Student PIN *</label>
+              <input type="text" id="single-pin-input" class="form-control" placeholder="e.g. 23018-CE-001" required style="font-family:var(--font-mono); text-transform:uppercase;">
+            </div>
+            <div class="form-group">
+              <label for="single-adm-input">Admission No</label>
+              <input type="text" id="single-adm-input" class="form-control" placeholder="Optional (auto: ADM-PIN)">
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label for="single-name-input">Student Full Name *</label>
+              <input type="text" id="single-name-input" class="form-control" placeholder="e.g. Guntaka Yaswanth Kumar" required>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label for="single-father-input">Father / Guardian Name *</label>
+              <input type="text" id="single-father-input" class="form-control" placeholder="e.g. Guntaka Venkataramana" required>
+            </div>
+            <div class="form-group">
+              <label for="single-dob-input">Date of Birth (DD-MM-YYYY) *</label>
+              <input type="text" id="single-dob-input" class="form-control" placeholder="e.g. 12-05-2006" required pattern="\d{2}-\d{2}-\d{4}">
+            </div>
+            <div class="form-group">
+              <label for="single-doa-input">Date of Admission (DD-MM-YYYY) *</label>
+              <input type="text" id="single-doa-input" class="form-control" placeholder="e.g. 01-07-2023" required pattern="\d{2}-\d{2}-\d{4}">
+            </div>
+            <div class="form-group">
+              <label for="single-nat-input">Nationality</label>
+              <input type="text" id="single-nat-input" class="form-control" value="Indian" required>
+            </div>
+            <div class="form-group">
+              <label for="single-rel-input">Religion</label>
+              <input type="text" id="single-rel-input" class="form-control" value="Hindu" required>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label for="single-student-branch-select">Course / Branch *</label>
+              <select id="single-student-branch-select" class="form-control" required>
+                <!-- Populated dynamically with SVGP branches -->
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeAddSingleStudentModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Enroll Student</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: EDIT STUDENT MASTER DATA -->
+    <div id="modal-edit-master-student" class="modal-backdrop" style="display: none;">
+      <div class="modal-dialog" style="max-width: 650px;">
+        <div class="modal-header">
+          <h3>Edit Student Master Record</h3>
+          <button class="modal-close" onclick="closeEditMasterStudentModal()">&times;</button>
+        </div>
+        <form id="form-edit-master-student" onsubmit="submitEditMasterStudent(event)">
+          <div class="modal-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label>Student PIN</label>
+              <input type="text" id="edit-master-pin" class="form-control" readonly style="font-family:var(--font-mono); background:var(--bg-subtle);">
+            </div>
+            <div class="form-group">
+              <label for="edit-master-adm">Admission No *</label>
+              <input type="text" id="edit-master-adm" class="form-control" required>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label for="edit-master-name">Student Full Name *</label>
+              <input type="text" id="edit-master-name" class="form-control" required>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label for="edit-master-father">Father / Guardian Name *</label>
+              <input type="text" id="edit-master-father" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="edit-master-dob">Date of Birth (DD-MM-YYYY) *</label>
+              <input type="text" id="edit-master-dob" class="form-control" required pattern="\d{2}-\d{2}-\d{4}">
+            </div>
+            <div class="form-group">
+              <label for="edit-master-doa">Date of Admission (DD-MM-YYYY) *</label>
+              <input type="text" id="edit-master-doa" class="form-control" required pattern="\d{2}-\d{2}-\d{4}">
+            </div>
+            <div class="form-group">
+              <label for="edit-master-nat">Nationality *</label>
+              <input type="text" id="edit-master-nat" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="edit-master-rel">Religion *</label>
+              <input type="text" id="edit-master-rel" class="form-control" required>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label for="edit-master-branch">Course / Branch *</label>
+              <select id="edit-master-branch" class="form-control" required>
+                <!-- Populated dynamically with SVGP branches -->
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeEditMasterStudentModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save All Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="js/config.js?v=2.0"></script>
+  <script src="js/api.js?v=2.0"></script>
+  <script src="js/clerk.js?v=2.0"></script>
+</body>
+</html>

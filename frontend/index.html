@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>svgptc management - Student No-Dues & Certificate Portal</title>
+  
+  <!-- Open Graph / Facebook / LinkedIn Metadata -->
+  <meta property="og:title" content="svgptc management">
+  <meta property="og:description" content="Online Student No-Dues and Transfer Certificate Management System for Sri Venkateswara Government Polytechnic (SVGP), Tirupati.">
+  <meta property="og:image" content="assets/clg.jpg">
+  <meta property="og:url" content="https://svgp-nodues.onrender.com">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter / X Metadata -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="svgptc management">
+  <meta name="twitter:description" content="Online Student No-Dues and Transfer Certificate Management System for Sri Venkateswara Government Polytechnic (SVGP), Tirupati.">
+  <meta name="twitter:image" content="assets/clg.jpg">
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Sticky Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <a href="index.html" class="brand-wrapper">
+        <img id="college-crest-img" src="assets/logo.png" alt="SBTET Logo" class="college-crest">
+        <div class="brand-text">
+          <h1 id="college-name-display">SRI VENKATESWARA GOVERNMENT POLYTECHNIC (SVGP)</h1>
+          <p id="college-subtitle-display">Government Autonomous Institution | Tirupati, Andhra Pradesh</p>
+        </div>
+      </a>
+
+      <div class="header-actions">
+        <button class="theme-toggle-btn" onclick="API.toggleTheme()" title="Toggle Light/Dark Theme">🌙 Dark</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+
+
+    <!-- Mobile Recommendation Banner -->
+    <div id="desktop-recommend-banner" class="desktop-recommend-banner">
+      <span>📱 For a better experience, use the desktop site.</span>
+      <button class="desktop-banner-close" onclick="API.dismissDesktopBanner()" title="Dismiss">&times;</button>
+    </div>
+
+    <!-- Campus Showcase Hero -->
+    <section class="campus-hero-banner">
+      <div class="hero-left">
+        <div class="hero-gov-badge">
+          🏛️ Directorate of Technical Education, AP | SBTET Code: 018
+        </div>
+        <h2 class="hero-title">Sri Venkateswara Government Polytechnic</h2>
+        <div class="hero-location">
+          <span>📍</span> K.T. Road, Near Alipiri, Tirupati, Andhra Pradesh - 517507
+        </div>
+        <p class="hero-desc">
+          Established in 1957, SVGP Tirupati is one of Andhra Pradesh's most respected government autonomous polytechnic institutions. This official portal provides digitized student leaving clearances, faculty dues management, and verified Transfer and Study/Conduct Certificate generation.
+        </p>
+
+        <div class="hero-actions-row">
+          <a href="student.html" class="btn btn-primary">🎓 Student Clearance Portal &rarr;</a>
+          <a href="faculty.html" class="btn btn-secondary" style="border-color:var(--accent-gold); color:var(--accent-gold);">👨‍🏫 Faculty Incharge Portal &rarr;</a>
+          <a href="clerk.html" class="btn btn-secondary">🏛️ Clerk Administration &rarr;</a>
+        </div>
+
+        <div class="hero-stats-row">
+          <div class="hero-stat-item">
+            <span class="hero-stat-number">1957</span>
+            <span class="hero-stat-label">Year Established</span>
+          </div>
+          <div class="hero-stat-item">
+            <span class="hero-stat-number">9</span>
+            <span class="hero-stat-label">Diploma &amp; Pharmacy Programs</span>
+          </div>
+          <div class="hero-stat-item">
+            <span class="hero-stat-number">100%</span>
+            <span class="hero-stat-label">Digitized Clearance</span>
+          </div>
+          <div class="hero-stat-item">
+            <span class="hero-stat-number">SBTET</span>
+            <span class="hero-stat-label">Autonomous Board</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="campus-photo-card">
+          <img src="assets/clg.jpg" alt="Sri Venkateswara Government Polytechnic Campus, Tirupati" class="campus-photo-img">
+          <div class="campus-corner-badge">SVGP Tirupati Campus</div>
+          <div class="campus-photo-overlay">
+            <div class="campus-photo-title">SVGP Main Academic Campus</div>
+            <div class="campus-photo-sub">K.T. Road, Tirupati, Andhra Pradesh</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Official Programs Ribbon -->
+    <section class="programs-ribbon">
+      <div class="programs-ribbon-title">Academic Diploma &amp; Pharmacy Programs Offered at SVGP Tirupati</div>
+      <div class="programs-pills-container">
+        <span class="program-pill">📐 Civil Engineering (3 Yrs)</span>
+        <span class="program-pill">⚙️ Mechanical Engineering (3 Yrs)</span>
+        <span class="program-pill">⚡ Electrical &amp; Electronics (EEE - 3 Yrs)</span>
+        <span class="program-pill">📡 Electronics &amp; Communication (ECE - 3 Yrs)</span>
+        <span class="program-pill">💻 Computer Engineering (CME - 3 Yrs)</span>
+        <span class="program-pill">🧬 Biomedical Engineering (BME - 3 Yrs)</span>
+        <span class="program-pill">🧪 Chemical &amp; Sugar Technology (CHE - 3 Yrs)</span>
+        <span class="program-pill">📻 ECE Industry Integrated (ECE-II - 3 Yrs)</span>
+        <span class="program-pill">💊 D.Pharma (Pharmacy - 2 Yrs)</span>
+      </div>
+    </section>
+
+    <!-- Role Gateways Grid -->
+    <div class="portal-grid">
+      
+      <!-- Student Card -->
+      <div class="portal-card role-student">
+        <div>
+          <div class="portal-icon">🎓</div>
+          <h3>Student Portal</h3>
+          <p>Login with your permanent PIN and name to submit your No-Dues clearance request, track live department clearances, and view verified academic leaving records.</p>
+        </div>
+        <a href="student.html" class="btn btn-primary btn-block">Enter Student Portal &rarr;</a>
+      </div>
+
+      <!-- Faculty Card -->
+      <div class="portal-card role-faculty">
+        <div>
+          <div class="portal-icon">👨‍🏫</div>
+          <h3>Faculty Incharge</h3>
+          <p>Manage your assigned department or laboratory clearance queue, review pending student submissions, record dues, clear dues, and grant clearances.</p>
+        </div>
+        <a href="faculty.html" class="btn btn-secondary btn-block">Faculty Incharge Login &rarr;</a>
+      </div>
+
+      <!-- Clerk Card -->
+      <div class="portal-card role-clerk">
+        <div>
+          <div class="portal-icon">🏛️</div>
+          <h3>Clerk Administration</h3>
+          <p>Master student registration via Excel, department configurations, physical approvals, certificate data locking, and official document generation.</p>
+        </div>
+        <a href="clerk.html" class="btn btn-secondary btn-block">Clerk Admin Login &rarr;</a>
+      </div>
+
+    </div>
+
+    <!-- Keyboard Shortcuts Guide -->
+    <div class="card" style="margin-top: 2rem; background: var(--bg-surface);">
+      <div class="card-header">
+        <h3>⌨️ Useful Keyboard Shortcuts</h3>
+      </div>
+      <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; font-size: 0.85rem; color: var(--text-secondary);">
+        <div><span class="kbd-shortcut">Alt + H</span> : Go to Homepage</div>
+        <div><span class="kbd-shortcut">Alt + L</span> : Logout (when logged in)</div>
+        <div><span class="kbd-shortcut">Ctrl / ⌘ + K</span> : Focus search box</div>
+        <div><span class="kbd-shortcut">Esc</span> : Close menu or dialog</div>
+      </div>
+    </div>
+
+    <!-- Expandable FAQs Section -->
+    <section id="faqs" class="faq-section">
+      <div class="faq-header">
+        <h3>Frequently Asked Questions (FAQs)</h3>
+        <p>Everything you need to know about the SVGP Student No-Dues &amp; Certificate System</p>
+      </div>
+
+      <div class="faq-list">
+        
+        <!-- FAQ 1 -->
+        <div class="faq-item active">
+          <button type="button" class="faq-question-btn" onclick="API.toggleFaq(this.parentElement)">
+            <span>How do students register or login to the portal?</span>
+            <span class="faq-arrow-icon">▼</span>
+          </button>
+          <div class="faq-answer-pane">
+            Students log in directly using their official Diploma PIN (e.g. <code>23018-CM-001</code>) and Full Name as registered with the college. Student name matching is case-insensitive. Your details must already exist in the college master records imported by the Clerk.
+          </div>
+        </div>
+
+        <!-- FAQ 2 -->
+        <div class="faq-item">
+          <button type="button" class="faq-question-btn" onclick="API.toggleFaq(this.parentElement)">
+            <span>How does the No-Dues clearance request work?</span>
+            <span class="faq-arrow-icon">▼</span>
+          </button>
+          <div class="faq-answer-pane">
+            After logging into the Student Portal, click "Submit No-Dues Clearance Request". The system automatically routes your request to all 8 Common College Departments (Library, Accounts, Hostel, etc.) plus your specific branch laboratory incharges.
+          </div>
+        </div>
+
+        <!-- FAQ 3 -->
+        <div class="faq-item">
+          <button type="button" class="faq-question-btn" onclick="API.toggleFaq(this.parentElement)">
+            <span>What happens if a department logs a due against me?</span>
+            <span class="faq-arrow-icon">▼</span>
+          </button>
+          <div class="faq-answer-pane">
+            If an incharge records a pending book, lab equipment, or fee due, your card status changes to <strong style="color:var(--status-due);">Due Found</strong> with the specific violation reason and contact location. You must physically resolve the item with the respective incharge. Once cleared, they will approve it online.
+          </div>
+        </div>
+
+        <!-- FAQ 4 -->
+        <div class="faq-item">
+          <button type="button" class="faq-question-btn" onclick="API.toggleFaq(this.parentElement)">
+            <span>How often can a student send a reminder notification to faculty?</span>
+            <span class="faq-arrow-icon">▼</span>
+          </button>
+          <div class="faq-answer-pane">
+            Students can re-notify an incharge once every 48 hours for pending clearance requests to ensure prompt administrative review without spamming.
+          </div>
+        </div>
+
+        <!-- FAQ 5 -->
+        <div class="faq-item">
+          <button type="button" class="faq-question-btn" onclick="API.toggleFaq(this.parentElement)">
+            <span>What are the responsibilities of Faculty Incharges?</span>
+            <span class="faq-arrow-icon">▼</span>
+          </button>
+          <div class="faq-answer-pane">
+            Faculty incharges review clearance submissions for their assigned laboratory or department, issue official dues with fee amounts and violation notes, and grant 1-click approvals when all criteria are met.
+          </div>
+        </div>
+
+        <!-- FAQ 6 -->
+        <div class="faq-item">
+          <button type="button" class="faq-question-btn" onclick="API.toggleFaq(this.parentElement)">
+            <span>What does the Administrative Clerk do?</span>
+            <span class="faq-arrow-icon">▼</span>
+          </button>
+          <div class="faq-answer-pane">
+            The Clerk manages the master student database via Excel imports, records physical department approvals (e.g. Central Library), performs final academic verification, locks student records, and officially generates/prints Transfer and Conduct Certificates.
+          </div>
+        </div>
+
+        <!-- FAQ 7 -->
+        <div class="faq-item">
+          <button type="button" class="faq-question-btn" onclick="API.toggleFaq(this.parentElement)">
+            <span>Can students directly print their official TC and Conduct Certificate?</span>
+            <span class="faq-arrow-icon">▼</span>
+          </button>
+          <div class="faq-answer-pane">
+            No. Official Transfer and Conduct Certificates are legal institutional documents issued exclusively by the Administrative Clerk and Principal after full verification and seal affixation. Students can view their verified dossier status online.
+          </div>
+        </div>
+
+        <!-- FAQ 8 -->
+        <div class="faq-item">
+          <button type="button" class="faq-question-btn" onclick="API.toggleFaq(this.parentElement)">
+            <span>What should I do if my student record or personal detail is incorrect?</span>
+            <span class="faq-arrow-icon">▼</span>
+          </button>
+          <div class="faq-answer-pane">
+            If there is a discrepancy in your name, father's name, DOB, or admission number, visit the College Administrative Office physically with original Board marksheets and admission receipts to have the Clerk update your master record.
+          </div>
+        </div>
+
+        <!-- FAQ 9 -->
+        <div class="faq-item">
+          <button type="button" class="faq-question-btn" onclick="API.toggleFaq(this.parentElement)">
+            <span>How can I contact the institution for portal support or feedback?</span>
+            <span class="faq-arrow-icon">▼</span>
+          </button>
+          <div class="faq-answer-pane">
+            For technical issues or feedback regarding the online portal, please email our administrative support at <strong style="color:var(--accent-gold);">feedback@example.com</strong> or contact the SVGP Administrative Office during college working hours (10:00 AM - 5:00 PM).
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer with Feedback Placeholder -->
+  <footer style="text-align: center; padding: 2.5rem 1.5rem; color: var(--text-muted); font-size: 0.82rem; border-top: 1px solid var(--border-color); margin-top: 3rem;">
+    <p id="footer-college-info">Sri Venkateswara Government Polytechnic (SVGP), Tirupati | SBTET Code: 018</p>
+    <p style="margin-top: 0.4rem;">
+      Portal Support &amp; Feedback: <a href="mailto:feedback@example.com" style="color:var(--accent-gold); text-decoration:none;">feedback@example.com</a>
+    </p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.APP_CONFIG && window.APP_CONFIG.COLLEGE) {
+        document.getElementById('college-name-display').innerText = window.APP_CONFIG.COLLEGE.NAME;
+        document.getElementById('college-crest-img').src = window.APP_CONFIG.COLLEGE.LOGO_PATH;
+        document.getElementById('footer-college-info').innerText = `${window.APP_CONFIG.COLLEGE.NAME} | ${window.APP_CONFIG.COLLEGE.ADDRESS}`;
+      }
+    });
+  </script>
+</body>
+</html>
+
