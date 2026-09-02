@@ -72,13 +72,14 @@ async function startServer() {
     await db.initDB();
     await seed();
 
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`====================================================`);
       console.log(`  Student No-Dues & TC Generator Backend API`);
-      console.log(`  Running on: http://localhost:${PORT}`);
+      console.log(`  Running on: http://localhost:${PORT} (0.0.0.0:${PORT})`);
       console.log(`  Database:   ${db.isPostgres ? 'PostgreSQL (Production)' : 'SQLite (Local Dev)'}`);
       console.log(`====================================================`);
     });
+
   } catch (err) {
     console.error('Failed to initialize and start server:', err);
     process.exit(1);
