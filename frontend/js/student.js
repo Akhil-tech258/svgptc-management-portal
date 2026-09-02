@@ -172,8 +172,17 @@ async function loadDashboard() {
   const certSection = document.getElementById('certificate-section');
   const statusBadge = document.getElementById('overall-status-badge');
 
+  const progressCard = document.getElementById('clearance-progress-card');
+  const progressBar = document.getElementById('progress-meter-fill');
+  const progressBadge = document.getElementById('progress-summary-badge');
+  const step3Item = document.getElementById('step-3-item');
+  const step3Status = document.getElementById('step-3-status');
+  const step4Item = document.getElementById('step-4-item');
+  const step4Status = document.getElementById('step-4-status');
+
   if (!data.request) {
     // No request submitted yet
+    if (progressCard) progressCard.style.display = 'none';
     promptCard.style.display = 'block';
     trackerSection.style.display = 'none';
     certSection.style.display = 'none';
@@ -182,20 +191,49 @@ async function loadDashboard() {
   } else {
     promptCard.style.display = 'none';
     trackerSection.style.display = 'block';
+    if (progressCard) progressCard.style.display = 'block';
+
+    const totalDepts = data.clearances ? data.clearances.length : 0;
+    const approvedDepts = data.clearances ? data.clearances.filter(c => c.status === 'Approved').length : 0;
+    const dueDepts = data.clearances ? data.clearances.filter(c => c.status === 'Due Found').length : 0;
+    const percentage = totalDepts > 0 ? Math.round((approvedDepts / totalDepts) * 100) : 0;
+
+    if (progressBar) progressBar.style.width = `${percentage}%`;
+    if (progressBadge) {
+      progressBadge.innerText = `${approvedDepts} / ${totalDepts} Cleared (${percentage}%)`;
+      progressBadge.className = data.is_no_dues_completed ? 'badge badge-approved' : (dueDepts > 0 ? 'badge badge-due' : 'badge badge-pending');
+    }
 
     if (data.is_no_dues_completed) {
       statusBadge.className = 'badge badge-approved';
       statusBadge.innerText = 'No-Dues Completed';
       certSection.style.display = 'block';
+      if (step3Item) {
+        step3Item.className = 'step-item step-completed';
+        if (step3Status) step3Status.innerHTML = '<span style="color:var(--status-approved);">✓ All Cleared</span>';
+      }
+      if (step4Item) {
+        step4Item.className = 'step-item step-active';
+        if (step4Status) step4Status.innerHTML = '<span style="color:var(--accent-gold);">Ready for Issue</span>';
+      }
       renderCertificateDetails(data.certificate, data.student);
     } else {
       statusBadge.className = 'badge badge-pending';
       statusBadge.innerText = 'In Progress';
       certSection.style.display = 'none';
+      if (step3Item) {
+        step3Item.className = 'step-item step-active';
+        if (step3Status) step3Status.innerText = `${approvedDepts}/${totalDepts} Approved`;
+      }
+      if (step4Item) {
+        step4Item.className = 'step-item';
+        if (step4Status) step4Status.innerText = 'Pending Approvals';
+      }
     }
 
     renderClearances(data.clearances);
   }
+
 }
 
 function deriveTNo(pin) {

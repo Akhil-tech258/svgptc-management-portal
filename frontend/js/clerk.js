@@ -1732,4 +1732,50 @@ window.deleteSingleStudent = deleteSingleStudent;
 window.purgeAllStudentData = purgeAllStudentData;
 
 
+function exportMasterStudentsCSV() {
+  if (!cachedMasterStudents || cachedMasterStudents.length === 0) {
+    API.showToast('No student master records available to export.', 'info');
+    return;
+  }
+  const headers = [
+    { key: 'pin', label: 'Student PIN' },
+    { key: 'admission_no', label: 'Admission No' },
+    { key: 'student_name', label: 'Student Full Name' },
+    { key: 'father_name', label: 'Father / Guardian Name' },
+    { key: 'course_branch', label: 'Branch / Program' },
+    { key: 'dob', label: 'Date of Birth' },
+    { key: 'date_of_admission', label: 'Admission Date' },
+    { key: 'nationality', label: 'Nationality' },
+    { key: 'religion', label: 'Religion' },
+    { key: 'no_dues_status', label: 'No-Dues Status' }
+  ];
+  API.exportToCSV('SVGP_Student_Master_Roster.csv', cachedMasterStudents, headers);
+}
+
+function exportCertStudentsCSV() {
+  if (!cachedCertificateStudents || cachedCertificateStudents.length === 0) {
+    API.showToast('No certificate records available to export.', 'info');
+    return;
+  }
+  const headers = [
+    { key: 'pin', label: 'Student PIN' },
+    { key: 'admission_no', label: 'Admission No' },
+    { key: 'student_name', label: 'Student Name' },
+    { key: 'course_branch', label: 'Course / Branch' },
+    { key: 'no_dues_status', label: 'No-Dues Status' },
+    { key: 'date_of_leaving', label: 'Date of Leaving' },
+    { key: 'fees_paid', label: 'Fees Paid' },
+    { key: 'promotion_status', label: 'Promotion Status' },
+    { key: 'conduct_character', label: 'Conduct' },
+    { key: 'is_locked', label: 'Locked (1=Yes, 0=No)' },
+    { key: 'current_version', label: 'Current TC Version' }
+  ];
+  API.exportToCSV('SVGP_Transfer_Certificate_Clearance_List.csv', cachedCertificateStudents, headers);
+}
+
+window.exportMasterStudentsCSV = exportMasterStudentsCSV;
+window.exportCertStudentsCSV = exportCertStudentsCSV;
+
+
+
 

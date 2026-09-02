@@ -144,6 +144,40 @@
       </div>
 
 
+      <!-- Clearance Progress Bar & Step Tracker -->
+      <div id="clearance-progress-card" class="card" style="display:none; margin-bottom: 1.25rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.25rem;">
+          <h3 style="font-size:1.05rem; margin:0;">Clearance Milestone Progress</h3>
+          <span id="progress-summary-badge" class="badge badge-pending">0 / 8 Approved</span>
+        </div>
+        <div class="progress-meter">
+          <div id="progress-meter-fill" class="progress-meter-fill" style="width: 0%;"></div>
+        </div>
+
+        <div class="clearance-step-tracker">
+          <div id="step-1-item" class="step-item step-completed">
+            <div class="step-number">Step 1</div>
+            <div class="step-title">Master Enrolled</div>
+            <div class="step-status" style="color:var(--status-approved);">✓ Verified</div>
+          </div>
+          <div id="step-2-item" class="step-item step-completed">
+            <div class="step-number">Step 2</div>
+            <div class="step-title">Request Submitted</div>
+            <div id="step-2-status" class="step-status" style="color:var(--status-approved);">✓ Submitted</div>
+          </div>
+          <div id="step-3-item" class="step-item step-active">
+            <div class="step-number">Step 3</div>
+            <div class="step-title">Dept Clearances</div>
+            <div id="step-3-status" class="step-status">In Progress</div>
+          </div>
+          <div id="step-4-item" class="step-item">
+            <div class="step-number">Step 4</div>
+            <div class="step-title">TC Verification</div>
+            <div id="step-4-status" class="step-status">Pending Completion</div>
+          </div>
+        </div>
+      </div>
+
       <!-- Department Clearances Tracker -->
       <div id="tracker-section" class="card" style="display:none;">
         <div class="card-header">
@@ -156,6 +190,7 @@
           <!-- Dynamically populated department cards -->
         </div>
       </div>
+
 
       <!-- Verified Student Master Dossier (Read-Only) -->
       <div id="certificate-section" class="card" style="display:none; border-top: 4px solid var(--status-approved);">

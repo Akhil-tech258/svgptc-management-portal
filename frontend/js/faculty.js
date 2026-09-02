@@ -502,6 +502,22 @@ async function markDueCleared(dueId, pin) {
   }
 }
 
+function exportFacultyQueueCSV() {
+  if (!cachedStudents || cachedStudents.length === 0) {
+    API.showToast('No clearance requests available to export.', 'info');
+    return;
+  }
+  const headers = [
+    { key: 'student_pin', label: 'Student PIN' },
+    { key: 'student_name', label: 'Student Name' },
+    { key: 'admission_no', label: 'Admission No' },
+    { key: 'course_branch', label: 'Branch' },
+    { key: 'submitted_at', label: 'Submission Date' },
+    { key: 'clearance_status', label: 'Status' }
+  ];
+  API.exportToCSV('SVGP_Faculty_Clearance_Queue.csv', cachedStudents, headers);
+}
+
 // Window global bindings for all HTML onclick handlers
 window.approveStudent = approveStudent;
 window.clearDue = clearDue;
@@ -517,4 +533,6 @@ window.closeCreateDueModal = closeCreateDueModal;
 window.submitCreateDue = submitCreateDue;
 window.searchStudentForDue = searchStudentForDue;
 window.selectStudentForDue = selectStudentForDue;
+window.exportFacultyQueueCSV = exportFacultyQueueCSV;
+
 

@@ -107,9 +107,9 @@ const API = {
     }, duration);
   },
 
-  // Theme Management (Dark / Light)
+  // Theme Management (Default: Light / White Theme)
   getTheme() {
-    return localStorage.getItem('app_theme') || 'dark';
+    return localStorage.getItem('app_theme') || 'light';
   },
 
   setTheme(theme) {
@@ -127,10 +127,11 @@ const API = {
     const isLight = this.getTheme() === 'light';
     const btns = document.querySelectorAll('.theme-toggle-btn');
     btns.forEach(btn => {
-      btn.innerHTML = isLight ? '☀️ Light' : '🌙 Dark';
+      btn.innerHTML = isLight ? '🌙 Dark Mode' : '☀️ Light Mode';
       btn.title = `Currently in ${isLight ? 'Light' : 'Dark'} Mode. Click to toggle.`;
     });
   },
+
 
   initBranding() {
     if (!window.APP_CONFIG || !window.APP_CONFIG.COLLEGE) return;
@@ -247,6 +248,60 @@ const API = {
     tbody.innerHTML = html;
   },
 
+  // 1-Click CSV / Excel Export Helper
+  exportToCSV(filename, rows, headers = []) {
+    if (!rows || !rows.length) {
+      this.showToast('No data available to export.', 'info');
+      return;
+    }
+
+    const headerKeys = headers.length ? headers.map(h => h.key) : Object.keys(rows[0]);
+    const headerLabels = headers.length ? headers.map(h => h.label) : headerKeys;
+
+    const csvLines = [];
+    csvLines.push(headerLabels.map(label => `"${String(label).replace(/"/g, '""')}"`).join(','));
+
+    rows.forEach(row => {
+      const line = headerKeys.map(key => {
+        const val = row[key] !== undefined && row[key] !== null ? row[key] : '';
+        return `"${String(val).replace(/"/g, '""')}"`;
+      }).join(',');
+      csvLines.push(line);
+    });
+
+    const csvContent = '\uFEFF' + csvLines.join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename.endsWith('.csv') ? filename : `${filename}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    this.showToast(`Exported ${rows.length} records to ${filename}.`, 'success');
+  },
+
+  // Floating Back to Top Button
+  initBackToTop() {
+    if (document.getElementById('back-to-top-btn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'back-to-top-btn';
+    btn.className = 'back-to-top-btn';
+    btn.innerHTML = '▲';
+    btn.title = 'Back to top';
+    btn.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.body.appendChild(btn);
+
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 250) {
+        btn.classList.add('visible');
+      } else {
+        btn.classList.remove('visible');
+      }
+    });
+  },
+
   // Keyboard Shortcuts Handler
   initKeyboardShortcuts() {
     document.addEventListener('keydown', (e) => {
@@ -256,19 +311,26 @@ const API = {
       // 1. Esc key: closes modals, drawer menu, search dropdowns
       if (e.key === 'Escape') {
         API.toggleMobileMenu(false);
-        const searchResults = document.querySelectorAll('#due-search-results, .modal, .dropdown-menu');
-        searchResults.forEach(el => el.style.display = 'none');
+        const modals = document.querySelectorAll('.modal-backdrop');
+        modals.forEach(el => el.style.display = 'none');
         return;
       }
 
-      // 2. Alt + H: Navigate Home
+      // 2. Alt + T: Toggle Theme
+      if (e.altKey && (e.key === 't' || e.key === 'T')) {
+        e.preventDefault();
+        API.toggleTheme();
+        return;
+      }
+
+      // 3. Alt + H: Navigate Home
       if (e.altKey && (e.key === 'h' || e.key === 'H')) {
         e.preventDefault();
         window.location.href = 'index.html';
         return;
       }
 
-      // 3. Alt + L: Logout if authenticated
+      // 4. Alt + L: Logout if authenticated
       if (e.altKey && (e.key === 'l' || e.key === 'L')) {
         if (API.getToken()) {
           e.preventDefault();
@@ -277,9 +339,9 @@ const API = {
         }
       }
 
-      // 4. Ctrl + K or Cmd + K: Focus primary search bar if on page
+      // 5. Ctrl + K or Cmd + K: Focus primary search bar if on page
       if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
-        const searchInput = document.querySelector('#filter-search, #due-student-search, #search-student-input, #clerk-student-search');
+        const searchInput = document.querySelector('#filter-search, #due-student-search, #search-student-input, #clerk-student-search, #search-master-input');
         if (searchInput) {
           e.preventDefault();
           searchInput.focus();
@@ -296,10 +358,12 @@ const API = {
       this.initBranding();
       this.initKeyboardShortcuts();
       this.initDesktopBanner();
+      this.initBackToTop();
     });
   }
 };
 
 API.initTheme();
 window.API = API;
+
 

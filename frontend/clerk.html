@@ -325,11 +325,12 @@
                 Search by Student PIN, Name, or Branch to view details, clearance status, or edit student master records.
               </p>
             </div>
-            <div style="display: flex; gap: 0.5rem; width: 100%; max-width: 620px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 0.5rem; width: 100%; max-width: 720px; flex-wrap: wrap;">
               <input type="text" id="master-search-input" class="form-control" style="flex:1; min-width:180px;" placeholder="Search by PIN, Name, or Branch..." onkeyup="if(event.key==='Enter') searchMasterStudents()">
               <button class="btn btn-primary" onclick="searchMasterStudents()">🔍 Search</button>
               <button class="btn btn-secondary" onclick="resetMasterSearch()">Reset</button>
-              <button class="btn btn-danger" style="background:#dc2626;" onclick="purgeAllStudentData()">🗑️ Purge All Student Data</button>
+              <button class="btn btn-export" onclick="exportMasterStudentsCSV()">📥 Export CSV</button>
+              <button class="btn btn-danger" style="background:#dc2626;" onclick="purgeAllStudentData()">🗑️ Purge All</button>
             </div>
           </div>
 
@@ -364,12 +365,15 @@
         <div class="card">
           <div class="card-header">
             <div>
-              <h3>Transfer &amp; Study/Conduct Certificate Generation</h3>
+              <h3>Official Transfer &amp; Conduct Certificate Processing</h3>
               <p style="font-size:0.82rem; color:var(--text-secondary); margin-top:0.2rem;">
-                Workflow: Dues Cleared &rarr; Enter Certificate Data &rarr; Final Verify &amp; Lock &rarr; Generate Versioned Certificate.
+                Enter leaving details &amp; promotion status, verify, lock the student dossier, and officially generate legal certificates.
               </p>
             </div>
-            <button class="btn btn-sm btn-secondary" onclick="loadCertificateStudents()">🔄 Refresh</button>
+            <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+              <button class="btn btn-export" onclick="exportCertStudentsCSV()">📥 Export Clearance List</button>
+              <button class="btn btn-sm btn-secondary" onclick="loadCertificateStudents()">🔄 Refresh</button>
+            </div>
           </div>
 
           <div class="table-responsive">
