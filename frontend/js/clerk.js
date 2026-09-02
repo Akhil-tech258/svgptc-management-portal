@@ -107,10 +107,11 @@ function setupLoginListener() {
 
     if (res.ok && res.data.success) {
       API.setAuth(res.data.token, { ...res.data.clerk, role: 'clerk' });
-      API.showToast('Clerk authentication successful.', 'success');
+      API.showToast(`Login successful! Welcome, ${res.data.clerk.username || 'Clerk'}.`, 'success');
       showDashboard(res.data.clerk);
     } else {
-      API.showToast(res.data.error || 'Clerk login failed.', 'error');
+      const errMsg = res.data && res.data.error ? res.data.error : 'Login failed: Invalid Clerk username or password.';
+      API.showToast(errMsg, 'error');
     }
   });
 }
@@ -118,7 +119,7 @@ function setupLoginListener() {
 // Tab Switching
 
 async function switchClerkTab(tab) {
-  const tabs = ['overview', 'excel', 'certificates', 'physical', 'faculty', 'departments'];
+  const tabs = ['overview', 'excel', 'students', 'certificates', 'physical', 'faculty', 'departments'];
   tabs.forEach(t => {
     const pane = document.getElementById(`pane-${t}`);
     const btn = document.getElementById(`tab-${t}`);
@@ -137,7 +138,12 @@ async function switchClerkTab(tab) {
     loadClerkDashboard();
     loadOverviewData();
   }
-  if (tab === 'excel') loadMasterStudents();
+  if (tab === 'excel') {
+    loadClerkDashboard();
+  }
+  if (tab === 'students') {
+    loadMasterStudents();
+  }
   if (tab === 'certificates') loadCertificateStudents();
   if (tab === 'physical') loadPhysicalDeptsDropdown();
   if (tab === 'faculty') loadFacultyAccounts();
@@ -146,6 +152,7 @@ async function switchClerkTab(tab) {
     await loadDepartments();
   }
 }
+
 
 async function loadClerkDashboard() {
   const res = await API.request('/clerk/dashboard');
@@ -453,11 +460,12 @@ async function commitImport() {
     document.getElementById('excel-preview-box').style.display = 'none';
     stagedValidRows = [];
     loadClerkDashboard();
-    loadMasterStudents();
+    switchClerkTab('students');
   } else {
     API.showToast(res.data.error || 'Failed to commit rows.', 'error');
   }
 }
+
 
 // --- STUDENT MASTER DIRECTORY & SINGLE RECORD MANAGEMENT ---
 

@@ -69,14 +69,28 @@ function setupLoginListener() {
 
     if (res.ok && res.data.success) {
       API.setAuth(res.data.token, { ...res.data.faculty, role: 'faculty' });
-      API.showToast(`Welcome, ${res.data.faculty.department_name} Incharge!`, 'success');
+      API.showToast(`Login successful! Welcome, ${res.data.faculty.department_name} Incharge.`, 'success');
       showDashboard(res.data.faculty);
     } else {
-      API.showToast(res.data.error || 'Authentication failed.', 'error');
+      const errMsg = res.data && res.data.error ? res.data.error : 'Login failed: Invalid faculty credentials.';
+      API.showToast(errMsg, 'error');
     }
   });
 }
 
+async function refreshFacultyDashboard() {
+  const btn = document.querySelector('#pane-queue .btn-secondary');
+  if (btn) {
+    btn.innerHTML = '⏳ Refreshing...';
+    btn.disabled = true;
+  }
+  await loadFacultyDashboard();
+  if (btn) {
+    btn.innerHTML = '🔄 Refresh';
+    btn.disabled = false;
+  }
+  API.showToast('Department clearance queue refreshed.', 'info');
+}
 
 async function loadFacultyDashboard() {
   const res = await API.request('/faculty/dashboard');
@@ -84,6 +98,7 @@ async function loadFacultyDashboard() {
     API.showToast(res.data.error || 'Failed to load department submissions.', 'error');
     return;
   }
+
 
   const data = res.data;
   currentRequests = data.requests || [];
@@ -534,5 +549,7 @@ window.submitCreateDue = submitCreateDue;
 window.searchStudentForDue = searchStudentForDue;
 window.selectStudentForDue = selectStudentForDue;
 window.exportFacultyQueueCSV = exportFacultyQueueCSV;
+window.refreshFacultyDashboard = refreshFacultyDashboard;
+
 
 

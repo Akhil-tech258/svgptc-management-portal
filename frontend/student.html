@@ -39,52 +39,33 @@
 
 
     <!-- Auth View (Shown when not logged in) -->
-    <div id="auth-section" style="max-width: 480px; margin: 2rem auto;">
+    <div id="auth-section" style="max-width: 480px; margin: 2.5rem auto;">
       <div class="card">
-        <div class="tabs-nav" style="justify-content: center; margin-bottom: 1.5rem;">
-          <button class="tab-btn active" id="tab-login" onclick="switchAuthTab('login')">Student Login</button>
-          <button class="tab-btn" id="tab-register" onclick="switchAuthTab('register')">New Registration</button>
+        <div style="text-align:center; margin-bottom: 1.5rem;">
+          <h2 style="font-size: 1.35rem; color: var(--text-primary); margin-bottom: 0.35rem;">🎓 Student Clearance Login</h2>
+          <p style="font-size: 0.82rem; color: var(--text-secondary);">
+            Enter your Permanent Student PIN and Full Name to access your clearance status.
+          </p>
         </div>
 
         <!-- Login Form -->
         <form id="student-login-form">
           <div class="form-group">
-            <label for="login-pin">Student PIN (Permanent Identification Number)</label>
-            <input type="text" id="login-pin" class="form-control" placeholder="e.g. 23018-CM-001" required>
+            <label for="login-pin">Student PIN (Permanent Identification Number) *</label>
+            <input type="text" id="login-pin" class="form-control" placeholder="e.g. 23018-CM-001" required uppercase style="text-transform:uppercase; font-family:var(--font-mono);">
           </div>
           <div class="form-group">
-            <label for="login-name">Student Full Name (Case-insensitive)</label>
-            <input type="text" id="login-name" class="form-control" placeholder="Enter student full name" required>
+            <label for="login-name">Student Full Name (As per College Records) *</label>
+            <input type="text" id="login-name" class="form-control" placeholder="e.g. Guntaka Yaswanth Kumar" required>
           </div>
-          <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem;">
-            * Verified against SVGP college master records imported by Clerk.
+          <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1.25rem;">
+            ℹ️ <em>Students are enrolled by the Administrative Clerk. No manual registration required.</em>
           </p>
-          <button type="submit" class="btn btn-primary btn-block" id="btn-login-submit">Login to Portal</button>
-        </form>
-
-        <!-- Registration Form -->
-        <form id="student-register-form" style="display:none;">
-          <div class="form-group">
-            <label for="reg-pin">Student PIN (Primary Key)</label>
-            <input type="text" id="reg-pin" class="form-control" placeholder="e.g. 23018-CM-001" required>
-          </div>
-          <div class="form-group">
-            <label for="reg-name">Student Full Name (Case-insensitive)</label>
-            <input type="text" id="reg-name" class="form-control" placeholder="Full name as registered in college" required>
-          </div>
-          <div class="form-group">
-            <label for="reg-dept">Course / Department</label>
-            <select id="reg-dept" class="form-control" required>
-              <option value="">-- Select Branch / Course --</option>
-            </select>
-          </div>
-          <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem;">
-            * Your details must already exist in the college master records imported by the Clerk.
-          </p>
-          <button type="submit" class="btn btn-primary btn-block" id="btn-register-submit">Register Account</button>
+          <button type="submit" class="btn btn-primary btn-block" id="btn-login-submit">🚀 Access Clearance Dashboard</button>
         </form>
       </div>
     </div>
+
 
     <!-- Dashboard View (Shown after login) -->
     <div id="dashboard-section" style="display:none;">
@@ -183,8 +164,9 @@
         <div class="card-header">
           <h3>Department-wise Clearance Status</h3>
           <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-            <button class="btn btn-sm btn-secondary" onclick="loadDashboard()">🔄 Refresh Status</button>
+            <button class="btn btn-sm btn-secondary" onclick="refreshStudentDashboard()">🔄 Refresh Status</button>
           </div>
+
         </div>
         <div id="department-grid" class="clearance-grid">
           <!-- Dynamically populated department cards -->

@@ -77,25 +77,10 @@ function showDashboard(user) {
 function switchAuthTab(tab) {
   const loginForm = document.getElementById('student-login-form');
   const regForm = document.getElementById('student-register-form');
-  const tabLogin = document.getElementById('tab-login');
-  const tabReg = document.getElementById('tab-register');
-
-  if (tab === 'login') {
-    loginForm.style.display = 'block';
-    regForm.style.display = 'none';
-    tabLogin.classList.add('active');
-    tabReg.classList.remove('active');
-  } else {
-    loginForm.style.display = 'none';
-    regForm.style.display = 'block';
-    tabLogin.classList.remove('active');
-    tabReg.classList.add('active');
-  }
-}
-
 function setupFormListeners() {
-  // Login
   const loginForm = document.getElementById('student-login-form');
+  if (!loginForm) return;
+
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const pin = document.getElementById('login-pin').value.trim();
@@ -103,7 +88,7 @@ function setupFormListeners() {
 
     const btn = document.getElementById('btn-login-submit');
     btn.disabled = true;
-    btn.innerText = 'Logging in...';
+    btn.innerText = 'Verifying Credentials...';
 
     const res = await API.request('/auth/student/login', {
       method: 'POST',
@@ -111,45 +96,31 @@ function setupFormListeners() {
     });
 
     btn.disabled = false;
-    btn.innerText = 'Login to Portal';
+    btn.innerText = '🚀 Access Clearance Dashboard';
 
     if (res.ok && res.data.success) {
       API.setAuth(res.data.token, { ...res.data.student, role: 'student' });
-      API.showToast('Login successful!', 'success');
+      API.showToast(`Login successful! Welcome, ${res.data.student.student_name}.`, 'success');
       showDashboard(res.data.student);
     } else {
-      API.showToast(res.data.error || 'Login failed.', 'error');
+      const errMsg = res.data && res.data.error ? res.data.error : 'Login failed. Please verify your PIN and Name.';
+      API.showToast(errMsg, 'error');
     }
   });
+}
 
-  // Registration
-  const regForm = document.getElementById('student-register-form');
-  regForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const pin = document.getElementById('reg-pin').value.trim();
-    const name = document.getElementById('reg-name').value.trim();
-    const department = document.getElementById('reg-dept').value.trim();
-
-    const btn = document.getElementById('btn-register-submit');
-    btn.disabled = true;
-    btn.innerText = 'Verifying & Registering...';
-
-    const res = await API.request('/auth/student/register', {
-      method: 'POST',
-      body: { pin, name, department }
-    });
-
-    btn.disabled = false;
-    btn.innerText = 'Register Account';
-
-    if (res.ok && res.data.success) {
-      API.setAuth(res.data.token, { ...res.data.student, role: 'student' });
-      API.showToast('Registration successful! Welcome.', 'success');
-      showDashboard(res.data.student);
-    } else {
-      API.showToast(res.data.error || 'Registration failed.', 'error');
-    }
-  });
+async function refreshStudentDashboard() {
+  const refreshBtn = document.querySelector('#tracker-section .btn-secondary');
+  if (refreshBtn) {
+    refreshBtn.innerHTML = '⏳ Refreshing...';
+    refreshBtn.disabled = true;
+  }
+  await loadDashboard();
+  if (refreshBtn) {
+    refreshBtn.innerHTML = '🔄 Refresh Status';
+    refreshBtn.disabled = false;
+  }
+  API.showToast('Clearance dashboard refreshed with latest records.', 'info');
 }
 
 async function loadDashboard() {
@@ -157,6 +128,7 @@ async function loadDashboard() {
   if (deptGrid && deptGrid.children.length === 0) {
     API.renderSkeletonCards(deptGrid, 4);
   }
+
 
   const res = await API.request('/students/dashboard');
   if (!res.ok) {
@@ -485,5 +457,8 @@ function renderCertificateDetails(cert, student) {
 window.submitNoDues = submitNoDues;
 window.reNotify = reNotify;
 window.switchTab = switchTab;
+window.loadDashboard = loadDashboard;
+window.refreshStudentDashboard = refreshStudentDashboard;
+
 
 

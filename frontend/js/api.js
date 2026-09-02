@@ -195,13 +195,28 @@ const API = {
     }
   },
 
-  // Desktop Site Recommendation Banner on Mobile
   initDesktopBanner() {
-    if (window.innerWidth > 768) return;
+    if (window.innerWidth > 1024) return;
     const isDismissed = localStorage.getItem('desktop_banner_dismissed') === 'true';
-    if (!isDismissed) {
-      const banner = document.getElementById('desktop-recommend-banner');
-      if (banner) banner.classList.add('active');
+    if (isDismissed) return;
+
+    let banner = document.getElementById('desktop-recommend-banner');
+    if (!banner) {
+      const container = document.querySelector('.main-container');
+      if (!container) return;
+      banner = document.createElement('div');
+      banner.id = 'desktop-recommend-banner';
+      banner.className = 'desktop-recommend-banner active';
+      banner.innerHTML = `
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          <span style="font-size:1.2rem;">💻</span>
+          <span><strong>Desktop Site Recommended:</strong> For the best clearance management experience and certificate view, use a Desktop/Laptop or switch your mobile browser to "Desktop site".</span>
+        </div>
+        <button class="desktop-banner-close" onclick="API.dismissDesktopBanner()" title="Dismiss">&times;</button>
+      `;
+      container.insertBefore(banner, container.firstChild);
+    } else {
+      banner.classList.add('active');
     }
   },
 
@@ -210,6 +225,7 @@ const API = {
     const banner = document.getElementById('desktop-recommend-banner');
     if (banner) banner.classList.remove('active');
   },
+
 
   // Render Empty State Helper
   renderEmptyState(container, title = 'No records found', desc = 'There is currently no data to display.', icon = '📭') {

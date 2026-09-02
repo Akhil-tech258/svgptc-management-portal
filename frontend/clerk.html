@@ -110,12 +110,13 @@
 
       <!-- Navigation Tabs -->
       <div class="tabs-nav">
-        <button class="tab-btn active" id="tab-overview" onclick="switchClerkTab('overview')">📊 Overview Dashboard</button>
-        <button class="tab-btn" id="tab-excel" onclick="switchClerkTab('excel')">📁 Student Master &amp; Import <span class="tab-badge" id="tab-badge-master" style="background:var(--accent-gold); margin-left:0.3rem;">0</span></button>
-        <button class="tab-btn" id="tab-certificates" onclick="switchClerkTab('certificates')">📜 Certificate Management &amp; Lock</button>
+        <button class="tab-btn active" id="tab-overview" onclick="switchClerkTab('overview')">📊 Overview</button>
+        <button class="tab-btn" id="tab-excel" onclick="switchClerkTab('excel')">📤 Bulk Import (Excel)</button>
+        <button class="tab-btn" id="tab-students" onclick="switchClerkTab('students')">👥 Enrolled Students Directory <span class="tab-badge" id="tab-badge-master" style="background:var(--accent-gold); margin-left:0.3rem;">0</span></button>
+        <button class="tab-btn" id="tab-certificates" onclick="switchClerkTab('certificates')">📜 Transfer Certificates</button>
         <button class="tab-btn" id="tab-physical" onclick="switchClerkTab('physical')">🏛️ Physical Clearances</button>
-        <button class="tab-btn" id="tab-faculty" onclick="switchClerkTab('faculty')">👥 Faculty Clearance Roles <span class="tab-badge" id="tab-badge-faculty" style="background:#10b981; margin-left:0.3rem;">0</span></button>
-        <button class="tab-btn" id="tab-departments" onclick="switchClerkTab('departments')">🏛️ Academic Departments <span class="tab-badge" id="tab-badge-branches" style="background:#3b82f6; margin-left:0.3rem;">9</span></button>
+        <button class="tab-btn" id="tab-faculty" onclick="switchClerkTab('faculty')">👨‍🏫 Faculty Incharges <span class="tab-badge" id="tab-badge-faculty" style="background:#10b981; margin-left:0.3rem;">0</span></button>
+        <button class="tab-btn" id="tab-departments" onclick="switchClerkTab('departments')">🏛️ Academic Branches <span class="tab-badge" id="tab-badge-branches" style="background:#3b82f6; margin-left:0.3rem;">9</span></button>
       </div>
 
       <!-- TAB 0: REAL-TIME OVERVIEW DASHBOARD -->
@@ -138,30 +139,40 @@
             <div class="card" style="border-left: 4px solid #3b82f6; cursor: pointer;" onclick="switchClerkTab('departments')">
               <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
-                  <h4 style="margin:0 0 0.2rem 0; color:var(--text-primary);">🏛️ Academic Departments</h4>
-                  <p style="margin:0; font-size:0.8rem; color:var(--text-secondary);">9 Diploma Engineering &amp; Pharmacy Courses (CIVIL, MECH, EEE, ECE, CME, BME, CHE, ECE-II, PHARM).</p>
+                  <h4 style="margin:0; font-size:1rem;">🏛️ 9 Diploma Branches</h4>
+                  <p style="font-size:0.75rem; color:var(--text-secondary); margin:0.2rem 0 0;">CME, ECE, EEE, MEC, CIV, MIN, MET, CH, PH</p>
                 </div>
-                <button class="btn btn-sm btn-secondary" onclick="switchClerkTab('departments')">Manage &rarr;</button>
+                <span style="font-size:1.4rem;">&rarr;</span>
               </div>
             </div>
 
             <div class="card" style="border-left: 4px solid #10b981; cursor: pointer;" onclick="switchClerkTab('faculty')">
               <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
-                  <h4 style="margin:0 0 0.2rem 0; color:var(--text-primary);">👥 Faculty Clearance Roles</h4>
-                  <p style="margin:0; font-size:0.8rem; color:var(--text-secondary);">8 Institutional Clearance Roles (Accounts, Hostel, Library, Scholarship, Physical Director, Labs, NSS/NCC).</p>
+                  <h4 style="margin:0; font-size:1rem;">👨‍🏫 Faculty Clearance Roles</h4>
+                  <p style="font-size:0.75rem; color:var(--text-secondary); margin:0.2rem 0 0;">Manage Incharge Logins, Branch Scopes &amp; Passwords</p>
                 </div>
-                <button class="btn btn-sm btn-secondary" onclick="switchClerkTab('faculty')">Manage &rarr;</button>
+                <span style="font-size:1.4rem;">&rarr;</span>
               </div>
             </div>
 
-            <div class="card" style="border-left: 4px solid var(--accent-gold); cursor: pointer;" onclick="switchClerkTab('excel')">
+            <div class="card" style="border-left: 4px solid var(--accent-gold); cursor: pointer;" onclick="switchClerkTab('students')">
               <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
-                  <h4 style="margin:0 0 0.2rem 0; color:var(--text-primary);">📁 Enrolled Student Master</h4>
-                  <p style="margin:0; font-size:0.8rem; color:var(--text-secondary);">Bulk import student rosters or manage student verification status.</p>
+                  <h4 style="margin:0; font-size:1rem;">👥 Student Master Directory</h4>
+                  <p style="font-size:0.75rem; color:var(--text-secondary); margin:0.2rem 0 0;">Search, edit, and inspect enrolled student records</p>
                 </div>
-                <button class="btn btn-sm btn-secondary" onclick="switchClerkTab('excel')">View &rarr;</button>
+                <span style="font-size:1.4rem;">&rarr;</span>
+              </div>
+            </div>
+
+            <div class="card" style="border-left: 4px solid #8b5cf6; cursor: pointer;" onclick="switchClerkTab('certificates')">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <h4 style="margin:0; font-size:1rem;">📜 Certificate Verification &amp; Lock</h4>
+                  <p style="font-size:0.75rem; color:var(--text-secondary); margin:0.2rem 0 0;">Lock student records and issue legal certificates</p>
+                </div>
+                <span style="font-size:1.4rem;">&rarr;</span>
               </div>
             </div>
           </div>
@@ -193,23 +204,46 @@
       </div>
 
 
-      <!-- TAB 1: EXCEL MASTER IMPORT & STUDENT MANAGEMENT -->
+      <!-- TAB 1: EXCEL MASTER IMPORT -->
       <div id="pane-excel" class="tab-pane" style="display: none;">
         <div class="card">
           <div class="card-header">
             <div>
-              <h3>Student Master Data &amp; Bulk Enrollment</h3>
+              <h3>📤 Bulk Import Student Master Data (Excel / Spreadsheet)</h3>
               <p style="font-size:0.82rem; color:var(--text-secondary); margin-top:0.2rem;">
-                Enroll individual students directly or bulk import via Microsoft Excel (.xlsx, .xls).
+                Upload official polytechnic student intake files in Microsoft Excel (.xlsx, .xls) format.
               </p>
             </div>
             <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
-              <button class="btn btn-sm btn-primary" onclick="openAddSingleStudentModal()">
-                + Add Single Student
+              <button class="btn btn-sm btn-secondary" onclick="switchClerkTab('students')">
+                👥 View Enrolled Students Directory &rarr;
               </button>
             </div>
           </div>
 
+          <!-- Caution & Column Format Specification Guide -->
+          <div class="due-alert-box" style="background: rgba(217, 119, 6, 0.08); border-color: rgba(217, 119, 6, 0.3); margin-bottom: 1.5rem;">
+            <div style="display:flex; align-items:flex-start; gap:0.75rem;">
+              <span style="font-size:1.4rem;">⚠️</span>
+              <div>
+                <strong style="color:var(--status-pending); font-size:0.92rem;">Important Excel Column Guidelines for Administrative Clerk:</strong>
+                <p style="font-size:0.82rem; color:var(--text-secondary); margin:0.3rem 0 0.5rem;">
+                  Every uploaded student spreadsheet (.xlsx, .xls) must include these <strong>mandatory columns</strong> in the header row:
+                </p>
+                <div style="display:flex; flex-wrap:wrap; gap:0.5rem; font-size:0.8rem; margin-bottom:0.5rem;">
+                  <span class="user-badge" style="border-color:var(--accent-gold); font-weight:600;">1. PIN / Reg No *</span>
+                  <span class="user-badge" style="border-color:var(--accent-gold); font-weight:600;">2. Student Name *</span>
+                  <span class="user-badge" style="border-color:var(--accent-gold); font-weight:600;">3. Father / Guardian Name *</span>
+                  <span class="user-badge" style="border-color:var(--accent-gold); font-weight:600;">4. Branch / Course *</span>
+                  <span class="user-badge" style="border-color:var(--accent-gold); font-weight:600;">5. Date of Birth (DOB) *</span>
+                  <span class="user-badge" style="border-color:var(--accent-gold); font-weight:600;">6. Date of Admission (DOA) *</span>
+                </div>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">
+                  💡 <em>Note: Any extra or unnecessary columns (e.g. Phone, Address, Blood Group, Remarks) are <strong>automatically safely ignored</strong>. If any mandatory column is missing, the system will alert you with the exact missing fields.</em>
+                </p>
+              </div>
+            </div>
+          </div>
 
           <!-- Modern High-Engagement Drag & Drop Target Area -->
           <div id="excel-drop-zone" class="modern-drop-zone" onclick="document.getElementById('excel-file-input').click()">
@@ -315,25 +349,28 @@
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Enrolled Student Master Directory & Search -->
-        <div class="card" style="margin-top: 2rem;">
+
+      <!-- TAB 2: ENROLLED STUDENT MASTER DIRECTORY & SEARCH -->
+      <div id="pane-students" class="tab-pane" style="display: none;">
+        <div class="card">
           <div class="card-header">
             <div>
-              <h3>Enrolled Student Master Directory</h3>
+              <h3>👥 Enrolled Student Master Directory</h3>
               <p style="font-size:0.82rem; color:var(--text-secondary); margin-top:0.2rem;">
                 Search by Student PIN, Name, or Branch to view details, clearance status, or edit student master records.
               </p>
             </div>
-            <div style="display: flex; gap: 0.5rem; width: 100%; max-width: 720px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 0.5rem; width: 100%; max-width: 780px; flex-wrap: wrap;">
               <input type="text" id="master-search-input" class="form-control" style="flex:1; min-width:180px;" placeholder="Search by PIN, Name, or Branch..." onkeyup="if(event.key==='Enter') searchMasterStudents()">
               <button class="btn btn-primary" onclick="searchMasterStudents()">🔍 Search</button>
               <button class="btn btn-secondary" onclick="resetMasterSearch()">Reset</button>
+              <button class="btn btn-sm btn-primary" onclick="openAddSingleStudentModal()">+ Add Student</button>
               <button class="btn btn-export" onclick="exportMasterStudentsCSV()">📥 Export CSV</button>
               <button class="btn btn-danger" style="background:#dc2626;" onclick="purgeAllStudentData()">🗑️ Purge All</button>
             </div>
           </div>
-
 
           <div class="table-responsive">
             <table class="data-table">
@@ -356,10 +393,9 @@
             </table>
           </div>
         </div>
-
       </div>
 
-      <!-- TAB 2: CERTIFICATE MANAGEMENT & LOCK -->
+      <!-- TAB 3: CERTIFICATE MANAGEMENT & LOCK -->
       <div id="pane-certificates" class="tab-pane" style="display: none;">
 
         <div class="card">
