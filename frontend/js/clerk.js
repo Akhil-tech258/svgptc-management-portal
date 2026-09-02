@@ -589,14 +589,40 @@ function closeAddSingleStudentModal() {
   document.getElementById('modal-add-single-student').style.display = 'none';
 }
 
+function toInputDate(dStr) {
+  if (!dStr) return '';
+  dStr = dStr.trim();
+  const dmy = dStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if (dmy) {
+    const dd = dmy[1].padStart(2, '0');
+    const mm = dmy[2].padStart(2, '0');
+    const yyyy = dmy[3];
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  return dStr;
+}
+
+function toDisplayDate(dStr) {
+  if (!dStr) return '';
+  dStr = dStr.trim();
+  const ymd = dStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (ymd) {
+    const yyyy = ymd[1];
+    const mm = ymd[2].padStart(2, '0');
+    const dd = ymd[3].padStart(2, '0');
+    return `${dd}-${mm}-${yyyy}`;
+  }
+  return dStr;
+}
+
 async function submitAddSingleStudent(e) {
   e.preventDefault();
   const pin = document.getElementById('single-pin-input').value.trim().toUpperCase();
   const admission_no = document.getElementById('single-adm-input').value.trim();
   const student_name = document.getElementById('single-name-input').value.trim();
   const father_name = document.getElementById('single-father-input').value.trim();
-  const dob = document.getElementById('single-dob-input').value.trim();
-  const date_of_admission = document.getElementById('single-doa-input').value.trim();
+  const dob = toDisplayDate(document.getElementById('single-dob-input').value);
+  const date_of_admission = toDisplayDate(document.getElementById('single-doa-input').value);
   const nationality = document.getElementById('single-nat-input').value.trim();
   const religion = document.getElementById('single-rel-input').value.trim();
   const course_branch = document.getElementById('single-student-branch-select').value;
@@ -649,8 +675,8 @@ async function openEditMasterStudentModal(pin) {
   document.getElementById('edit-master-adm').value = student.admission_no || `ADM-${student.pin}`;
   document.getElementById('edit-master-name').value = student.student_name || '';
   document.getElementById('edit-master-father').value = student.father_name || '';
-  document.getElementById('edit-master-dob').value = student.dob || '';
-  document.getElementById('edit-master-doa').value = student.date_of_admission || '';
+  document.getElementById('edit-master-dob').value = toInputDate(student.dob || '');
+  document.getElementById('edit-master-doa').value = toInputDate(student.date_of_admission || '');
   document.getElementById('edit-master-nat').value = student.nationality || 'Indian';
   document.getElementById('edit-master-rel').value = student.religion || 'Hindu';
 
@@ -681,8 +707,8 @@ async function submitEditMasterStudent(e) {
   const admission_no = document.getElementById('edit-master-adm').value.trim();
   const student_name = document.getElementById('edit-master-name').value.trim();
   const father_name = document.getElementById('edit-master-father').value.trim();
-  const dob = document.getElementById('edit-master-dob').value.trim();
-  const date_of_admission = document.getElementById('edit-master-doa').value.trim();
+  const dob = toDisplayDate(document.getElementById('edit-master-dob').value);
+  const date_of_admission = toDisplayDate(document.getElementById('edit-master-doa').value);
   const nationality = document.getElementById('edit-master-nat').value.trim();
   const religion = document.getElementById('edit-master-rel').value.trim();
   const course_branch = document.getElementById('edit-master-branch').value;
@@ -703,6 +729,7 @@ async function submitEditMasterStudent(e) {
 
   if (res.ok && res.data.success) {
     API.showToast(`Student ${editingMasterPin} master records updated successfully.`, 'success');
+
     closeEditMasterStudentModal();
     loadMasterStudents();
     loadCertificateStudents();

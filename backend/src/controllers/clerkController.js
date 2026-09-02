@@ -816,6 +816,19 @@ async function getStudentsMaster(req, res) {
   }
 }
 
+function normalizeDateInput(d) {
+  if (!d) return '';
+  d = d.trim();
+  const ymd = d.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (ymd) {
+    const yyyy = ymd[1];
+    const mm = ymd[2].padStart(2, '0');
+    const dd = ymd[3].padStart(2, '0');
+    return `${dd}-${mm}-${yyyy}`;
+  }
+  return d;
+}
+
 async function createSingleStudent(req, res) {
   try {
     let {
@@ -830,12 +843,12 @@ async function createSingleStudent(req, res) {
       date_of_admission
     } = req.body;
 
-    pin = (pin || '').trim();
+    pin = (pin || '').trim().toUpperCase();
     student_name = (student_name || '').trim();
     father_name = (father_name || '').trim();
-    dob = (dob || '').trim();
+    dob = normalizeDateInput(dob);
     course_branch = (course_branch || '').trim();
-    date_of_admission = (date_of_admission || '').trim();
+    date_of_admission = normalizeDateInput(date_of_admission);
     nationality = (nationality || 'Indian').trim();
     religion = (religion || 'Hindu').trim();
     admission_no = (admission_no || '').trim() || `ADM-${pin}`;
@@ -896,9 +909,9 @@ async function updateStudentMaster(req, res) {
 
     student_name = (student_name || '').trim();
     father_name = (father_name || '').trim();
-    dob = (dob || '').trim();
+    dob = normalizeDateInput(dob);
     course_branch = (course_branch || '').trim();
-    date_of_admission = (date_of_admission || '').trim();
+    date_of_admission = normalizeDateInput(date_of_admission);
     nationality = (nationality || 'Indian').trim();
     religion = (religion || 'Hindu').trim();
     admission_no = (admission_no || '').trim() || `ADM-${targetPin}`;
