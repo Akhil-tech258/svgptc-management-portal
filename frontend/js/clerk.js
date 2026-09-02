@@ -995,7 +995,7 @@ async function loadPhysicalDeptsDropdown() {
   select.innerHTML = '';
 
   if (res.ok && res.data.departments) {
-    const physical = res.data.departments.filter(d => d.type === 'Physical');
+    const physical = res.data.departments.filter(d => d.type === 'Physical' || (d.name && (d.name.toUpperCase().includes('NSS') || d.name.toUpperCase().includes('NCC'))));
     if (physical.length === 0) {
       select.innerHTML = '<option value="">No Physical departments configured</option>';
       return;
@@ -1003,11 +1003,13 @@ async function loadPhysicalDeptsDropdown() {
     physical.forEach(d => {
       const opt = document.createElement('option');
       opt.value = d.id;
-      opt.innerText = d.name;
+      const isNcc = d.name && (d.name.toUpperCase().includes('NSS') || d.name.toUpperCase().includes('NCC'));
+      opt.innerText = isNcc ? `${d.name} (Non-Cadet Approvals)` : d.name;
       select.appendChild(opt);
     });
   }
 }
+
 
 async function recordPhysicalClearance(e) {
   e.preventDefault();

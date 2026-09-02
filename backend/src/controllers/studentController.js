@@ -64,6 +64,12 @@ async function getStudentDashboard(req, res) {
           allApproved = false;
         }
 
+        const isNcc = (item.department_name && (item.department_name.toUpperCase().includes('NSS') || item.department_name.toUpperCase().includes('NCC')));
+        let effectiveType = item.department_type;
+        if (isNcc && currentRequest.is_ncc_cadet !== 1) {
+          effectiveType = 'Physical'; // Marked as physical/clerk clearance for non-cadet
+        }
+
         // Calculate 20-hour re-notify eligibility
         let canReNotify = false;
         let remainingHours = 0;
@@ -71,20 +77,19 @@ async function getStudentDashboard(req, res) {
           const lastTime = new Date(item.last_notified_at).getTime();
           const elapsedHours = (Date.now() - lastTime) / (1000 * 60 * 60);
           if (elapsedHours >= 20) {
-            canReNotify = status === 'Pending';
+            canReNotify = status === 'Pending' && effectiveType === 'Online';
           } else {
             remainingHours = Math.ceil(20 - elapsedHours);
           }
         } else {
-          canReNotify = status === 'Pending';
+          canReNotify = status === 'Pending' && effectiveType === 'Online';
         }
-
 
         return {
           id: item.id,
           department_id: item.department_id,
           department_name: item.department_name,
-          department_type: item.department_type,
+          department_type: effectiveType,
           status,
           approved_by: item.approved_by,
           approved_at: item.approved_at,
@@ -99,6 +104,7 @@ async function getStudentDashboard(req, res) {
           }))
         };
       });
+
 
       // If all approved, mark request completed
       if (allApproved && currentRequest.status !== 'Completed') {
@@ -191,10 +197,13 @@ async function submitNoDuesRequest(req, res) {
       }
     }
 
-    // Create new request
-    const newReq = await db.query(
-      'INSERT INTO no_dues_requests (student_pin, status) VALUES ($1, $2)',
-      [pin, 'Pending']
+    // Check is_ncc_cadet from body
+    const isNccCadet = (req.body && (req.body.is_ncc_cadet === true || req.body.is_ncc_cadet === 1 || req.body.is_ncc_cadet === '1' || req.body.is_ncc_cadet === 'yes' || req.body.is_ncc_cadet === 'true')) ? 1 : 0;
+
+    // Create new request with is_ncc_cadet
+    await db.query(
+      'INSERT INTO no_dues_requests (student_pin, status, is_ncc_cadet, submitted_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)',
+      [pin, 'Pending', isNccCadet]
     );
 
     // Get the request ID
@@ -258,24 +267,29 @@ async function submitNoDuesRequest(req, res) {
 
     // Insert department clearances
     for (const dept of applicableDepts) {
+      const isNcc = dept.name.toUpperCase().includes('NSS') || dept.name.toUpperCase().includes('NCC');
+      const deptName = (isNcc && isNccCadet === 0) ? `${dept.name} (Non-Cadet)` : dept.name;
+
       await db.query(
         `INSERT INTO department_clearances 
          (request_id, student_pin, department_id, department_name, status, last_notified_at)
          VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)`,
-        [requestId, pin, dept.id, dept.name, 'Pending']
+        [requestId, pin, dept.id, deptName, 'Pending']
       );
     }
 
     return res.status(201).json({
       success: true,
       message: 'No-Dues request submitted successfully to all departments.',
-      requestId
+      requestId,
+      is_ncc_cadet: isNccCadet === 1
     });
   } catch (err) {
     console.error('submitNoDuesRequest error:', err);
     return res.status(500).json({ success: false, error: 'Failed to submit No-Dues request.' });
   }
 }
+
 
 async function reNotifyDepartment(req, res) {
   try {

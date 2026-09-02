@@ -253,6 +253,7 @@ function renderClearances(clearances) {
 
     let dueHtml = '';
     if (item.active_dues && item.active_dues.length > 0) {
+
       dueHtml = `
         <div class="due-alert-box">
           ${item.active_dues.map(d => `
@@ -263,6 +264,14 @@ function renderClearances(clearances) {
           `).join('')}
         </div>
       `;
+    }
+
+    let metaText = `${item.department_type} Department`;
+    const isNcc = item.department_name && (item.department_name.toUpperCase().includes('NSS') || item.department_name.toUpperCase().includes('NCC'));
+    if (isNcc && item.department_type === 'Physical') {
+      metaText = '🏛️ Non-Cadet (Clerk Verification)';
+    } else if (isNcc) {
+      metaText = '🎖️ Enrolled Cadet (Faculty Incharge)';
     }
 
     let reNotifyHtml = '';
@@ -280,11 +289,10 @@ function renderClearances(clearances) {
           </button>
         `;
       }
-
     } else if (item.department_type === 'Physical' && item.status !== 'Approved') {
       reNotifyHtml = `
         <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.6rem;">
-          ℹ️ Physical clearance will be recorded by Clerk.
+          ℹ️ ${isNcc ? 'Non-cadet clearance will be verified by the Clerk.' : 'Physical clearance will be recorded by Clerk.'}
         </div>
       `;
     }
@@ -294,7 +302,7 @@ function renderClearances(clearances) {
         <div class="clearance-header">
           <div>
             <div class="dept-name">${item.department_name}</div>
-            <div class="dept-meta">${item.department_type} Department</div>
+            <div class="dept-meta">${metaText}</div>
           </div>
           <span class="badge ${badgeClass}">${statusText}</span>
         </div>
@@ -315,20 +323,25 @@ async function submitNoDues() {
   btn.disabled = true;
   btn.innerText = 'Submitting Request...';
 
+  const nccYes = document.getElementById('ncc-opt-yes');
+  const is_ncc_cadet = nccYes ? nccYes.checked : false;
+
   const res = await API.request('/students/no-dues/submit', {
-    method: 'POST'
+    method: 'POST',
+    body: { is_ncc_cadet }
   });
 
   btn.disabled = false;
   btn.innerText = '🚀 Submit No-Dues Clearance Request';
 
   if (res.ok && res.data.success) {
-    API.showToast('No-Dues clearance request submitted to all departments!', 'success');
+    API.showToast('No-Dues clearance request submitted successfully!', 'success');
     loadDashboard();
   } else {
     API.showToast(res.data.error || 'Failed to submit request.', 'error');
   }
 }
+
 
 async function reNotify(deptId) {
   const res = await API.request('/students/no-dues/re-notify', {

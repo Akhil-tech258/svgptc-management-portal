@@ -93,9 +93,10 @@ async function runTests() {
     });
     assert(studentLogin.ok && studentLogin.data.token, '6. Student logs in with PIN + case-insensitive Name');
 
-    // 7. Student Submits No-Dues Request
-    const submitReq = await req('/students/no-dues/submit', 'POST', {}, studentToken);
-    assert(submitReq.ok && submitReq.data.requestId, '7. Student submits No-Dues clearance request');
+    // 7. Student Submits No-Dues Request (Non-Cadet)
+    const submitReq = await req('/students/no-dues/submit', 'POST', { is_ncc_cadet: false }, studentToken);
+    assert(submitReq.ok && submitReq.data.requestId, '7. Student submits No-Dues clearance request (Non-Cadet)');
+
 
     // 8. Student Dashboard Check
     const studentDash = await req('/students/dashboard', 'GET', null, studentToken);
@@ -171,10 +172,11 @@ async function runTests() {
     }
     assert(true, '15. All student clearance records approved');
 
-
     // 16. Verify No-Dues Completed on Student Dashboard
     const finalStudentDash = await req('/students/dashboard', 'GET', null, studentToken);
     assert(finalStudentDash.data.is_no_dues_completed === true, '16. Student No-Dues status updates to Completed');
+
+
 
     // 17. Clerk Enters Certificate Data
     const saveCert = await req('/clerk/certificates/data', 'POST', {

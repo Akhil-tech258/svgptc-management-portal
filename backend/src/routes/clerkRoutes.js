@@ -47,11 +47,12 @@ router.post('/branches/:id/delete', clerkController.deleteBranch);
 
 router.get('/departments', clerkController.getDepartments);
 router.post('/departments', clerkController.createDepartment);
+router.post('/departments/physical-approval', clerkController.recordPhysicalApproval);
 router.put('/departments/:id', clerkController.updateDepartment);
 router.post('/departments/:id', clerkController.updateDepartment);
 router.delete('/departments/:id', clerkController.deleteDepartment);
 router.post('/departments/:id/delete', clerkController.deleteDepartment);
-router.post('/departments/physical-approval', clerkController.recordPhysicalApproval);
+
 
 
 router.get('/certificates/students', clerkController.getCertificateStudents);

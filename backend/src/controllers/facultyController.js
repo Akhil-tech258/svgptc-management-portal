@@ -3,11 +3,11 @@ const db = require('../config/db');
 async function getFacultyDashboard(req, res) {
   try {
     const deptId = req.faculty.department_id;
-    const deptName = req.faculty.department_name;
+    const deptName = req.faculty.department_name || '';
+    const isNccDept = deptName.toUpperCase().includes('NSS') || deptName.toUpperCase().includes('NCC');
 
-    // Fetch all clearance requests for this department
-    const requestsRes = await db.query(
-      `SELECT 
+    let query = `
+      SELECT 
         dc.id as clearance_id,
         dc.request_id,
         dc.student_pin,
@@ -18,14 +18,24 @@ async function getFacultyDashboard(req, res) {
         sm.student_name,
         sm.admission_no,
         sm.course_branch,
-        ndr.submitted_at
+        ndr.submitted_at,
+        ndr.is_ncc_cadet
        FROM department_clearances dc
-       JOIN students_master sm ON sm.pin = dc.student_pin
+       JOIN students_master sm ON LOWER(sm.pin) = LOWER(dc.student_pin)
        JOIN no_dues_requests ndr ON ndr.id = dc.request_id
        WHERE dc.department_id = $1
-       ORDER BY ndr.submitted_at DESC`,
-      [deptId]
-    );
+    `;
+    const params = [deptId];
+
+    if (isNccDept) {
+      query += ` AND ndr.is_ncc_cadet = 1`;
+    }
+
+    query += ` ORDER BY ndr.submitted_at DESC`;
+
+    // Fetch all clearance requests for this department
+    const requestsRes = await db.query(query, params);
+
 
     // Fetch dues in this department
     const duesRes = await db.query(

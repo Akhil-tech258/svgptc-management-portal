@@ -149,10 +149,19 @@ async function initDB() {
       id ${serialKey},
       student_pin VARCHAR(50) NOT NULL,
       status VARCHAR(20) DEFAULT 'Pending',
+      is_ncc_cadet INTEGER DEFAULT 0,
       submitted_at ${timestampType},
       completed_at ${timestampType}
     );
   `);
+
+  // Migration for no_dues_requests is_ncc_cadet
+  try {
+    await dbClient.query(`ALTER TABLE no_dues_requests ADD COLUMN is_ncc_cadet INTEGER DEFAULT 0`);
+  } catch (e) {
+    // Column already exists
+  }
+
 
   await dbClient.query(`
     CREATE TABLE IF NOT EXISTS department_clearances (
