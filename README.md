@@ -6,53 +6,22 @@
 
 ## 📋 Table of Contents
 1. [🌟 System Overview](#-system-overview)
-2. [🔐 Security & Credentials Configuration](#-security--credentials-configuration)
-3. [📱 How to Run on Android (Termux + Acode)](#-how-to-run-on-android-termux--acode)
-4. [💻 How to Run on PC (Windows / Mac / Linux)](#-how-to-run-on-pc-windows--mac--linux)
-5. [🌐 Production Deployment Guide (Render + GitHub)](#-production-deployment-guide-render--github)
-6. [🎓 Official 9 SVGP Diploma Programs](#-official-9-svgp-diploma-programs)
-7. [⌨️ Keyboard Shortcuts](#️-keyboard-shortcuts)
-8. [📧 Institutional Support & Feedback](#-institutional-support--feedback)
-9. [🧪 Automated End-to-End Testing](#-automated-end-to-end-testing)
+2. [📱 How to Run on Android (Termux + Acode)](#-how-to-run-on-android-termux--acode)
+3. [💻 How to Run on PC (Windows / Mac / Linux)](#-how-to-run-on-pc-windows--mac--linux)
+4. [🌐 Production Deployment Guide (Render + GitHub)](#-production-deployment-guide-render--github)
+5. [🎓 Official 9 SVGP Diploma Programs](#-official-9-svgp-diploma-programs)
+6. [⌨️ Keyboard Shortcuts](#️-keyboard-shortcuts)
+7. [📧 Institutional Support & Feedback](#-institutional-support--feedback)
+8. [🧪 Automated End-to-End Testing](#-automated-end-to-end-testing)
 
 ---
 
 ## 🌟 System Overview
 This web application digitizes and automates the complete student leaving workflow for Sri Venkateswara Government Polytechnic (SVGP), Tirupati:
-- **Clerk Administration**: Bulk Excel student enrollment, manual student additions, department configuration, faculty scope toggling (Common vs Branch-Separated), certificate locking, and official document generation.
+- **Clerk Administration**: Bulk Excel student enrollment, manual student additions, department configuration, faculty scope toggling (Common vs Branch-Separated), certificate locking, and official do[...]
 - **Faculty Incharges**: Real-time review of student clearances across 28 official departments and laboratories, logging actionable dues with physical contact instructions, and 1-click approvals.
 - **Student Self-Service**: Case-insensitive instant login using PIN and Name, 1-click No-Dues submission, live department status cards, and 48-hour faculty re-notification timers.
-- **Official Documents**: Government-compliant, print-optimized **Transfer Certificate (TC)** and **Study & Conduct Certificate** featuring institutional crest, seals, version tags, and authorized signatures (restricted exclusively to Clerk issuance).
-
----
-
-## 🔐 Security & Credentials Configuration
-
-### Clerk Account Configuration (Environment Variables)
-The administrative Clerk account is automatically initialized during database seeding without hardcoded credentials. It securely reads values from environment variables:
-
-In `backend/.env` (or Render / Production environment variables):
-```env
-PORT=5000
-NODE_ENV=development
-JWT_SECRET=svgp-polytechnic-secure-jwt-secret-key-2026
-
-# Clerk Administrator Credentials
-CLERK_USERNAME=clerk@svgp
-CLERK_PASSWORD=Clerk@1957
-```
-
-- Passwords are automatically hashed using **bcrypt** during seeding/initialization.
-- The password is never logged, exposed to the frontend, or returned in API responses.
-
-### Faculty Incharge Accounts
-- Faculty accounts are created and managed by the Administrative Clerk from the Clerk Console (`clerk.html`).
-- Incharges can be assigned to either **Common** (all branches) or **Branch-Specific** laboratory queues.
-
-### Student Authentication
-- Students authenticate directly using their official **PIN** (e.g. `23018-CM-001`) and **Registered Full Name**.
-- Name comparison is strictly **case-insensitive and trimmed**.
-- Student records must be pre-loaded into Master Records by the Clerk (via Excel or Single Enrollment).
+- **Official Documents**: Government-compliant, print-optimized **Transfer Certificate (TC)** and **Study & Conduct Certificate** featuring institutional crest, seals, version tags, and authorized sig[...]
 
 ---
 
@@ -183,5 +152,3 @@ Run the automated test suite to verify all core system requirements:
 cd backend
 npm test
 ```
-
-
