@@ -487,6 +487,14 @@ async function recordPhysicalApproval(req, res) {
       return res.status(404).json({ success: false, error: 'Department not found.' });
     }
 
+    // Library clearance is strictly granted by the Library Faculty / Librarian in-person
+    if (deptRes.rows[0].name.toLowerCase() === 'library' && !req.body.admin_override) {
+      return res.status(403).json({
+        success: false,
+        error: 'Library clearance requires in-person verification and approval by the Library Faculty / Librarian.'
+      });
+    }
+
     // Approve physical clearance
     await db.query(
       `UPDATE department_clearances 
@@ -524,7 +532,7 @@ async function recordPhysicalApproval(req, res) {
 // --- Certificate Verification & Generation ---
 async function getCertificateStudents(req, res) {
   try {
-    // Fetch all students who have completed No-Dues or are registered
+    // Fetch all students with their clearance and certificate status
     const result = await db.query(`
       SELECT 
         sm.pin, sm.admission_no, sm.student_name, sm.father_name, sm.dob,
@@ -536,7 +544,7 @@ async function getCertificateStudents(req, res) {
         cv.version_number as current_version,
         cv.generated_date
       FROM students_master sm
-      LEFT JOIN no_dues_requests ndr ON LOWER(ndr.student_pin) = LOWER(sm.pin) AND ndr.status = 'Completed'
+      LEFT JOIN no_dues_requests ndr ON LOWER(ndr.student_pin) = LOWER(sm.pin)
       LEFT JOIN certificate_data cd ON LOWER(cd.student_pin) = LOWER(sm.pin)
       LEFT JOIN certificate_versions cv ON LOWER(cv.student_pin) = LOWER(sm.pin) AND cv.is_current = 1
       ORDER BY sm.student_name ASC
@@ -548,6 +556,7 @@ async function getCertificateStudents(req, res) {
     return res.status(500).json({ success: false, error: 'Failed to fetch students for certificates.' });
   }
 }
+
 
 async function updateCertificateData(req, res) {
   try {
@@ -1018,53 +1027,82 @@ async function purgeAllStudents(req, res) {
 }
 
 
-// Fast-Track Demo Simulator: Approve All Clearances for a Student
+// Fast-Track / 1-Click Clearance Approval for a Student
 async function fastTrackApproveStudent(req, res) {
   try {
     const { pin } = req.params;
     if (!pin) {
       return res.status(400).json({ success: false, error: 'Student PIN is required.' });
     }
-    const cleanPin = pin.trim();
+    const cleanPin = pin.trim().toUpperCase();
 
-    // Check if request exists
-    const ndrRes = await db.query('SELECT * FROM no_dues_requests WHERE student_pin = $1', [cleanPin]);
-    if (ndrRes.rows.length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: `Student ${cleanPin} has not submitted a No-Dues clearance request yet. Please submit the request first from the Student Portal.`
-      });
+    // Check student in master
+    const masterRes = await db.query('SELECT * FROM students_master WHERE LOWER(pin) = LOWER($1)', [cleanPin]);
+    if (masterRes.rows.length === 0) {
+      return res.status(404).json({ success: false, error: `Student with PIN "${cleanPin}" not found in master records.` });
+    }
+    const student = masterRes.rows[0];
+
+    // Ensure student registered record exists
+    const regRes = await db.query('SELECT * FROM students_registered WHERE LOWER(pin) = LOWER($1)', [cleanPin]);
+    if (regRes.rows.length === 0) {
+      await db.query(
+        'INSERT INTO students_registered (pin, student_name, course_branch, registered_at) VALUES ($1, $2, $3, $4)',
+        [student.pin, student.student_name, student.course_branch, getTodayFormatted()]
+      );
     }
 
     const today = getTodayFormatted();
+    let requestId;
 
-    // 1. Approve all pending department clearances
-    await db.query(
-      `UPDATE department_clearances 
-       SET status = 'Approved', approved_at = $1, approved_by = $2 
-       WHERE student_pin = $3`,
-      [today, (req.user && req.user.username) || 'Clerk Admin', cleanPin]
-    );
+    // Check if No-Dues request exists
+    const ndrRes = await db.query('SELECT * FROM no_dues_requests WHERE LOWER(student_pin) = LOWER($1)', [cleanPin]);
+    if (ndrRes.rows.length === 0) {
+      const insReq = await db.query(
+        'INSERT INTO no_dues_requests (student_pin, status, submitted_at, completed_at, is_ncc_cadet) VALUES ($1, $2, $3, CURRENT_TIMESTAMP, 0) RETURNING id',
+        [cleanPin, 'Completed', today]
+      );
+      requestId = insReq.rows[0].id;
 
+      // Populate department clearances for all active departments
+      const deptsRes = await db.query('SELECT * FROM departments WHERE is_active = 1');
+      for (const dept of deptsRes.rows) {
+        await db.query(
+          `INSERT INTO department_clearances 
+           (request_id, student_pin, department_id, department_name, status, approved_by, approved_at) 
+           VALUES ($1, $2, $3, $4, 'Approved', $5, CURRENT_TIMESTAMP)`,
+          [requestId, cleanPin, dept.id, dept.name, (req.user && req.user.username) || 'Clerk Admin']
+        );
+      }
+    } else {
+      requestId = ndrRes.rows[0].id;
 
-    // 2. Clear any active dues
-    await db.query(
-      `UPDATE dues SET status = 'Cleared' WHERE student_pin = $1 AND status = 'Active'`,
-      [cleanPin]
-    );
+      // 1. Approve all department clearances
+      await db.query(
+        `UPDATE department_clearances 
+         SET status = 'Approved', approved_at = CURRENT_TIMESTAMP, approved_by = $1 
+         WHERE LOWER(student_pin) = LOWER($2)`,
+        [(req.user && req.user.username) || 'Clerk Admin', cleanPin]
+      );
 
-    // 3. Mark No-Dues request as Completed
-    await db.query(
-      `UPDATE no_dues_requests SET status = 'Completed', completed_at = CURRENT_TIMESTAMP WHERE student_pin = $1`,
-      [cleanPin]
-    );
+      // 2. Clear any active dues
+      await db.query(
+        `UPDATE dues SET status = 'Cleared', cleared_at = CURRENT_TIMESTAMP WHERE LOWER(student_pin) = LOWER($1) AND status = 'Active'`,
+        [cleanPin]
+      );
+
+      // 3. Mark No-Dues request as Completed
+      await db.query(
+        `UPDATE no_dues_requests SET status = 'Completed', completed_at = CURRENT_TIMESTAMP WHERE id = $1`,
+        [requestId]
+      );
+    }
 
     // 4. Pre-fill certificate data if not already set
-    const certRes = await db.query('SELECT * FROM certificate_data WHERE student_pin = $1', [cleanPin]);
+    const certRes = await db.query('SELECT * FROM certificate_data WHERE LOWER(student_pin) = LOWER($1)', [cleanPin]);
     const t_no = deriveTNo(cleanPin);
     if (certRes.rows.length === 0) {
-      const studentRes = await db.query('SELECT course_branch FROM students_master WHERE pin = $1', [cleanPin]);
-      const branch = (studentRes.rows[0] && studentRes.rows[0].course_branch) || 'Diploma';
+      const branch = student.course_branch || 'Diploma';
       await db.query(
         `INSERT INTO certificate_data 
          (student_pin, t_no, date_of_leaving, fees_paid, promotion_status, conduct_character, is_locked)
@@ -1075,13 +1113,14 @@ async function fastTrackApproveStudent(req, res) {
 
     return res.json({
       success: true,
-      message: `All department & lab clearances for student ${cleanPin} have been approved!`
+      message: `All department clearances approved and No-Dues completed for ${student.student_name} (${cleanPin}).`
     });
   } catch (err) {
     console.error('fastTrackApproveStudent error:', err);
     return res.status(500).json({ success: false, error: 'Failed to fast-track clearances: ' + err.message });
   }
 }
+
 
 module.exports = {
   getClerkDashboard,

@@ -296,10 +296,18 @@ async function clearAllDues(req, res) {
 async function approveDepartment(req, res) {
   try {
     const deptId = req.faculty.department_id;
-    const { student_pin } = req.body;
+    const { student_pin, department_id } = req.body;
 
     if (!student_pin) {
       return res.status(400).json({ success: false, error: 'student_pin is required.' });
+    }
+
+    // Backend Authorization: faculty can strictly only approve their own assigned department
+    if (department_id && parseInt(department_id, 10) !== deptId) {
+      return res.status(403).json({
+        success: false,
+        error: 'Unauthorized: Faculty can only approve clearance for their assigned department.'
+      });
     }
 
     const cleanPin = student_pin.trim();

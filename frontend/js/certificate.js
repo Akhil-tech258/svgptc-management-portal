@@ -23,23 +23,40 @@ function initBranding() {
 
 async function loadCertificate() {
   const user = API.getUser();
-  if (!user || user.role !== 'clerk') {
+  const params = new URLSearchParams(window.location.search);
+  const pin = params.get('pin');
+  const version = params.get('version');
+
+  if (!user) {
     document.body.innerHTML = `
-      <div style="max-width:500px; margin:4rem auto; text-align:center; padding:2.5rem; background:#111827; border:1px solid #2e384d; border-radius:12px; color:#f8fafc; font-family:sans-serif;">
-        <div style="font-size:2.8rem; margin-bottom:1rem;">🏛️</div>
-        <h2 style="margin-bottom:0.6rem;">Administrative Access Only</h2>
-        <p style="color:#94a3b8; font-size:0.9rem; line-height:1.5; margin-bottom:1.5rem;">
-          Official Transfer and Conduct Certificates can only be accessed and printed by the Administrative Clerk.
+      <div style="max-width:500px; margin:4rem auto; text-align:center; padding:2.5rem; background:var(--bg-card, #ffffff); border:1px solid var(--border-color, #cbd5e1); border-radius:12px; color:var(--text-primary, #0f172a); font-family:sans-serif;">
+        <div style="font-size:2.8rem; margin-bottom:1rem;">🔐</div>
+        <h2 style="margin-bottom:0.6rem;">Authentication Required</h2>
+        <p style="color:var(--text-secondary, #475569); font-size:0.9rem; line-height:1.5; margin-bottom:1.5rem;">
+          Please sign in to view official college certificates.
         </p>
-        <a href="clerk.html" style="display:inline-block; padding:0.6rem 1.4rem; background:#4692c7; color:#fff; text-decoration:none; border-radius:6px; font-weight:600;">Go to Clerk Portal &rarr;</a>
+        <a href="index.html" style="display:inline-block; padding:0.6rem 1.4rem; background:#1d4ed8; color:#fff; text-decoration:none; border-radius:6px; font-weight:600;">Go to Portal Home &rarr;</a>
       </div>
     `;
     return;
   }
 
-  const params = new URLSearchParams(window.location.search);
-  const pin = params.get('pin');
-  const version = params.get('version');
+  // Allow Clerk or the specific student viewing their own certificate
+  const isAuthorized = user.role === 'clerk' || (user.role === 'student' && pin && user.pin.toLowerCase() === pin.toLowerCase());
+  if (!isAuthorized) {
+    document.body.innerHTML = `
+      <div style="max-width:500px; margin:4rem auto; text-align:center; padding:2.5rem; background:var(--bg-card, #ffffff); border:1px solid var(--border-color, #cbd5e1); border-radius:12px; color:var(--text-primary, #0f172a); font-family:sans-serif;">
+        <div style="font-size:2.8rem; margin-bottom:1rem;">🏛️</div>
+        <h2 style="margin-bottom:0.6rem;">Access Restricted</h2>
+        <p style="color:var(--text-secondary, #475569); font-size:0.9rem; line-height:1.5; margin-bottom:1.5rem;">
+          You can only view your own verified institutional certificate.
+        </p>
+        <a href="student.html" style="display:inline-block; padding:0.6rem 1.4rem; background:#1d4ed8; color:#fff; text-decoration:none; border-radius:6px; font-weight:600;">Go to Student Portal &rarr;</a>
+      </div>
+    `;
+    return;
+  }
+
 
 
   if (!pin) {

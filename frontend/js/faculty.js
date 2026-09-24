@@ -183,10 +183,13 @@ function renderRequestsTable(list) {
       `;
     } else {
       const hasActiveDues = req.active_dues && req.active_dues.length > 0;
+      const currentUser = API.getUser();
+      const isLib = currentUser && currentUser.department_name && currentUser.department_name.toLowerCase() === 'library';
+      const approveBtnText = isLib ? '✓ Approve Library' : '✓ Mark Completed';
       actionButtons = `
         <div style="display:flex; gap:0.4rem;">
-          <button class="btn btn-sm btn-success" ${hasActiveDues ? 'disabled title="Clear all dues before marking completed"' : ''} onclick="approveStudent('${escapeHtml(req.student_pin)}')">
-            ✓ Mark Completed
+          <button class="btn btn-sm btn-success" ${hasActiveDues ? 'disabled title="Clear all dues before granting clearance"' : ''} onclick="approveStudent('${escapeHtml(req.student_pin)}')">
+            ${approveBtnText}
           </button>
           <button class="btn btn-sm btn-danger" onclick="openAddDueModal('${escapeHtml(req.student_pin)}', '${escapeHtml(req.student_name).replace(/'/g, "\\'")}')">
             + Due
@@ -517,20 +520,28 @@ async function markDueCleared(dueId, pin) {
   }
 }
 
-function exportFacultyQueueCSV() {
-  if (!cachedStudents || cachedStudents.length === 0) {
+async function exportFacultyQueueCSV() {
+  let list = cachedStudents;
+  if (!list || list.length === 0) {
+    const res = await API.request('/faculty/dashboard');
+    if (res.ok && res.data && Array.isArray(res.data.requests)) {
+      list = res.data.requests;
+      cachedStudents = list;
+    }
+  }
+  if (!list || list.length === 0) {
     API.showToast('No clearance requests available to export.', 'info');
     return;
   }
   const headers = [
     { key: 'student_pin', label: 'Student PIN' },
-    { key: 'student_name', label: 'Student Name' },
+    { key: 'student_name', label: 'Student Full Name' },
     { key: 'admission_no', label: 'Admission No' },
-    { key: 'course_branch', label: 'Branch' },
+    { key: 'course_branch', label: 'Branch / Program' },
     { key: 'submitted_at', label: 'Submission Date' },
     { key: 'clearance_status', label: 'Status' }
   ];
-  API.exportToCSV('SVGP_Faculty_Clearance_Queue.csv', cachedStudents, headers);
+  API.exportToCSV('SVGP_Faculty_Clearance_Queue.csv', list, headers);
 }
 
 // Window global bindings for all HTML onclick handlers

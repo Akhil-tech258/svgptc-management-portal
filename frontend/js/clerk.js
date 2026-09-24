@@ -230,14 +230,21 @@ async function loadOverviewData() {
   depts.forEach((d, index) => {
     const assignedFac = faculty.find(f => f.department_id === d.id);
     const tr = document.createElement('tr');
-    const isPhysical = d.type === 'Physical';
+    const isLibrary = d.name && d.name.toLowerCase() === 'library';
+    const isPhysical = d.type === 'Physical' && !isLibrary;
     const bCode = d.branch_code || 'ALL';
     const scopeBadge = bCode === 'ALL'
       ? '<span class="badge badge-info">All Branches (Common)</span>'
       : `<span class="badge badge-approved" style="font-family:var(--font-mono);">${escapeHtml(bCode)}</span>`;
 
     let inchargeCol = '';
-    if (isPhysical) {
+    if (isLibrary) {
+      if (assignedFac) {
+        inchargeCol = `<span style="font-family:var(--font-mono); color:var(--accent-gold); font-weight:600;">📚 ${escapeHtml(assignedFac.username)} (Librarian)</span>`;
+      } else {
+        inchargeCol = '<span style="color:var(--status-due); font-size:0.8rem; font-style:italic;">⚠️ No Librarian Assigned</span>';
+      }
+    } else if (isPhysical) {
       inchargeCol = '<span style="color:var(--text-muted); font-style:italic;">🏛️ Clerk Physical Sign-off</span>';
     } else if (assignedFac) {
       inchargeCol = `<span style="font-family:var(--font-mono); color:var(--accent-gold); font-weight:600;">${escapeHtml(assignedFac.username)}</span>`;
@@ -246,7 +253,11 @@ async function loadOverviewData() {
     }
 
     let statusCol = '';
-    if (isPhysical) {
+    if (isLibrary) {
+      statusCol = assignedFac
+        ? (assignedFac.is_active ? '<span class="badge badge-approved">Active</span>' : '<span class="badge badge-due">Inactive</span>')
+        : '<span class="badge badge-pending">Unassigned</span>';
+    } else if (isPhysical) {
       statusCol = '<span class="badge badge-approved">Active</span>';
     } else if (assignedFac) {
       statusCol = assignedFac.is_active ? '<span class="badge badge-approved">Active</span>' : '<span class="badge badge-due">Inactive</span>';
@@ -764,7 +775,9 @@ async function loadCertificateStudents() {
   }
 
   const students = res.data.students || [];
+  cachedCertificateStudents = students;
   const tbody = document.getElementById('cert-students-body');
+  if (!tbody) return;
   tbody.innerHTML = '';
 
   if (students.length === 0) {
@@ -796,28 +809,28 @@ async function loadCertificateStudents() {
     let actionButtons = '';
     if (!isLocked) {
       actionButtons += `
-        <button class="btn btn-sm btn-secondary" onclick="openEditCertModal('${st.pin}', '${st.student_name.replace(/'/g, "\\'")}', '${st.date_of_leaving || ''}', '${st.fees_paid || 'No'}', '${(st.promotion_status || '').replace(/'/g, "\\'")}', '${st.conduct_character || 'Good'}')">
-          Edit Data
+        <button class="btn btn-sm btn-secondary" onclick="openEditCertModal('${st.pin}', '${(st.student_name || '').replace(/'/g, "\\'")}', '${st.date_of_leaving || ''}', '${st.fees_paid || 'No'}', '${(st.promotion_status || '').replace(/'/g, "\\'")}', '${st.conduct_character || 'Good'}')">
+          ✏️ Edit Data
         </button>
       `;
       if (isCompleted) {
         actionButtons += `
           <button class="btn btn-sm btn-success" style="margin-left:0.3rem;" onclick="verifyAndLock('${st.pin}')">
-            Lock &amp; Verify
+            🔒 Lock &amp; Verify
           </button>
         `;
-      } else if (st.no_dues_status === 'Pending') {
+      } else {
         actionButtons += `
-          <button class="btn btn-sm btn-primary" style="margin-left:0.3rem;" onclick="fastTrackApproveAllDues('${st.pin}')" title="Approve all 12 department and lab clearances instantly">
-            ⚡ Clear All (12)
+          <button class="btn btn-sm btn-primary" style="margin-left:0.3rem;" onclick="fastTrackApproveAllDues('${st.pin}')" title="Approve all department and lab clearances instantly">
+            ⚡ Fast-Track Clear
           </button>
         `;
       }
     } else {
-      // Locked
+      // Locked - ready to generate
       actionButtons += `
-        <button class="btn btn-sm btn-primary" onclick="generateCertificate('${st.pin}')">
-          📜 Generate
+        <button class="btn btn-sm btn-primary" style="background:#1d4ed8;" onclick="generateCertificate('${st.pin}')">
+          📜 Generate TC
         </button>
         <button class="btn btn-sm btn-secondary" style="margin-left:0.3rem;" onclick="unlockCertificate('${st.pin}')">
           🔓 Unlock
@@ -827,11 +840,11 @@ async function loadCertificateStudents() {
 
     if (hasGenerated) {
       actionButtons += `
-        <a href="certificate-view.html?pin=${encodeURIComponent(st.pin)}" target="_blank" class="btn btn-sm btn-secondary" style="margin-left:0.3rem;">
-          🖨️ Print
+        <a href="certificate-view.html?pin=${encodeURIComponent(st.pin)}" target="_blank" class="btn btn-sm btn-success" style="margin-left:0.3rem; text-decoration:none;">
+          🖨️ View / Print TC
         </a>
         <button class="btn btn-sm btn-secondary" style="margin-left:0.3rem;" onclick="viewAuditHistory('${st.pin}')">
-          History
+          📜 History
         </button>
       `;
     }
@@ -851,6 +864,7 @@ async function loadCertificateStudents() {
     tbody.appendChild(tr);
   });
 }
+
 
 function openEditCertModal(pin, name, leavingDate, feesPaid, promoStatus, conduct) {
   editingStudentPin = pin;
@@ -1027,10 +1041,12 @@ function closeAuditModal() {
 async function loadPhysicalDeptsDropdown() {
   const res = await API.request('/clerk/departments');
   const select = document.getElementById('phys-department-id');
+  if (!select) return;
   select.innerHTML = '';
 
-  if (res.ok && res.data.departments) {
-    const physical = res.data.departments.filter(d => d.type === 'Physical' || (d.name && (d.name.toUpperCase().includes('NSS') || d.name.toUpperCase().includes('NCC'))));
+  if (res && res.data && res.data.departments) {
+    // Library physical clearance is handled directly by Librarian; Clerk handles NSS/NCC non-cadet or others
+    const physical = res.data.departments.filter(d => (d.type === 'Physical' && d.name.toLowerCase() !== 'library') || (d.name && (d.name.toUpperCase().includes('NSS') || d.name.toUpperCase().includes('NCC'))));
     if (physical.length === 0) {
       select.innerHTML = '<option value="">No Physical departments configured</option>';
       return;
@@ -1740,9 +1756,17 @@ window.deleteSingleStudent = deleteSingleStudent;
 window.purgeAllStudentData = purgeAllStudentData;
 
 
-function exportMasterStudentsCSV() {
-  if (!cachedMasterStudents || cachedMasterStudents.length === 0) {
-    API.showToast('No student master records available to export.', 'info');
+async function exportMasterStudentsCSV() {
+  let list = cachedMasterStudents;
+  if (!list || list.length === 0) {
+    const res = await API.request('/clerk/students');
+    if (res.ok && res.data && Array.isArray(res.data.students)) {
+      list = res.data.students;
+      cachedMasterStudents = list;
+    }
+  }
+  if (!list || list.length === 0) {
+    API.showToast('No student master records found to export.', 'info');
     return;
   }
   const headers = [
@@ -1757,12 +1781,20 @@ function exportMasterStudentsCSV() {
     { key: 'religion', label: 'Religion' },
     { key: 'no_dues_status', label: 'No-Dues Status' }
   ];
-  API.exportToCSV('SVGP_Student_Master_Roster.csv', cachedMasterStudents, headers);
+  API.exportToCSV('SVGP_Student_Master_Roster.csv', list, headers);
 }
 
-function exportCertStudentsCSV() {
-  if (!cachedCertificateStudents || cachedCertificateStudents.length === 0) {
-    API.showToast('No certificate records available to export.', 'info');
+async function exportCertStudentsCSV() {
+  let list = cachedCertificateStudents;
+  if (!list || list.length === 0) {
+    const res = await API.request('/clerk/certificates/eligible');
+    if (res.ok && res.data && Array.isArray(res.data.students)) {
+      list = res.data.students;
+      cachedCertificateStudents = list;
+    }
+  }
+  if (!list || list.length === 0) {
+    API.showToast('No certificate clearance records available to export.', 'info');
     return;
   }
   const headers = [
@@ -1778,11 +1810,31 @@ function exportCertStudentsCSV() {
     { key: 'is_locked', label: 'Locked (1=Yes, 0=No)' },
     { key: 'current_version', label: 'Current TC Version' }
   ];
-  API.exportToCSV('SVGP_Transfer_Certificate_Clearance_List.csv', cachedCertificateStudents, headers);
+  API.exportToCSV('SVGP_Transfer_Certificate_Clearance_List.csv', list, headers);
 }
 
 window.exportMasterStudentsCSV = exportMasterStudentsCSV;
 window.exportCertStudentsCSV = exportCertStudentsCSV;
+window.openEditCertModal = openEditCertModal;
+window.closeEditCertModal = closeEditCertModal;
+window.submitCertData = submitCertData;
+window.verifyAndLock = verifyAndLock;
+window.unlockCertificate = unlockCertificate;
+window.generateCertificate = generateCertificate;
+window.viewAuditHistory = viewAuditHistory;
+window.closeAuditModal = closeAuditModal;
+window.fastTrackApproveAllDues = fastTrackApproveAllDues;
+window.toggleConductCustomInput = toggleConductCustomInput;
+window.openAddSingleStudentModal = openAddSingleStudentModal;
+window.closeAddSingleStudentModal = closeAddSingleStudentModal;
+window.submitAddSingleStudent = submitAddSingleStudent;
+window.openEditMasterStudentModal = openEditMasterStudentModal;
+window.closeEditMasterStudentModal = closeEditMasterStudentModal;
+window.submitEditMasterStudent = submitEditMasterStudent;
+window.searchMasterStudents = searchMasterStudents;
+window.resetMasterSearch = resetMasterSearch;
+window.loadCertificateStudents = loadCertificateStudents;
+
 
 
 

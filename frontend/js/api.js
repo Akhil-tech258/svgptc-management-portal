@@ -279,7 +279,8 @@ const API = {
 
     rows.forEach(row => {
       const line = headerKeys.map(key => {
-        const val = row[key] !== undefined && row[key] !== null ? row[key] : '';
+        const raw = row[key];
+        const val = raw !== undefined && raw !== null ? raw : '';
         return `"${String(val).replace(/"/g, '""')}"`;
       }).join(',');
       csvLines.push(line);
@@ -287,15 +288,24 @@ const API = {
 
     const csvContent = '\uFEFF' + csvLines.join('\r\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const downloadName = filename.endsWith('.csv') ? filename : `${filename}.csv`;
+
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename.endsWith('.csv') ? filename : `${filename}.csv`);
+    link.href = url;
+    link.setAttribute('download', downloadName);
+    link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    this.showToast(`Exported ${rows.length} records to ${filename}.`, 'success');
+
+    setTimeout(() => {
+      if (link.parentNode) {
+        document.body.removeChild(link);
+      }
+      URL.revokeObjectURL(url);
+    }, 1500);
+
+    this.showToast(`Exported ${rows.length} records to ${downloadName}.`, 'success');
   },
 
   // Floating Back to Top Button

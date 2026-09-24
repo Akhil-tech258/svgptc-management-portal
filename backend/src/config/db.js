@@ -7,9 +7,16 @@ const isPostgres = !!process.env.DATABASE_URL;
 
 if (isPostgres) {
   const { Pool } = require('pg');
+  const dbUrl = process.env.DATABASE_URL;
+  const isLocalHost = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
+
   dbClient = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    connectionString: dbUrl,
+    ssl: isLocalHost ? false : { rejectUnauthorized: false }
+  });
+
+  dbClient.on('error', (err) => {
+    console.error('[PostgreSQL Error] Unexpected error on idle client:', err.message);
   });
   console.log('Connected to PostgreSQL database');
 } else {
@@ -19,7 +26,7 @@ if (isPostgres) {
   const sqliteDb = new sqlite3.Database(dbFile);
   console.log(`Connected to local SQLite database at ${dbFile}`);
 
-  // Promisify SQLite to have uniform query() interface
+  // Promisify SQLite to have uniform query() interface matching pg
   dbClient = {
     query: (text, params = []) => {
       return new Promise((resolve, reject) => {
@@ -79,16 +86,11 @@ async function initDB() {
   // Migration for existing tables without branch_code
   try {
     await dbClient.query(`ALTER TABLE departments ADD COLUMN branch_code VARCHAR(50) DEFAULT 'ALL'`);
-  } catch (e) {
-    // Column already exists
-  }
+  } catch (e) {}
 
-  // Migration for dues amount
   try {
     await dbClient.query(`ALTER TABLE dues ADD COLUMN amount VARCHAR(50) DEFAULT '0'`);
-  } catch (e) {
-    // Column already exists
-  }
+  } catch (e) {}
 
   await dbClient.query(`
     CREATE TABLE IF NOT EXISTS clerks (
@@ -113,12 +115,9 @@ async function initDB() {
     );
   `);
 
-  // Migration for faculty_accounts branch_code
   try {
     await dbClient.query(`ALTER TABLE faculty_accounts ADD COLUMN branch_code VARCHAR(50) DEFAULT 'ALL'`);
-  } catch (e) {
-    // Column already exists
-  }
+  } catch (e) {}
 
   await dbClient.query(`
     CREATE TABLE IF NOT EXISTS students_master (
@@ -155,13 +154,9 @@ async function initDB() {
     );
   `);
 
-  // Migration for no_dues_requests is_ncc_cadet
   try {
     await dbClient.query(`ALTER TABLE no_dues_requests ADD COLUMN is_ncc_cadet INTEGER DEFAULT 0`);
-  } catch (e) {
-    // Column already exists
-  }
-
+  } catch (e) {}
 
   await dbClient.query(`
     CREATE TABLE IF NOT EXISTS department_clearances (
@@ -183,6 +178,7 @@ async function initDB() {
       department_id INTEGER NOT NULL,
       student_pin VARCHAR(50) NOT NULL,
       reason TEXT NOT NULL,
+      amount VARCHAR(50) DEFAULT '0',
       status VARCHAR(20) DEFAULT 'Active',
       created_by VARCHAR(100),
       created_at ${timestampType},

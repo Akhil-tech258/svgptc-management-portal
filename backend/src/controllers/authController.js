@@ -294,10 +294,18 @@ async function clerkLogin(req, res) {
 
     username = username.trim();
 
-    const clerkRes = await db.query(
+    let clerkRes = await db.query(
       'SELECT * FROM clerks WHERE LOWER(username) = LOWER($1)',
       [username]
     );
+
+    // Fallback: allow 'clerk' or 'admin' as shorthand for 'clerk@svgp'
+    if (clerkRes.rows.length === 0 && (username.toLowerCase() === 'clerk' || username.toLowerCase() === 'admin')) {
+      clerkRes = await db.query(
+        'SELECT * FROM clerks WHERE LOWER(username) = LOWER($1)',
+        ['clerk@svgp']
+      );
+    }
 
     if (clerkRes.rows.length === 0) {
       return res.status(401).json({

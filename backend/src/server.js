@@ -32,7 +32,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'online',
     timestamp: new Date().toISOString(),
-    database: db.isPostgres ? 'PostgreSQL (Render)' : 'SQLite (Local)'
+    database: 'PostgreSQL'
   });
 });
 
@@ -57,6 +57,26 @@ app.use(express.static(frontendPath, {
   }
 }));
 
+// 404 handler for unknown API routes
+app.use('/api', (req, res) => {
+  res.status(404).json({
+    success: false,
+    error: `API endpoint '${req.method} ${req.originalUrl}' not found.`
+  });
+});
+
+// 404 handler for unknown frontend routes
+app.use((req, res) => {
+  if (req.accepts('html')) {
+    res.status(404).sendFile(path.join(frontendPath, '404.html'));
+  } else {
+    res.status(404).json({
+      success: false,
+      error: `Resource '${req.originalUrl}' not found.`
+    });
+  }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Unhandled server error:', err);
@@ -76,7 +96,7 @@ async function startServer() {
       console.log(`====================================================`);
       console.log(`  Student No-Dues & TC Generator Backend API`);
       console.log(`  Running on: http://localhost:${PORT} (0.0.0.0:${PORT})`);
-      console.log(`  Database:   ${db.isPostgres ? 'PostgreSQL (Production)' : 'SQLite (Local Dev)'}`);
+      console.log(`  Database:   PostgreSQL`);
       console.log(`====================================================`);
     });
 

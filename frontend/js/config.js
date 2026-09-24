@@ -5,10 +5,10 @@ const APP_CONFIG = {
   // If backend & frontend run on same server (Render Web Service or port 5000), /api is used automatically.
   // If frontend is deployed separately to GitHub Pages, set this to: "https://your-backend.onrender.com/api"
   API_BASE_URL: (() => {
-    if (window.location.port === '5000' || window.location.hostname.includes('onrender.com')) {
+    if (window.location.port === '5000' || (window.location.hostname && window.location.hostname.includes('onrender.com'))) {
       return '/api';
     }
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:' || !window.location.hostname) {
       return 'http://localhost:5000/api';
     }
     return '/api';

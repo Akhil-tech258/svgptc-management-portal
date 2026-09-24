@@ -74,9 +74,6 @@ function showDashboard(user) {
   loadDashboard();
 }
 
-function switchAuthTab(tab) {
-  const loginForm = document.getElementById('student-login-form');
-  const regForm = document.getElementById('student-register-form');
 function setupFormListeners() {
   const loginForm = document.getElementById('student-login-form');
   if (!loginForm) return;
@@ -137,7 +134,7 @@ async function loadDashboard() {
   }
 
   const data = res.data;
-  renderProfile(data.student);
+  renderProfile(data.student, data.request);
 
   const promptCard = document.getElementById('no-dues-prompt-card');
   const trackerSection = document.getElementById('tracker-section');
@@ -164,6 +161,25 @@ async function loadDashboard() {
     promptCard.style.display = 'none';
     trackerSection.style.display = 'block';
     if (progressCard) progressCard.style.display = 'block';
+
+    const bannerCadet = document.getElementById('banner-cadet-status');
+    const bannerDate = document.getElementById('banner-submitted-date');
+    const bannerBadge = document.getElementById('banner-request-status-badge');
+    const reapplyBtnContainer = document.getElementById('reapply-btn-container');
+
+    if (bannerCadet) {
+      bannerCadet.innerText = data.request.is_ncc_cadet ? '🎖️ Enrolled NCC/NSS Cadet (Incharge Verification)' : 'Regular Student (Non-Cadet — Clerk Clearance)';
+    }
+    if (bannerDate) {
+      bannerDate.innerText = data.request.submitted_at ? new Date(data.request.submitted_at).toLocaleDateString() : 'Recently';
+    }
+    if (bannerBadge) {
+      bannerBadge.innerText = data.is_no_dues_completed ? 'Completed' : 'Under Review';
+      bannerBadge.className = data.is_no_dues_completed ? 'badge badge-approved' : 'badge badge-pending';
+    }
+    if (reapplyBtnContainer) {
+      reapplyBtnContainer.style.display = data.is_no_dues_completed ? 'none' : 'block';
+    }
 
     const totalDepts = data.clearances ? data.clearances.length : 0;
     const approvedDepts = data.clearances ? data.clearances.filter(c => c.status === 'Approved').length : 0;
@@ -214,7 +230,7 @@ function deriveTNo(pin) {
   return last3.replace(/^0+/, '') || '0';
 }
 
-function renderProfile(student) {
+function renderProfile(student, request) {
   if (!student) return;
   document.getElementById('dash-student-name').innerText = student.student_name || '—';
   document.getElementById('dash-student-pin').innerText = student.pin || '—';
@@ -232,6 +248,17 @@ function renderProfile(student) {
 
   document.getElementById('dash-doa').innerText = student.date_of_admission || '—';
   document.getElementById('dash-t-no').innerText = deriveTNo(student.pin);
+
+  const cadetEl = document.getElementById('dash-cadet-status');
+  if (cadetEl) {
+    if (!request) {
+      cadetEl.innerHTML = '<span style="color:var(--text-muted); font-style:italic;">Not Submitted Yet (Declare below)</span>';
+    } else if (request.is_ncc_cadet) {
+      cadetEl.innerHTML = '<span style="color:var(--accent-gold); font-weight:bold;">🎖️ Enrolled NCC/NSS Cadet</span>';
+    } else {
+      cadetEl.innerHTML = '<span style="color:var(--text-primary); font-weight:bold;">Regular Student (Non-Cadet)</span>';
+    }
+  }
 }
 
 function renderClearances(clearances) {
@@ -261,9 +288,79 @@ function renderClearances(clearances) {
 
     card.className = `clearance-card ${statusClass}`;
 
+    const isLibrary = item.department_name && item.department_name.toLowerCase().includes('library');
+    const isNcc = item.department_name && (item.department_name.toUpperCase().includes('NSS') || item.department_name.toUpperCase().includes('NCC'));
+
+    // --- Dedicated Card Rendering for Central Library ---
+    if (isLibrary) {
+      if (item.status === 'Approved') {
+        const approvedDate = item.approved_at ? new Date(item.approved_at).toLocaleString() : '';
+        card.innerHTML = `
+          <div>
+            <div class="clearance-header">
+              <div>
+                <div class="dept-name">📚 Library Clearance</div>
+                <div class="dept-meta">Physical Clearance (Central Library)</div>
+              </div>
+              <span class="badge badge-approved">Approved</span>
+            </div>
+            <div style="font-size:0.8rem; color:var(--status-approved); margin-top:0.85rem; line-height:1.5; background:rgba(34,197,94,0.08); padding:0.75rem; border-radius:var(--radius-sm); border:1px solid rgba(34,197,94,0.25);">
+              ✓ <strong>Status: Approved</strong><br>
+              <span style="font-size:0.75rem; color:var(--text-secondary);">
+                Approved By: <strong>${escapeHtml(item.approved_by || 'Librarian')}</strong>
+                ${approvedDate ? `<br>Approved At: ${approvedDate}` : ''}
+              </span>
+            </div>
+          </div>
+        `;
+      } else if (item.status === 'Due Found') {
+        card.innerHTML = `
+          <div>
+            <div class="clearance-header">
+              <div>
+                <div class="dept-name">📚 Library Clearance</div>
+                <div class="dept-meta">Physical Clearance (Central Library)</div>
+              </div>
+              <span class="badge badge-due">Due Found</span>
+            </div>
+            <div style="font-size:0.8rem; color:var(--status-due); margin-top:0.75rem; line-height:1.4; font-weight:600;">
+              ⚠️ Please contact the Librarian physically at the Library and clear the following dues:
+            </div>
+            <div class="due-alert-box" style="margin-top:0.5rem;">
+              <div style="font-size:0.78rem; font-weight:700; color:var(--text-primary); margin-bottom:0.35rem;">Library Dues:</div>
+              ${(item.active_dues || []).map(d => `
+                <div class="due-reason">• ${escapeHtml(d.reason)}${d.amount && d.amount !== '0' ? ` (Fine: ₹${escapeHtml(d.amount)})` : ''}</div>
+              `).join('')}
+              <div style="font-size:0.74rem; color:var(--text-muted); margin-top:0.4rem; font-style:italic;">
+                Please clear the dues before requesting Library approval.
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        // Pending state
+        card.innerHTML = `
+          <div>
+            <div class="clearance-header">
+              <div>
+                <div class="dept-name">📚 Library Clearance</div>
+                <div class="dept-meta">Physical Clearance (Central Library)</div>
+              </div>
+              <span class="badge badge-pending">Pending</span>
+            </div>
+            <div style="font-size:0.82rem; color:var(--text-secondary); margin-top:0.85rem; line-height:1.45; background:var(--bg-surface); padding:0.75rem; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+              📍 <strong>Please contact the Librarian physically at the Library for clearance approval.</strong>
+            </div>
+          </div>
+        `;
+      }
+      container.appendChild(card);
+      return;
+    }
+
+    // --- Standard Rendering for Other College Departments ---
     let dueHtml = '';
     if (item.active_dues && item.active_dues.length > 0) {
-
       dueHtml = `
         <div class="due-alert-box">
           ${item.active_dues.map(d => `
@@ -277,7 +374,6 @@ function renderClearances(clearances) {
     }
 
     let metaText = `${item.department_type} Department`;
-    const isNcc = item.department_name && (item.department_name.toUpperCase().includes('NSS') || item.department_name.toUpperCase().includes('NCC'));
     if (isNcc && item.department_type === 'Physical') {
       metaText = '🏛️ Non-Cadet (Clerk Verification)';
     } else if (isNcc) {
@@ -440,17 +536,23 @@ function renderCertificateDetails(cert, student) {
 
   if (isGenerated) {
     btnContainer.innerHTML = `
-      <span class="badge badge-approved" style="font-size:0.85rem; padding:0.4rem 0.8rem;">
-        ✅ Official Certificate Verified by Clerk
-      </span>
+      <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+        <a href="certificate-view.html?pin=${encodeURIComponent(pin)}" target="_blank" class="btn btn-sm btn-primary" style="text-decoration:none; font-weight:600;">
+          🖨️ View &amp; Print Transfer Certificate (TC) &rarr;
+        </a>
+        <a href="certificate-view.html?pin=${encodeURIComponent(pin)}#conduct-document" target="_blank" class="btn btn-sm btn-secondary" style="text-decoration:none;">
+          📜 Conduct Certificate
+        </a>
+      </div>
     `;
   } else {
     btnContainer.innerHTML = `
       <span class="badge badge-info" style="font-size:0.85rem; padding:0.4rem 0.8rem;">
-        ⏳ Awaiting Clerk Verification &amp; Generation
+        ⏳ Clearances Approved • Awaiting Clerk to Issue Certificate
       </span>
     `;
   }
+
 }
 
 // Window global bindings for student onclick handlers
@@ -459,6 +561,29 @@ window.reNotify = reNotify;
 window.switchTab = switchTab;
 window.loadDashboard = loadDashboard;
 window.refreshStudentDashboard = refreshStudentDashboard;
+
+async function confirmResetNoDues() {
+  const confirmed = confirm(
+    'Are you sure you want to withdraw and re-apply for No-Dues?\n\n' +
+    'This will reset your clearance request and allow you to re-declare whether you are an NCC/NSS cadet or regular student.'
+  );
+  if (!confirmed) return;
+
+  const res = await API.request('/students/no-dues/reset', {
+    method: 'POST'
+  });
+
+  if (res.ok && res.data.success) {
+    API.showToast(res.data.message || 'No-Dues application reset. You can now re-select your cadet status and apply.', 'info');
+    await loadDashboard();
+  } else {
+    const errMsg = res.data && res.data.error ? res.data.error : 'Failed to reset clearance request.';
+    API.showToast(errMsg, 'error');
+  }
+}
+
+window.confirmResetNoDues = confirmResetNoDues;
+
 
 
 

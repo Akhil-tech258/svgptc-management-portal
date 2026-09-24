@@ -86,6 +86,7 @@
           <div><strong style="color:var(--text-secondary);">Nationality / Religion:</strong> <span id="dash-nat-rel">...</span></div>
           <div><strong style="color:var(--text-secondary);">Admission Date:</strong> <span id="dash-doa">...</span></div>
           <div><strong style="color:var(--text-secondary);">T. Number:</strong> <span id="dash-t-no" style="font-weight:bold; color:var(--accent-gold);">...</span></div>
+          <div><strong style="color:var(--text-secondary);">NCC / NSS Status:</strong> <span id="dash-cadet-status" style="font-weight:600;">...</span></div>
         </div>
       </div>
 
@@ -168,6 +169,27 @@
           </div>
 
         </div>
+
+        <!-- Active Request Summary Banner -->
+        <div id="active-request-banner" style="background:var(--bg-surface); border:1px solid var(--border-color); border-left:4px solid var(--accent-gold); padding:0.9rem 1.25rem; border-radius:var(--radius-sm); margin-bottom:1.25rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
+          <div>
+            <div style="font-weight:700; color:var(--text-primary); font-size:0.92rem; display:flex; align-items:center; gap:0.5rem;">
+              <span>📋 No-Dues Application:</span>
+              <span id="banner-request-status-badge" class="badge badge-pending">Active</span>
+            </div>
+            <div style="font-size:0.83rem; color:var(--text-secondary); margin-top:0.25rem;">
+              Cadet Declaration: <strong id="banner-cadet-status" style="color:var(--text-primary);">Regular Student (Non-Cadet)</strong>
+              <span style="margin:0 0.4rem; color:var(--text-muted);">•</span>
+              Submitted: <span id="banner-submitted-date">—</span>
+            </div>
+          </div>
+          <div id="reapply-btn-container">
+            <button class="btn btn-sm btn-secondary" onclick="confirmResetNoDues()" style="font-size:0.8rem;" title="Withdraw and re-apply clearance declaration">
+              🔄 Re-apply / Change Cadet Option
+            </button>
+          </div>
+        </div>
+
         <div id="department-grid" class="clearance-grid">
           <!-- Dynamically populated department cards -->
         </div>

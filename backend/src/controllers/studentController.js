@@ -96,12 +96,18 @@ async function getStudentDashboard(req, res) {
           last_notified_at: item.last_notified_at,
           can_re_notify: canReNotify,
           remaining_hours_to_re_notify: remainingHours,
-          active_dues: activeDues.map(d => ({
-            id: d.id,
-            reason: d.reason,
-            created_at: d.created_at,
-            contact_instruction: 'Please contact the responsible Lab Incharge physically.'
-          }))
+          active_dues: activeDues.map(d => {
+            const isLib = item.department_name && item.department_name.toLowerCase().includes('library');
+            return {
+              id: d.id,
+              reason: d.reason,
+              amount: d.amount || '0',
+              created_at: d.created_at,
+              contact_instruction: isLib
+                ? 'Please visit the Library and contact the Librarian physically.'
+                : 'Please contact the responsible Lab Incharge physically.'
+            };
+          })
         };
       });
 
@@ -356,10 +362,49 @@ async function reNotifyDepartment(req, res) {
   }
 }
 
+async function resetNoDuesRequest(req, res) {
+  try {
+    const pin = req.student.pin;
+
+    // Check if there is an existing request
+    const existingReq = await db.query(
+      'SELECT * FROM no_dues_requests WHERE LOWER(student_pin) = LOWER($1) ORDER BY id DESC LIMIT 1',
+      [pin]
+    );
+
+    if (existingReq.rows.length === 0) {
+      return res.status(400).json({ success: false, error: 'No active No-Dues request found to reset.' });
+    }
+
+    const current = existingReq.rows[0];
+    if (current.status === 'Completed') {
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot reset a completed No-Dues request. Please contact the Administrative Clerk.'
+      });
+    }
+
+    // Delete clearances and dues associated with this request
+    await db.query('DELETE FROM department_clearances WHERE request_id = $1', [current.id]);
+    await db.query('DELETE FROM dues WHERE LOWER(student_pin) = LOWER($1)', [pin]);
+    await db.query('DELETE FROM no_dues_requests WHERE id = $1', [current.id]);
+
+    return res.json({
+      success: true,
+      message: 'No-Dues application reset successfully. You may now re-declare your NCC/NSS status and submit.'
+    });
+  } catch (err) {
+    console.error('resetNoDuesRequest error:', err);
+    return res.status(500).json({ success: false, error: 'Failed to reset No-Dues request.' });
+  }
+}
+
 module.exports = {
   getStudentDashboard,
   submitNoDuesRequest,
-  reNotifyDepartment
+  reNotifyDepartment,
+  resetNoDuesRequest
 };
+
 
 

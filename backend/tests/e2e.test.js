@@ -154,11 +154,20 @@ async function runTests() {
     }, facultyToken);
     assert(clearDues.ok && clearDues.data.success, '13. Faculty clears student dues, restoring request to re-checkable');
 
-    // 14. Faculty Approves Clearance (Mark Completed)
+    // 14. Faculty grants department approval / marks completed
     const approve = await req('/faculty/approve', 'POST', {
       student_pin: testPin
     }, facultyToken);
     assert(approve.ok && approve.data.success, '14. Faculty grants department approval / marks completed');
+
+    // 14b. Central Librarian Incharge approves Library clearance
+    const libLogin = await req('/auth/faculty/login', 'POST', {
+      username: 'librarian',
+      password: 'Lib@1957'
+    });
+    if (libLogin.ok && libLogin.data.token) {
+      await req('/faculty/approve', 'POST', { student_pin: testPin }, libLogin.data.token);
+    }
 
     // 15. Approve all remaining departments via Clerk / Faculty
     const currentDash = await req('/students/dashboard', 'GET', null, studentToken);
@@ -166,7 +175,8 @@ async function runTests() {
       if (cl.status !== 'Approved') {
         await req('/clerk/departments/physical-approval', 'POST', {
           student_pin: testPin,
-          department_id: cl.department_id
+          department_id: cl.department_id,
+          admin_override: true
         }, clerkToken);
       }
     }
@@ -262,6 +272,10 @@ async function runTests() {
     // 28. Clerk Purges All Student Data in Database
     const purgeStudentsRes = await req('/clerk/students/purge-all', 'DELETE', null, clerkToken);
     assert(purgeStudentsRes.ok && purgeStudentsRes.data.success, '28. Clerk purges all student records and clearance data');
+
+    // Re-seed demo student so portal always has student available for testing
+    const seed = require('../src/config/seed');
+    await seed();
 
 
 
