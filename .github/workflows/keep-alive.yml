@@ -1,0 +1,58 @@
+name: Supabase & Web Service Keep-Alive
+
+on:
+  schedule:
+    # Runs automatically every 3 days at 06:00 UTC (11:30 AM IST)
+    - cron: '0 6 */3 * *'
+  workflow_dispatch: # Allows manual trigger anytime from GitHub Actions tab
+
+jobs:
+  keep-alive:
+    name: Execute Keep-Alive Heartbeat
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Ping Live Web Service Health API
+        run: |
+          URL="${{ secrets.APP_URL }}"
+          if [ -n "$URL" ]; then
+            echo "📡 Pinging live application at $URL/api/health..."
+            curl -s -f "$URL/api/health" || echo "⚠️ Ping failed or server is waking up."
+          else
+            echo "ℹ️ APP_URL secret is not configured in GitHub Secrets. Skipping HTTP health ping."
+          fi
+
+      - name: Direct Database Keep-Alive Query (PostgreSQL / Supabase)
+        run: |
+          if [ -n "${{ secrets.DATABASE_URL }}" ]; then
+            echo "🗄️ Executing direct SQL keep-alive query (SELECT 1) on Supabase..."
+            npx -y pg -e "
+              const { Client } = require('pg');
+              const client = new Client({
+                connectionString: process.env.DATABASE_URL,
+                ssl: { rejectUnauthorized: false }
+              });
+              client.connect()
+                .then(() => client.query('SELECT 1 as keep_alive_heartbeat, NOW() as current_time'))
+                .then(res => {
+                  console.log('✅ Supabase database heartbeat successful:', res.rows[0]);
+                  return client.end();
+                })
+                .catch(err => {
+                  console.error('❌ Supabase ping error:', err.message);
+                  process.exit(0); // Non-blocking
+                });
+            "
+          else
+            echo "ℹ️ DATABASE_URL secret is not configured in GitHub Secrets. Skipping direct PostgreSQL ping."
+          fi
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
