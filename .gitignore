@@ -33,3 +33,7 @@ Thumbs.db
 .vscode/
 .idea/
 .gemini/
+
+# Other Local Sub-projects (Excluded from SVGP Portal Repo)
+web files/
+web-files/
