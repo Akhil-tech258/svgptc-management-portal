@@ -1,0 +1,20 @@
+{
+  "name": "svgptc-management-portal",
+  "version": "1.1.0",
+  "description": "SVGP Tirupati Student No-Dues and Transfer Certificate Generator",
+  "main": "backend/src/server.js",
+  "scripts": {
+    "install-backend": "npm --prefix backend install",
+    "postinstall": "npm --prefix backend install",
+    "start": "node backend/src/server.js",
+    "test": "npm --prefix backend test"
+  },
+  "keywords": [
+    "svgp",
+    "nodues",
+    "clearance",
+    "transfer-certificate"
+  ],
+  "author": "SVGP Polytechnic",
+  "license": "ISC"
+}
