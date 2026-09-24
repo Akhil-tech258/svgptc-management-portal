@@ -38,3 +38,6 @@ Thumbs.db
 web files/
 web-files/
 sample-cloud-test/
+
+# Private Member Specific Documentation (Local Only)
+*AKHIL*.md
