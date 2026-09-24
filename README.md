@@ -110,13 +110,6 @@ npm start
 Open your browser and visit:  
 👉 **`http://localhost:5000`**
 
-### Default Administrative Credentials
-| Role | Username / Identifier | Default Password | Description |
-| :--- | :--- | :--- | :--- |
-| **Clerk Admin** | `clerk@svgp` *(or `clerk`)* | `Clerk@1957` | Master college clearance, student roster & TC generator |
-| **Librarian Incharge** | `librarian` | `Lib@1957` | Dedicated physical library clearance console |
-| **Student** | Student PIN (e.g. `23018-CM-001`) | Student Full Name | Direct student self-service portal |
-
 ---
 
 ## 🌐 Production Deployment Guide (Render / Cloud + PostgreSQL)
@@ -138,10 +131,10 @@ Open your browser and visit:
      - `PORT` = `5000`
      - `NODE_ENV` = `production`
      - `CLERK_USERNAME` = `clerk@svgp`
-     - `CLERK_PASSWORD` = `Clerk@1957`
+     - `CLERK_PASSWORD` = `<your-secure-clerk-password>`
      - `LIBRARIAN_USERNAME` = `librarian`
-     - `LIBRARIAN_PASSWORD` = `Lib@1957`
-     - `JWT_SECRET` = `super-secret-production-token-key-2026`
+     - `LIBRARIAN_PASSWORD` = `<your-secure-librarian-password>`
+     - `JWT_SECRET` = `<your-random-jwt-secret-key>`
      - `DATABASE_URL` = *(Optional: paste your Supabase/PostgreSQL connection string; if left blank, Render will run SQLite)*
 
 ---
