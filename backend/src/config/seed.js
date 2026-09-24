@@ -60,12 +60,12 @@ async function seed() {
   // 3. Remove old demo clerk accounts if present
   await db.query("DELETE FROM clerks WHERE LOWER(username) IN ('clerk_admin', 'admin')");
 
-  // 4. Seed Pre-registered Clerk from environment variables (supporting both clerk@svgp and clerk)
+  // 4. Seed Pre-registered Clerk from environment variables (supporting clerk, admin, clerk@svgp)
   const clerkUsername = (process.env.CLERK_USERNAME || 'clerk@svgp').trim();
-  const clerkPassword = process.env.CLERK_PASSWORD || 'Clerk@1957';
+  const clerkPassword = process.env.CLERK_PASSWORD || 'admin123';
   const clerkHash = hashPassword(clerkPassword);
 
-  const clerkAliases = [clerkUsername, 'clerk'];
+  const clerkAliases = [clerkUsername, 'clerk', 'admin'];
   for (const cUser of clerkAliases) {
     const existingClerk = await db.query('SELECT id FROM clerks WHERE LOWER(username) = LOWER($1)', [cUser]);
     if (existingClerk.rows.length === 0) {
@@ -82,7 +82,7 @@ async function seed() {
   if (libDeptRes.rows.length > 0) {
     const libDept = libDeptRes.rows[0];
     const librarianUsername = (process.env.LIBRARIAN_USERNAME || 'librarian').trim();
-    const librarianPassword = process.env.LIBRARIAN_PASSWORD || 'Lib@1957';
+    const librarianPassword = process.env.LIBRARIAN_PASSWORD || 'librarian123';
     const libHash = hashPassword(librarianPassword);
 
     const existingLib = await db.query('SELECT id FROM faculty_accounts WHERE LOWER(username) = LOWER($1)', [librarianUsername]);
@@ -117,6 +117,17 @@ async function seed() {
 
   // 7. Seed Official Demo Students in unsubmitted state for instant portal testing
   const demoStudents = [
+    {
+      pin: '23018-CM-007',
+      admission_no: 'ADM-2023-007',
+      student_name: 'Keerthan',
+      father_name: 'Institutional Guardian',
+      dob: '01-01-2005',
+      nationality: 'Indian',
+      religion: 'Hindu',
+      course_branch: 'Computer Engineering',
+      date_of_admission: '10-07-2023'
+    },
     {
       pin: '23018-CM-001',
       admission_no: 'ADM-2023-001',
