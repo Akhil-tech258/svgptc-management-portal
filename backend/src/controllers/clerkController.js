@@ -1027,101 +1027,6 @@ async function purgeAllStudents(req, res) {
 }
 
 
-// Fast-Track / 1-Click Clearance Approval for a Student
-async function fastTrackApproveStudent(req, res) {
-  try {
-    const { pin } = req.params;
-    if (!pin) {
-      return res.status(400).json({ success: false, error: 'Student PIN is required.' });
-    }
-    const cleanPin = pin.trim().toUpperCase();
-
-    // Check student in master
-    const masterRes = await db.query('SELECT * FROM students_master WHERE LOWER(pin) = LOWER($1)', [cleanPin]);
-    if (masterRes.rows.length === 0) {
-      return res.status(404).json({ success: false, error: `Student with PIN "${cleanPin}" not found in master records.` });
-    }
-    const student = masterRes.rows[0];
-
-    // Ensure student registered record exists
-    const regRes = await db.query('SELECT * FROM students_registered WHERE LOWER(pin) = LOWER($1)', [cleanPin]);
-    if (regRes.rows.length === 0) {
-      await db.query(
-        'INSERT INTO students_registered (pin, student_name, course_branch, registered_at) VALUES ($1, $2, $3, $4)',
-        [student.pin, student.student_name, student.course_branch, getTodayFormatted()]
-      );
-    }
-
-    const today = getTodayFormatted();
-    let requestId;
-
-    // Check if No-Dues request exists
-    const ndrRes = await db.query('SELECT * FROM no_dues_requests WHERE LOWER(student_pin) = LOWER($1)', [cleanPin]);
-    if (ndrRes.rows.length === 0) {
-      const insReq = await db.query(
-        'INSERT INTO no_dues_requests (student_pin, status, submitted_at, completed_at, is_ncc_cadet) VALUES ($1, $2, $3, CURRENT_TIMESTAMP, 0) RETURNING id',
-        [cleanPin, 'Completed', today]
-      );
-      requestId = insReq.rows[0].id;
-
-      // Populate department clearances for all active departments
-      const deptsRes = await db.query('SELECT * FROM departments WHERE is_active = 1');
-      for (const dept of deptsRes.rows) {
-        await db.query(
-          `INSERT INTO department_clearances 
-           (request_id, student_pin, department_id, department_name, status, approved_by, approved_at) 
-           VALUES ($1, $2, $3, $4, 'Approved', $5, CURRENT_TIMESTAMP)`,
-          [requestId, cleanPin, dept.id, dept.name, (req.user && req.user.username) || 'Clerk Admin']
-        );
-      }
-    } else {
-      requestId = ndrRes.rows[0].id;
-
-      // 1. Approve all department clearances
-      await db.query(
-        `UPDATE department_clearances 
-         SET status = 'Approved', approved_at = CURRENT_TIMESTAMP, approved_by = $1 
-         WHERE LOWER(student_pin) = LOWER($2)`,
-        [(req.user && req.user.username) || 'Clerk Admin', cleanPin]
-      );
-
-      // 2. Clear any active dues
-      await db.query(
-        `UPDATE dues SET status = 'Cleared', cleared_at = CURRENT_TIMESTAMP WHERE LOWER(student_pin) = LOWER($1) AND status = 'Active'`,
-        [cleanPin]
-      );
-
-      // 3. Mark No-Dues request as Completed
-      await db.query(
-        `UPDATE no_dues_requests SET status = 'Completed', completed_at = CURRENT_TIMESTAMP WHERE id = $1`,
-        [requestId]
-      );
-    }
-
-    // 4. Pre-fill certificate data if not already set
-    const certRes = await db.query('SELECT * FROM certificate_data WHERE LOWER(student_pin) = LOWER($1)', [cleanPin]);
-    const t_no = deriveTNo(cleanPin);
-    if (certRes.rows.length === 0) {
-      const branch = student.course_branch || 'Diploma';
-      await db.query(
-        `INSERT INTO certificate_data 
-         (student_pin, t_no, date_of_leaving, fees_paid, promotion_status, conduct_character, is_locked)
-         VALUES ($1, $2, $3, $4, $5, $6, 0)`,
-        [cleanPin, t_no, 'May 2026', 'Yes', `Qualified for award of ${branch}`, 'Good']
-      );
-    }
-
-    return res.json({
-      success: true,
-      message: `All department clearances approved and No-Dues completed for ${student.student_name} (${cleanPin}).`
-    });
-  } catch (err) {
-    console.error('fastTrackApproveStudent error:', err);
-    return res.status(500).json({ success: false, error: 'Failed to fast-track clearances: ' + err.message });
-  }
-}
-
-
 module.exports = {
   getClerkDashboard,
   getStudentsMaster,
@@ -1130,7 +1035,6 @@ module.exports = {
   deleteSingleStudent,
   purgeAllStudents,
   previewExcelImport,
-
   commitExcelImport,
   downloadSampleExcel,
   getFacultyAccounts,
@@ -1144,7 +1048,6 @@ module.exports = {
   toggleBranchStatus,
   deleteBranch,
   getDepartments,
-
   createDepartment,
   updateDepartment,
   deleteDepartment,
@@ -1154,6 +1057,6 @@ module.exports = {
   verifyAndLockCertificate,
   unlockCertificate,
   generateCertificate,
-  getCertificateAuditHistory,
-  fastTrackApproveStudent
+  getCertificateAuditHistory
 };
+

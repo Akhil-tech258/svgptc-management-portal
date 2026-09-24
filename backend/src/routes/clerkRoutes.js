@@ -25,7 +25,7 @@ router.post('/students/purge-all', clerkController.purgeAllStudents);
 router.delete('/students/:pin', clerkController.deleteSingleStudent);
 router.post('/students/:pin/delete', clerkController.deleteSingleStudent);
 router.put('/students/:pin', clerkController.updateStudentMaster);
-router.post('/students/:pin/fast-track-approve', clerkController.fastTrackApproveStudent);
+
 
 
 router.get('/faculty-accounts', clerkController.getFacultyAccounts);

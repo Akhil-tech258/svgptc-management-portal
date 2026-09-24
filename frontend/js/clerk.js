@@ -819,12 +819,6 @@ async function loadCertificateStudents() {
             🔒 Lock &amp; Verify
           </button>
         `;
-      } else {
-        actionButtons += `
-          <button class="btn btn-sm btn-primary" style="margin-left:0.3rem;" onclick="fastTrackApproveAllDues('${st.pin}')" title="Approve all department and lab clearances instantly">
-            ⚡ Fast-Track Clear
-          </button>
-        `;
       }
     } else {
       // Locked - ready to generate
@@ -969,23 +963,6 @@ async function unlockCertificate(pin) {
     loadCertificateStudents();
   } else {
     API.showToast(res.data.error || 'Failed to unlock certificate.', 'error');
-  }
-}
-
-async function fastTrackApproveAllDues(pin) {
-  if (!confirm(`Are you sure you want to approve all 12 department and laboratory clearances for student ${pin}?`)) return;
-
-  API.showToast(`Fast-tracking all clearances for ${pin}...`, 'info');
-  const res = await API.request(`/clerk/students/${encodeURIComponent(pin)}/fast-track-approve`, {
-    method: 'POST'
-  });
-
-  if (res.ok && res.data.success) {
-    API.showToast(res.data.message, 'success');
-    loadCertificateStudents();
-    loadClerkDashboard();
-  } else {
-    API.showToast(res.data.error || 'Failed to fast-track approvals.', 'error');
   }
 }
 
@@ -1823,7 +1800,6 @@ window.unlockCertificate = unlockCertificate;
 window.generateCertificate = generateCertificate;
 window.viewAuditHistory = viewAuditHistory;
 window.closeAuditModal = closeAuditModal;
-window.fastTrackApproveAllDues = fastTrackApproveAllDues;
 window.toggleConductCustomInput = toggleConductCustomInput;
 window.openAddSingleStudentModal = openAddSingleStudentModal;
 window.closeAddSingleStudentModal = closeAddSingleStudentModal;
