@@ -8,10 +8,11 @@
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Presented abstracts of several project proposals to the project guide. Explained the practical challenges and delays in the manual paper-based clearance system across 28 college departments. Discussed how digitizing the no-dues verification will help students and administrative staff. The guide approved the SVGP No-Dues Clearance and Transfer Certificate Management Portal.
+Presented multiple project ideas including ProjectForge, PGMS, and a Student No-Dues and Transfer Certificate Management System. Discussed their purpose, users, feasibility, and practical usefulness. After discussing the problems in the existing manual clearance process, the guide and team finalized the SVGP No-Dues Clearance and Transfer Certificate Management Portal.
 
 **Suggestions given by guide:**  
-Guide suggested clearly defining the core objectives, user roles, and main workflow requirements before beginning development.
+Guide suggested finalizing the project's objectives, scope, and major user roles before starting development.  
+Guide also advised focusing on solving a real problem faced by students and college administration.
 
 **Signature of guide:**
 
@@ -22,10 +23,11 @@ Guide suggested clearly defining the core objectives, user roles, and main workf
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Analyzed the existing manual circular workflow and gathered institutional requirements. Discussed the functional specifications needed for students, department faculty, clerks, and the principal. Reviewed the necessary compliance guidelines for issuing official technical board certificates. Drafted the initial Software Requirements Specification (SRS) document.
+Studied the existing manual no-dues and certificate clearance process followed in the college. Identified difficulties such as repeated visits to departments, paper-based verification, and delays in obtaining certificates. Discussed how the proposed system could simplify the process.
 
 **Suggestions given by guide:**  
-Guide suggested finalizing all functional requirements clearly and ensuring the interface is simple and mobile-friendly.
+Guide suggested documenting the existing problems clearly before designing the proposed solution.  
+Guide advised keeping the new workflow simple and convenient for students and staff.
 
 **Signature of guide:**
 
@@ -36,10 +38,11 @@ Guide suggested finalizing all functional requirements clearly and ensuring the 
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Discussed the overall system architecture and modular division of the portal. Planned the four primary modules: Student Portal, Clerk Admin, Faculty Dues Management, and Certificate Engine. Evaluated the data flow and communication pathways between different user roles. Formulated the roadmap for phase-wise module development and unit testing.
+Identified the main users of the proposed system and discussed their responsibilities. Planned separate access for students, faculty/department in-charges, and clerks. Discussed the overall flow from student registration and no-dues request to final certificate generation.
 
 **Suggestions given by guide:**  
-Guide suggested keeping each module independent so that development and debugging can proceed smoothly.
+Guide suggested defining permissions for each user role clearly.  
+Guide advised ensuring that users can access only the functions required for their responsibilities.
 
 **Signature of guide:**
 
@@ -50,10 +53,11 @@ Guide suggested keeping each module independent so that development and debuggin
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Detailed the relational database requirements and entity relationship model. Identified necessary tables for students, departments, branch details, dues records, faculty logins, and certificates. Addressed the mapping between common institutional departments and branch-specific laboratories. Finalized table constraints, foreign keys, and indexes for optimal query performance.
+Prepared the initial Software Requirements Specification (SRS) for the project. Discussed functional requirements, system scope, authentication, student records, department clearance, and certificate generation. Reviewed the proposed requirements with the guide and made necessary changes.
 
 **Suggestions given by guide:**  
-Guide suggested normalizing database tables to 3NF to maintain data integrity and avoid redundancy.
+Guide suggested keeping the SRS clear and avoiding unnecessary features outside the project scope.  
+Guide advised finalizing the important requirements before beginning major development.
 
 **Signature of guide:**
 
@@ -64,10 +68,11 @@ Guide suggested normalizing database tables to 3NF to maintain data integrity an
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Finalized the complete technology stack for backend, database, and frontend. Selected Node.js and Express.js for building scalable RESTful APIs. Chosen a dual-database architecture using SQLite for local development and PostgreSQL for production. Decided on Vanilla HTML5, CSS3, and ES6 JavaScript to ensure zero client-side bloat.
+Discussed the overall system architecture and divided the application into major modules. Planned the Student Portal, Clerk Administration, Faculty Clearance, and Certificate Management modules. Discussed how the frontend, backend, and database would communicate with each other.
 
 **Suggestions given by guide:**  
-Guide approved the technology choices and advised keeping the frontend lightweight for low-bandwidth mobile networks.
+Guide suggested maintaining a modular architecture for easier development and testing.  
+Guide advised keeping communication between modules properly organized.
 
 **Signature of guide:**
 
@@ -78,10 +83,11 @@ Guide approved the technology choices and advised keeping the frontend lightweig
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Created the core project repository and established a clean folder structure. Configured backend server scripts, environment variables, and REST route skeletons. Implemented the dynamic database connection engine in `db.js` supporting both SQLite and PostgreSQL. Verified that database tables and relational schemas initialize automatically on server start.
+Designed the initial database structure for the system. Identified tables required for students, branches, departments, faculty accounts, no-dues requests, department clearances, and certificates. Discussed relationships, primary keys, foreign keys, and data validation requirements.
 
 **Suggestions given by guide:**  
-Guide suggested keeping controllers, routes, and middleware organized in separate folders for maintainability.
+Guide suggested avoiding unnecessary duplication of data in database tables.  
+Guide advised maintaining proper relationships between students, departments, and clearance records.
 
 **Signature of guide:**
 
@@ -92,10 +98,11 @@ Guide suggested keeping controllers, routes, and middleware organized in separat
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Configured the master data seeding module for all 28 polytechnic departments and laboratories. Classified departments into universal categories and branch-specific labs (CME, EEE, ECE, MECH, CIVIL). Added initial administrative credentials and demo departmental accounts for development testing. Verified that student dues records map correctly across their respective branches.
+Finalized the technologies to be used for the project. Selected HTML, CSS, and JavaScript for the frontend, Node.js and Express.js for the backend, and PostgreSQL for the production database. Created the project repository and established the basic folder structure.
 
 **Suggestions given by guide:**  
-Guide suggested verifying that branch-specific labs are mapped strictly to students of corresponding branches.
+Guide approved the selected technologies and suggested keeping the interface lightweight and responsive.  
+Guide advised setting up proper environment configurations before writing code.
 
 **Signature of guide:**
 
@@ -106,10 +113,11 @@ Guide suggested verifying that branch-specific labs are mapped strictly to stude
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Built the central authentication engine and role-based access security layer. Implemented salted Bcrypt password hashing for protecting clerk and faculty accounts. Integrated stateless JSON Web Token (JWT) generation with embedded role claims. Created authorization middleware to protect private API routes against unauthorized access.
+Configured master data seeding for all 28 institutional departments and diploma branches. Added common departments like Central Library, Examination Cell, and Sports, along with branch-specific laboratories. Initialized default clerk and faculty accounts for development testing.
 
 **Suggestions given by guide:**  
-Guide suggested enforcing strict route protection so users cannot access endpoints outside their assigned role.
+Guide suggested verifying that branch-specific laboratories are mapped correctly to their respective branches.  
+Guide advised keeping the master department list easily manageable and configurable.
 
 **Signature of guide:**
 
@@ -120,10 +128,11 @@ Guide suggested enforcing strict route protection so users cannot access endpoin
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Implemented IP-based login rate limiting middleware to prevent automated brute-force attacks. Configured a sliding window limit of 15 login attempts per 15-minute window per IP address. Added logic to automatically clear failure counters upon successful user authentication. Verified that proper HTTP 429 status codes and retry messages are returned when exceeded.
+Implemented the backend authentication system for clerks and faculty members. Used Bcrypt for secure password hashing and JSON Web Tokens (JWT) for session management. Created middleware to verify user roles and restrict unauthorized page access.
 
 **Suggestions given by guide:**  
-Guide suggested displaying clear error messages on the login page informing users when the rate limit will reset.
+Guide suggested enforcing strict role-based access control across all API endpoints.  
+Guide advised ensuring that passwords are always hashed before storing them in the database.
 
 **Signature of guide:**
 
@@ -134,10 +143,11 @@ Guide suggested displaying clear error messages on the login page informing user
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Developed the Clerk Administration Dashboard for managing student records. Implemented the Master Student Directory interface with real-time search and branch filtering. Created full CRUD endpoints allowing clerks to add, view, update, and remove student profiles. Tested database transaction handling during single student record modifications.
+Implemented login security improvements to protect against automated brute-force attacks. Added IP-based rate limiting middleware on authentication routes with a limit of 15 attempts. Configured automatic reset of attempt counters upon successful login.
 
 **Suggestions given by guide:**  
-Guide suggested adding visual confirmation dialogues before modifying or deleting any student record.
+Guide suggested returning user-friendly error messages when rate limits are exceeded.  
+Guide advised ensuring legitimate users are not accidentally locked out during normal use.
 
 **Signature of guide:**
 
@@ -148,10 +158,11 @@ Guide suggested adding visual confirmation dialogues before modifying or deletin
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Integrated the Smart Excel batch ingestion engine using the SheetJS library. Implemented automated column header mapping, data type sanitization, and duplicate PIN checks. Configured a strict 10MB file size limit and allowed only valid spreadsheet formats (`.xlsx`/`.xls`). Tested bulk student import to ensure hundreds of records insert safely in a single batch.
+Developed the Clerk Administration Dashboard for managing student records. Implemented the master student directory with search, branch filtering, and full CRUD operations. Verified that clerks can add, edit, view, and delete student profiles easily.
 
 **Suggestions given by guide:**  
-Guide tested the upload feature with sample spreadsheets and suggested showing clear error messages for invalid rows.
+Guide suggested adding confirmation alerts before modifying or deleting student records.  
+Guide advised keeping the search functionality fast and responsive.
 
 **Signature of guide:**
 
@@ -162,10 +173,11 @@ Guide tested the upload feature with sample spreadsheets and suggested showing c
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Added faculty account provisioning and department assignment features to the Clerk Portal. Implemented functionality for clerks to create faculty logins and assign them to specific departments. Handled dynamic reassignment of departmental in-charges and HOD profiles. Verified that faculty credentials and department associations persist correctly in the database.
+Implemented the Smart Excel (XLSX) batch upload feature in the clerk module using SheetJS. Added automatic column mapping, duplicate PIN validation, and a 10MB file size limit. Tested bulk student ingestion to insert entire graduating classes in a single batch.
 
 **Suggestions given by guide:**  
-Guide suggested verifying that every active department has at least one assigned faculty member.
+Guide suggested testing the upload feature with sample student spreadsheets.  
+Guide advised showing clear error messages for invalid or missing row data during import.
 
 **Signature of guide:**
 
@@ -176,10 +188,11 @@ Guide suggested verifying that every active department has at least one assigned
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Constructed the Faculty Clearance Portal interface and department review queue. Implemented department-level data isolation ensuring faculty only access dues for their assigned department. Built search and filter tools allowing faculty to find students by PIN or diploma branch. Tested the clearance review interface with multiple concurrent faculty sessions.
+Created the faculty management section within the Clerk Dashboard. Added features allowing clerks to create faculty accounts and assign them to specific departments. Handled reassignment of departmental in-charges and HOD profiles dynamically.
 
 **Suggestions given by guide:**  
-Guide suggested ensuring strict data isolation so teachers cannot view or modify dues belonging to other departments.
+Guide suggested ensuring that every active department has at least one assigned faculty member.  
+Guide advised verifying that faculty assignments update correctly in the database.
 
 **Signature of guide:**
 
@@ -190,10 +203,11 @@ Guide suggested ensuring strict data isolation so teachers cannot view or modify
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Designed the actionable free-text dues logging feature within the faculty dashboard. Created a modal interface allowing staff to input specific item descriptions, fine amounts, and lab room numbers. Ensured dues remarks are structured clearly instead of using vague pending flags. Verified that logged dues reflect immediately on the student's personal clearance record.
+Developed the Faculty Clearance Portal interface and department review queue. Implemented department-level data isolation so faculty members can only access their assigned department. Added search and filter tools by student PIN and branch.
 
 **Suggestions given by guide:**  
-Guide suggested keeping dues remarks descriptive so students know the exact room location and items to clear.
+Guide suggested enforcing strict department isolation so faculty cannot modify dues of other departments.  
+Guide advised making the student review list easy to read and navigate.
 
 **Signature of guide:**
 
@@ -204,10 +218,11 @@ Guide suggested keeping dues remarks descriptive so students know the exact room
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Implemented the single-click clearance approval workflow in the faculty interface. Added batch approval functionality allowing faculty to clear graduating batches with zero dues quickly. Built backend logic to automatically update clearance timestamps and clear remarks upon approval. Verified that updated clearance statuses synchronize immediately across the database.
+Designed the actionable dues logging feature for faculty members. Created a popup modal allowing staff to enter specific item descriptions, fine amounts, and lab room numbers. Verified that logged dues reflect immediately on the student's personal status.
 
 **Suggestions given by guide:**  
-Guide suggested adding an approval confirmation prompt to prevent accidental clearance clicks.
+Guide suggested keeping dues remarks descriptive and specific.  
+Guide advised ensuring students clearly understand the required actions and room locations to clear dues.
 
 **Signature of guide:**
 
@@ -218,10 +233,11 @@ Guide suggested adding an approval confirmation prompt to prevent accidental cle
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Crafted the Student Self-Service Portal user interface using responsive CSS Grid and Flexbox. Implemented dark and light theme switching using native CSS custom properties. Structured mobile-optimized views so students can easily navigate on smartphone screens. Tested layout responsiveness across multiple screen dimensions and mobile viewports.
+Implemented the 1-click clearance approval workflow and batch clearance feature for faculty. Added functionality to quickly clear graduating batches with zero dues. Verified that clearance timestamps and status changes update immediately in the database.
 
 **Suggestions given by guide:**  
-Guide suggested optimizing dashboard layout for mobile devices so students can check clearance easily on campus.
+Guide suggested adding an approval confirmation prompt to prevent accidental clearance clicks.  
+Guide advised ensuring real-time status updates across the system.
 
 **Signature of guide:**
 
@@ -232,10 +248,11 @@ Guide suggested optimizing dashboard layout for mobile devices so students can c
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Implemented passwordless student authentication using Student PIN and registered name verification. Built the real-time dynamic visual clearance progress meter on the student dashboard. Added color-coded status badges displaying green for cleared departments and red for pending dues. Displayed itemized dues remarks with lab locations and contact faculty details.
+Developed the Student Self-Service Portal user interface. Created a responsive layout with dark and light mode that works smoothly on mobile screens. Tested page elements, navigation, and readability on various screen sizes.
 
 **Suggestions given by guide:**  
-Guide suggested making the clearance meter prominent so students can instantly track their overall clearance progress.
+Guide suggested keeping the student dashboard clean, simple, and mobile-friendly.  
+Guide advised ensuring the interface loads quickly on low-bandwidth campus networks.
 
 **Signature of guide:**
 
@@ -246,10 +263,11 @@ Guide suggested making the clearance meter prominent so students can instantly t
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Configured the NCC/NSS Cadet declaration toggle on the student dashboard. Added dynamic approval chain injection so declaring cadet status includes the NCC/NSS Officer. Implemented the clearance notification request button with a 20-hour anti-spam rate limiter. Tested student notification triggers to prevent inbox flooding for faculty members.
+Implemented passwordless student login using PIN and registered name verification. Built the dynamic visual clearance progress meter displaying the percentage of cleared departments. Added color-coded badges to highlight cleared and pending dues clearly.
 
 **Suggestions given by guide:**  
-Guide suggested displaying a clear advisory note explaining that cadet declaration is mandatory only for enrolled cadets.
+Guide suggested making the clearance meter prominent so students can instantly track their progress.  
+Guide advised displaying pending dues and lab locations clearly on the student dashboard.
 
 **Signature of guide:**
 
@@ -260,10 +278,11 @@ Guide suggested displaying a clear advisory note explaining that cadet declarati
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Formulated the core Transfer Certificate (TC) generation engine and server-side clearance lock. Enforced strict database validation preventing TC generation if any department due is pending. Implemented sequential unique serial number assignment using database transactional locks. Tested certificate data population with student admission year, branch, and academic record.
+Added the NCC/NSS Cadet declaration toggle to the student portal. Configured the system to dynamically add the NCC/NSS Officer to the student's clearance chain when enabled. Added the clearance notification request button with rate limiting.
 
 **Suggestions given by guide:**  
-Guide verified the clearance locking mechanism and suggested recording the issuing clerk's ID on generated certificates.
+Guide suggested adding instructions explaining when students should enable the NCC/NSS cadet option.  
+Guide advised setting reasonable notification rate limits to prevent spamming faculty inboxes.
 
 **Signature of guide:**
 
@@ -274,10 +293,11 @@ Guide verified the clearance locking mechanism and suggested recording the issui
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Developed the Study and Conduct Certificate generation module alongside the TC engine. Built multi-version tracking logic to mark the original issue as `v1` and subsequent re-issues as `v2`/`v3`. Maintained a complete administrative audit log capturing re-issuance reasons and timestamps. Added physical certificate collection tracking to log student pickup acknowledgments.
+Developed the Transfer Certificate (TC) generation engine with hard database clearance locking. Implemented strict server-side validation to block TC generation until all 28 departments are cleared. Generated unique sequential serial numbers for every issued certificate.
 
 **Suggestions given by guide:**  
-Guide approved the versioning system and suggested maintaining a complete issuance history for institutional records.
+Guide verified the clearance locking mechanism by attempting to generate a TC for an uncleared student.  
+Guide advised recording the issuing clerk ID and timestamp for every generated certificate.
 
 **Signature of guide:**
 
@@ -288,10 +308,11 @@ Guide approved the versioning system and suggested maintaining a complete issuan
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Designed the official government-standard A4 print stylesheet using CSS `@media print`. Formatted institutional borders, state emblems, tabular student fields, and official signature blocks. Suppressed browser headers, footers, and web navigation buttons during printing. Built the dual certificate preview interface allowing clerks to preview and print documents seamlessly.
+Implemented the Study and Conduct Certificate generation module alongside the TC engine. Added multi-version tracking (`v1` original, `v2` duplicate re-issue) and physical certificate collection tracking. Designed the official government-standard A4 print stylesheet with CSS `@media print`.
 
 **Suggestions given by guide:**  
-Guide reviewed physical print samples and verified that document formatting aligns strictly with technical board standards.
+Guide tested the print preview across multiple browsers and verified the A4 layout.  
+Guide advised maintaining a complete history log for all issued and re-issued certificates.
 
 **Signature of guide:**
 
@@ -302,10 +323,11 @@ Guide reviewed physical print samples and verified that document formatting alig
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Conducted comprehensive end-to-end testing across all student, faculty, and clerk workflows. Deployed the application to cloud hosting on Render connected to a Supabase PostgreSQL database. Configured an automated GitHub Actions keep-alive workflow to maintain cloud server uptime. Reviewed final project documentation, SRS report, and prepared for external viva presentation.
+Conducted end-to-end integration testing across student, faculty, and clerk roles. Deployed the portal to cloud hosting on Render with a Supabase PostgreSQL database and configured automated uptime monitoring. Reviewed the final project documentation and prepared for the viva examination.
 
 **Suggestions given by guide:**  
-Guide verified the complete live application, expressed full satisfaction with the outcome, and approved the project for final submission.
+Guide expressed complete satisfaction with the working system and its features.  
+Guide approved the project for final diploma submission and external viva presentation.
 
 **Signature of guide:**
 
