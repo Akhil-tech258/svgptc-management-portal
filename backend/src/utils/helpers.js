@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'student-tc-super-secret-key-2026';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
 function deriveTNo(pin) {
   if (!pin || typeof pin !== 'string') return '';
@@ -37,7 +38,7 @@ function comparePassword(plainText, hash) {
   return bcrypt.compareSync(plainText, hash);
 }
 
-function generateToken(payload, expiresIn = '24h') {
+function generateToken(payload, expiresIn = JWT_EXPIRES_IN) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn });
 }
 
