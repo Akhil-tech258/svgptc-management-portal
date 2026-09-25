@@ -79,15 +79,9 @@ svgptc-management-portal/
 │   │   ├── utils/
 │   │   │   ├── excelValidator.js   # SheetJS spreadsheet parser & validator
 │   │   │   └── helpers.js          # Reusable formatting, dates & helper routines
-│   │   └── server.js               # Express application entry point & API mount
-│   ├── tests/
-│   │   ├── branches.test.js        # Branch isolation unit tests
-│   │   ├── e2e.test.js             # 29 End-to-End full workflow integration tests
-│   │   ├── librarians.test.js      # Multi-department clearance test suite
-│   │   └── svgp_features.test.js   # Business logic & rate limiter tests
 │   ├── .env.example                # Template for environment configuration
 │   ├── database.sqlite             # Local zero-configuration database file
-│   └── package.json                # Backend dependencies & test scripts
+│   └── package.json                # Backend dependencies and scripts
 ├── frontend/
 │   ├── assets/                     # Institutional logos, stamps & emblems
 │   ├── css/
@@ -150,10 +144,6 @@ svgptc-management-portal/
 #### 📂 `backend/src/utils/`
 * **`excelValidator.js`**: Reads multi-format Excel spreadsheets using SheetJS (`xlsx`), maps varying column headers (e.g. `Pin No`, `PIN`, `Student PIN`), validates mandatory fields, and strips invalid data.
 * **`helpers.js`**: Reusable utility functions for date formatting, serial number hashing, and response normalization.
-
-#### 📂 `backend/tests/`
-* **`e2e.test.js`**: Comprehensive End-to-End automated test suite with **29/29 passing test specifications**, verifying every user journey from student upload to final TC issuance.
-* **`branches.test.js`**, **`librarians.test.js`**, **`svgp_features.test.js`**: Specialized unit tests verifying branch scoping, multi-department clearances, and the 20-hour rate limiter.
 
 ---
 
@@ -328,17 +318,4 @@ flowchart LR
 
 * **Bhargav $\rightarrow$ Akhil (Closing):**
   > *"Thank you, Hema Teja. I will now hand back to **Akhil** for our final project summary and opening for panel Q&A."*
-
----
-
-## 9. Automated Testing & Verification Suite (29/29 E2E Tests)
-
-The entire portal is backed by an automated End-to-End (E2E) integration test suite located in `backend/tests/e2e.test.js` executed via Jest and Supertest.
-
-### 🧪 Verified Test Coverage:
-* **Batch Ingestion:** Verifies Excel student parsing, duplicate PIN rejection, and schema validation.
-* **Authentication Security:** Verifies Bcrypt salted hashing, JWT token issuance, and expired/tampered token rejection.
-* **Role-Based Authorization:** Validates that student accounts cannot access clerk/faculty endpoints (HTTP 403 enforcement).
-* **Department Dues Lifecycle:** Simulates adding actionable dues, status transitions (`PENDING` $\rightarrow$ `CLEARED`), and 20-hour notification rate limiting.
-* **Hard Clearance Locking:** Confirms that TC generation is rejected when 1 or more dues are pending, and verifies successful issuance once 100% cleared.
 
