@@ -1,3 +1,6 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
 const BASE_URL = 'http://localhost:5000/api';
 
 async function req(endpoint, method = 'GET', body = null, token = null) {
@@ -35,7 +38,7 @@ async function testLibrarianPhysicalClearance() {
   try {
     // 1. Clerk Authentication
     const clerkUser = process.env.CLERK_USERNAME || 'clerk@svgp';
-    const clerkPass = process.env.CLERK_PASSWORD || 'Clerk@1957';
+    const clerkPass = process.env.CLERK_PASSWORD || 'admin123';
     const clerkLogin = await req('/auth/clerk/login', 'POST', {
       username: clerkUser,
       password: clerkPass
@@ -52,7 +55,7 @@ async function testLibrarianPhysicalClearance() {
     // 3. Librarian Authentication via existing Faculty authentication system
     const libLogin = await req('/auth/faculty/login', 'POST', {
       username: 'librarian',
-      password: 'Lib@1957'
+      password: process.env.LIBRARIAN_PASSWORD || 'librarian123'
     });
     assert(libLogin.ok && libLogin.data.token, '3. Librarian authenticates via existing Faculty login endpoint');
     const libToken = libLogin.data.token;

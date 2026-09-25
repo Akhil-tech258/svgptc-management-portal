@@ -1,3 +1,6 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
 const BASE_URL = 'http://localhost:5000/api';
 
 async function req(endpoint, method = 'GET', body = null, token = null) {
@@ -19,8 +22,8 @@ async function testBranchesFeature() {
 
   // 1. Clerk Login
   const clerkLogin = await req('/auth/clerk/login', 'POST', {
-    username: 'clerk_admin',
-    password: 'ClerkPassword@2026'
+    username: process.env.CLERK_USERNAME || 'clerk',
+    password: process.env.CLERK_PASSWORD || 'admin123'
   });
   const clerkToken = clerkLogin.data.token;
   console.log('[1] Clerk logged in:', clerkLogin.ok);

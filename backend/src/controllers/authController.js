@@ -240,10 +240,7 @@ async function facultyLogin(req, res) {
     }
 
     const faculty = facultyRes.rows[0];
-    const passwordMatch = comparePassword(password, faculty.password_hash) ||
-                          password === 'librarian123' ||
-                          password === 'Lib@1957' ||
-                          password === 'admin123';
+    const passwordMatch = comparePassword(password, faculty.password_hash);
 
     if (!passwordMatch) {
       return res.status(401).json({
@@ -319,11 +316,7 @@ async function clerkLogin(req, res) {
 
     const clerk = clerkRes.rows[0];
 
-    const passwordMatch = comparePassword(password, clerk.password_hash) ||
-                          password === 'admin123' ||
-                          password === 'clerk123' ||
-                          password === 'Clerk@1957' ||
-                          password === 'admin';
+    const passwordMatch = comparePassword(password, clerk.password_hash);
 
     if (!passwordMatch) {
       return res.status(401).json({

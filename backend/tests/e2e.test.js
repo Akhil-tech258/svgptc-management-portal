@@ -1,6 +1,7 @@
 // End-to-End System Test Suite verifying all SRS v1.1 Requirements
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const BASE_URL = 'http://localhost:5000/api';
 
@@ -43,7 +44,7 @@ async function runTests() {
 
     // 2. Clerk Login using env credentials
     const clerkUser = process.env.CLERK_USERNAME || 'clerk@svgp';
-    const clerkPass = process.env.CLERK_PASSWORD || 'Clerk@1957';
+    const clerkPass = process.env.CLERK_PASSWORD || 'admin123';
     const clerkLogin = await req('/auth/clerk/login', 'POST', {
       username: clerkUser,
       password: clerkPass

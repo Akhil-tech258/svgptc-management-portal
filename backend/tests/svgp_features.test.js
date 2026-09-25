@@ -1,3 +1,6 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
 const BASE_URL = 'http://localhost:5000/api';
 const fs = require('fs');
 
@@ -26,8 +29,8 @@ async function testSVGPFeatures() {
 
   // 2. Clerk Login
   const clerkLogin = await req('/auth/clerk/login', 'POST', {
-    username: 'clerk_admin',
-    password: 'ClerkPassword@2026'
+    username: process.env.CLERK_USERNAME || 'clerk',
+    password: process.env.CLERK_PASSWORD || 'admin123'
   });
   const clerkToken = clerkLogin.data.token;
   console.log('[2] Clerk logged in:', clerkLogin.ok);
@@ -75,13 +78,13 @@ async function testSVGPFeatures() {
   console.log('    Verified Updated Father:', updatedStudent.father_name === 'Palepu Venkateswarlu Naidu');
   console.log('    Verified Updated Admission No:', updatedStudent.admission_no === `ADM-23018-BM${randSuffix}-REV`);
 
-  // 8. Upload and Commit SVGP Excel File (SVGP_Tirupati_Student_Master.xlsx)
+  // 8. Upload and Commit SVGP Excel File (sample_students_import.xlsx)
   const path = require('path');
-  const filePath = path.join(__dirname, '../../SVGP_Tirupati_Student_Master.xlsx');
+  const filePath = path.join(__dirname, '../../sample_students_import.xlsx');
   const fileBuffer = fs.readFileSync(filePath);
   const blob = new Blob([fileBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const form = new FormData();
-  form.append('file', blob, 'SVGP_Tirupati_Student_Master.xlsx');
+  form.append('file', blob, 'sample_students_import.xlsx');
 
   const uploadRes = await req('/clerk/excel/preview', 'POST', form, clerkToken);
   console.log('[8] SVGP Excel Preview:', uploadRes.ok, uploadRes.data.summary);
