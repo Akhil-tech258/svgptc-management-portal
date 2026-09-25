@@ -3,15 +3,16 @@ const fs = require('fs');
 require('dotenv').config();
 
 let dbClient = null;
-const isPostgres = !!process.env.DATABASE_URL;
+const rawDbUrl = (process.env.DATABASE_URL || '').trim();
+const isPlaceholderUrl = !rawDbUrl || rawDbUrl.includes('xxxxxxxx') || rawDbUrl.includes('aws-0-region') || rawDbUrl.includes('YOUR_PASSWORD') || rawDbUrl.includes('PROJECT_REF');
+const isPostgres = !isPlaceholderUrl;
 
 if (isPostgres) {
   const { Pool } = require('pg');
-  const dbUrl = process.env.DATABASE_URL;
-  const isLocalHost = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
+  const isLocalHost = rawDbUrl.includes('localhost') || rawDbUrl.includes('127.0.0.1');
 
   dbClient = new Pool({
-    connectionString: dbUrl,
+    connectionString: rawDbUrl,
     ssl: isLocalHost ? false : { rejectUnauthorized: false }
   });
 
