@@ -1,5 +1,5 @@
 # SVGP NO-DUES CLEARANCE & TRANSFER CERTIFICATE MANAGEMENT PORTAL
-## PROJECT ACTIVITY LOGBOOK / WORK DIARY
+## PROJECT ACTIVITY LOGBOOK / WORK DIARY (30-DAY COMPLETE LOG)
 
 ---
 
@@ -68,6 +68,21 @@ Guide advised finalizing the important requirements before beginning major devel
 **Date:** ____________________
 
 **Points discussed with guide:**  
+Reviewed project feasibility and planned the module-wise development timeline. Discussed potential technical constraints, server requirements, and mobile accessibility for students. Divided responsibilities among team members according to frontend, backend, database, and documentation tasks.
+
+**Suggestions given by guide:**  
+Guide suggested setting realistic weekly milestones to complete development on schedule.  
+Guide advised focusing on core features first before adding secondary enhancements.
+
+**Signature of guide:**
+
+---
+
+### Day 6
+
+**Date:** ____________________
+
+**Points discussed with guide:**  
 Discussed the overall system architecture and divided the application into major modules. Planned the Student Portal, Clerk Administration, Faculty Clearance, and Certificate Management modules. Discussed how the frontend, backend, and database would communicate with each other.
 
 **Suggestions given by guide:**  
@@ -78,7 +93,7 @@ Guide advised keeping communication between modules properly organized.
 
 ---
 
-### Day 6
+### Day 7
 
 **Date:** ____________________
 
@@ -93,7 +108,7 @@ Guide advised maintaining proper relationships between students, departments, an
 
 ---
 
-### Day 7
+### Day 8
 
 **Date:** ____________________
 
@@ -108,7 +123,22 @@ Guide advised setting up proper environment configurations before writing code.
 
 ---
 
-### Day 8
+### Day 9
+
+**Date:** ____________________
+
+**Points discussed with guide:**  
+Created the backend server setup and implemented the dynamic database connection engine in `db.js`. Configured automatic switching between local SQLite for offline development and PostgreSQL for cloud production. Verified that database tables initialize automatically on server startup.
+
+**Suggestions given by guide:**  
+Guide suggested keeping database connection logic modular and cleanly separated.  
+Guide advised using environment variables to manage sensitive database connection strings.
+
+**Signature of guide:**
+
+---
+
+### Day 10
 
 **Date:** ____________________
 
@@ -123,7 +153,7 @@ Guide advised keeping the master department list easily manageable and configura
 
 ---
 
-### Day 9
+### Day 11
 
 **Date:** ____________________
 
@@ -138,7 +168,7 @@ Guide advised ensuring that passwords are always hashed before storing them in t
 
 ---
 
-### Day 10
+### Day 12
 
 **Date:** ____________________
 
@@ -153,12 +183,27 @@ Guide advised ensuring legitimate users are not accidentally locked out during n
 
 ---
 
-### Day 11
+### Day 13
 
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Developed the Clerk Administration Dashboard for managing student records. Implemented the master student directory with search, branch filtering, and full CRUD operations. Verified that clerks can add, edit, view, and delete student profiles easily.
+Designed the user interface layout for the Clerk Administration Dashboard (`clerk.html`). Created navigation tabs for student management, Excel bulk upload, faculty accounts, and certificate history. Tested layout responsiveness across desktop and tablet screen sizes.
+
+**Suggestions given by guide:**  
+Guide suggested keeping the administrative layout simple, clear, and easy to navigate.  
+Guide advised organizing administrative functions into distinct, accessible sections.
+
+**Signature of guide:**
+
+---
+
+### Day 14
+
+**Date:** ____________________
+
+**Points discussed with guide:**  
+Developed the Master Student Directory module within the Clerk Dashboard. Implemented real-time search, diploma branch filtering, and full CRUD operations. Verified that clerks can add, edit, view, and delete student records with proper input validation.
 
 **Suggestions given by guide:**  
 Guide suggested adding confirmation alerts before modifying or deleting student records.  
@@ -168,12 +213,12 @@ Guide advised keeping the search functionality fast and responsive.
 
 ---
 
-### Day 12
+### Day 15
 
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Implemented the Smart Excel (XLSX) batch upload feature in the clerk module using SheetJS. Added automatic column mapping, duplicate PIN validation, and a 10MB file size limit. Tested bulk student ingestion to insert entire graduating classes in a single batch.
+Implemented the Smart Excel (XLSX) batch upload feature in the clerk module using SheetJS. Added automatic column mapping, duplicate PIN validation, and batch database insertion. Tested bulk student ingestion to insert entire graduating classes in a single upload.
 
 **Suggestions given by guide:**  
 Guide suggested testing the upload feature with sample student spreadsheets.  
@@ -183,7 +228,22 @@ Guide advised showing clear error messages for invalid or missing row data durin
 
 ---
 
-### Day 13
+### Day 16
+
+**Date:** ____________________
+
+**Points discussed with guide:**  
+Configured upload security and file size validation using Multer middleware. Enforced a strict 10MB file size limit and restricted file uploads exclusively to valid spreadsheet formats (`.xlsx` and `.xls`). Verified that oversized or invalid files return clean error feedback.
+
+**Suggestions given by guide:**  
+Guide suggested handling file upload errors gracefully without causing server crashes.  
+Guide advised deleting temporary upload files immediately after processing.
+
+**Signature of guide:**
+
+---
+
+### Day 17
 
 **Date:** ____________________
 
@@ -198,7 +258,7 @@ Guide advised verifying that faculty assignments update correctly in the databas
 
 ---
 
-### Day 14
+### Day 18
 
 **Date:** ____________________
 
@@ -213,7 +273,7 @@ Guide advised making the student review list easy to read and navigate.
 
 ---
 
-### Day 15
+### Day 19
 
 **Date:** ____________________
 
@@ -228,7 +288,7 @@ Guide advised ensuring students clearly understand the required actions and room
 
 ---
 
-### Day 16
+### Day 20
 
 **Date:** ____________________
 
@@ -243,7 +303,7 @@ Guide advised ensuring real-time status updates across the system.
 
 ---
 
-### Day 17
+### Day 21
 
 **Date:** ____________________
 
@@ -258,7 +318,7 @@ Guide advised ensuring the interface loads quickly on low-bandwidth campus netwo
 
 ---
 
-### Day 18
+### Day 22
 
 **Date:** ____________________
 
@@ -273,7 +333,7 @@ Guide advised displaying pending dues and lab locations clearly on the student d
 
 ---
 
-### Day 19
+### Day 23
 
 **Date:** ____________________
 
@@ -288,7 +348,7 @@ Guide advised setting reasonable notification rate limits to prevent spamming fa
 
 ---
 
-### Day 20
+### Day 24
 
 **Date:** ____________________
 
@@ -303,31 +363,91 @@ Guide advised recording the issuing clerk ID and timestamp for every generated c
 
 ---
 
-### Day 21
+### Day 25
 
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Implemented the Study and Conduct Certificate generation module alongside the TC engine. Added multi-version tracking (`v1` original, `v2` duplicate re-issue) and physical certificate collection tracking. Designed the official government-standard A4 print stylesheet with CSS `@media print`.
+Implemented the Study and Conduct Certificate generation module alongside the TC engine. Added multi-version tracking (`v1` original, `v2` duplicate re-issue) and physical certificate collection tracking. Verified student academic data population in certificate preview templates.
 
 **Suggestions given by guide:**  
-Guide tested the print preview across multiple browsers and verified the A4 layout.  
-Guide advised maintaining a complete history log for all issued and re-issued certificates.
+Guide approved the versioning system and suggested maintaining a complete issuance history for institutional records.  
+Guide advised logging the exact reason whenever a duplicate certificate is re-issued.
 
 **Signature of guide:**
 
 ---
 
-### Day 22
+### Day 26
 
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Conducted end-to-end integration testing across student, faculty, and clerk roles. Deployed the portal to cloud hosting on Render with a Supabase PostgreSQL database and configured automated uptime monitoring. Reviewed the final project documentation and prepared for the viva examination.
+Designed the official government-standard A4 print stylesheet using CSS `@media print`. Formatted institutional borders, state emblems, tabular student fields, and official signature blocks. Suppressed browser headers, footers, and web navigation buttons during printing.
 
 **Suggestions given by guide:**  
-Guide expressed complete satisfaction with the working system and its features.  
-Guide approved the project for final diploma submission and external viva presentation.
+Guide tested the print preview across multiple browsers and verified the A4 layout.  
+Guide advised ensuring proper margins so printed certificates align neatly on physical paper.
+
+**Signature of guide:**
+
+---
+
+### Day 27
+
+**Date:** ____________________
+
+**Points discussed with guide:**  
+Built the dual certificate preview interface allowing clerks to view and print both Transfer and Study Certificates seamlessly. Added a physical collection tracking modal to record student pickup dates and acknowledgments. Verified that collection status updates in the master directory.
+
+**Suggestions given by guide:**  
+Guide suggested verifying that clerks can print both certificates in a single action without duplicate page breaks.  
+Guide advised maintaining accurate physical handover logs.
+
+**Signature of guide:**
+
+---
+
+### Day 28
+
+**Date:** ____________________
+
+**Points discussed with guide:**  
+Conducted comprehensive end-to-end testing across all student, faculty, and clerk workflows. Tested edge cases including partial department clearances, rejected logins, duplicate student PINs, and network timeouts. Fixed minor UI alignment issues and normalized API error responses.
+
+**Suggestions given by guide:**  
+Guide suggested testing the portal under simulated high-traffic conditions.  
+Guide advised verifying that all validation messages are clear and helpful for users.
+
+**Signature of guide:**
+
+---
+
+### Day 29
+
+**Date:** ____________________
+
+**Points discussed with guide:**  
+Deployed the completed application to cloud hosting on Render connected to a Supabase PostgreSQL database. Configured an automated GitHub Actions keep-alive workflow to maintain continuous server uptime. Tested live URL accessibility across desktop and mobile browsers.
+
+**Suggestions given by guide:**  
+Guide verified the cloud deployment and confirmed the live database connection.  
+Guide advised monitoring server performance and error logs after initial deployment.
+
+**Signature of guide:**
+
+---
+
+### Day 30
+
+**Date:** ____________________
+
+**Points discussed with guide:**  
+Reviewed the completed project documentation, source code repository, and user manuals with the guide. Practiced the project presentation and demonstrated live clearance workflows for the external viva examination. Verified all deliverables against initial project objectives.
+
+**Suggestions given by guide:**  
+Guide expressed full satisfaction with the completed portal and commended the team's effort.  
+Guide approved the project for final diploma capstone submission and external viva presentation.
 
 **Signature of guide:**
 
