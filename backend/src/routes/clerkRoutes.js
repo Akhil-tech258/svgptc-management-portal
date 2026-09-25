@@ -6,15 +6,43 @@ const { requireClerk } = require('../middleware/auth');
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // Strictly max 10MB limit
+  fileFilter: (req, file, cb) => {
+    const isExcel = file.originalname.match(/\.(xlsx|xls)$/i) ||
+                    file.mimetype.includes('spreadsheet') ||
+                    file.mimetype.includes('excel') ||
+                    file.mimetype === 'application/octet-stream';
+    if (isExcel) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file format. Please upload a valid .xlsx or .xls Excel spreadsheet.'));
+    }
+  }
 });
+
+// Middleware to catch multer errors (e.g. file size > 10MB) cleanly
+function handleExcelUpload(req, res, next) {
+  upload.single('file')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({
+          success: false,
+          error: 'Excel file size exceeds the 10MB limit. Please upload a smaller spreadsheet file.'
+        });
+      }
+      return res.status(400).json({ success: false, error: `Upload error: ${err.message}` });
+    } else if (err) {
+      return res.status(400).json({ success: false, error: err.message });
+    }
+    next();
+  });
+}
 
 // Protected Clerk routes
 router.use(requireClerk);
 
-
 router.get('/dashboard', clerkController.getClerkDashboard);
-router.post('/excel/preview', upload.single('file'), clerkController.previewExcelImport);
+router.post('/excel/preview', handleExcelUpload, clerkController.previewExcelImport);
 router.post('/excel/commit', clerkController.commitExcelImport);
 
 // Student Master Search & Single Record CRUD
