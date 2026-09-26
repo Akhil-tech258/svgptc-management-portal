@@ -57,24 +57,21 @@ async function seed() {
   console.log('Official 8 college departments verified (Library is Physical with dedicated Incharge).');
 
 
-  // 3. Remove old demo clerk accounts if present
-  await db.query("DELETE FROM clerks WHERE LOWER(username) IN ('clerk_admin', 'admin')");
+  // 3. Remove all other test / demo clerk accounts (admin, clerk, clerk_admin)
+  await db.query("DELETE FROM clerks WHERE LOWER(username) != 'clerk@svgp'");
 
-  // 4. Seed Pre-registered Clerk from environment variables (supporting clerk, admin, clerk@svgp)
+  // 4. Seed ONLY the single official Clerk account: clerk@svgp
   const clerkUsername = (process.env.CLERK_USERNAME || 'clerk@svgp').trim();
-  const clerkPassword = process.env.CLERK_PASSWORD || 'admin123';
+  const clerkPassword = process.env.CLERK_PASSWORD || 'Clerk@1957';
   const clerkHash = hashPassword(clerkPassword);
 
-  const clerkAliases = [clerkUsername, 'clerk', 'admin'];
-  for (const cUser of clerkAliases) {
-    const existingClerk = await db.query('SELECT id FROM clerks WHERE LOWER(username) = LOWER($1)', [cUser]);
-    if (existingClerk.rows.length === 0) {
-      await db.query('INSERT INTO clerks (username, password_hash) VALUES ($1, $2)', [cUser, clerkHash]);
-      console.log(`Pre-registered Clerk account created for username: ${cUser}`);
-    } else {
-      await db.query('UPDATE clerks SET password_hash = $1 WHERE LOWER(username) = LOWER($2)', [clerkHash, cUser]);
-      console.log(`Pre-registered Clerk account verified: ${cUser}`);
-    }
+  const existingClerk = await db.query('SELECT id FROM clerks WHERE LOWER(username) = LOWER($1)', [clerkUsername]);
+  if (existingClerk.rows.length === 0) {
+    await db.query('INSERT INTO clerks (username, password_hash) VALUES ($1, $2)', [clerkUsername, clerkHash]);
+    console.log(`Official Clerk account created: ${clerkUsername}`);
+  } else {
+    await db.query('UPDATE clerks SET password_hash = $1 WHERE LOWER(username) = LOWER($2)', [clerkHash, clerkUsername]);
+    console.log(`Official Clerk account verified/updated: ${clerkUsername}`);
   }
 
   // 5. Seed Pre-registered Librarian Faculty Account (Central Library Department Incharge)
