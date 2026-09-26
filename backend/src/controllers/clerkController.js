@@ -561,7 +561,10 @@ async function getCertificateStudents(req, res) {
 async function updateCertificateData(req, res) {
   try {
     const {
-      student_pin, date_of_leaving, fees_paid,
+      student_pin,
+      student_name, father_name, admission_no, course_branch,
+      dob, date_of_admission, nationality, religion,
+      date_of_leaving, fees_paid,
       promotion_status, conduct_character
     } = req.body;
 
@@ -578,6 +581,33 @@ async function updateCertificateData(req, res) {
         success: false,
         error: 'Certificate data is locked. You must explicitly unlock it to make modifications.'
       });
+    }
+
+    // Update students_master if identity fields provided
+    if (student_name || father_name || admission_no || course_branch || dob || date_of_admission || nationality || religion) {
+      await db.query(
+        `UPDATE students_master 
+         SET student_name = COALESCE($1, student_name),
+             father_name = COALESCE($2, father_name),
+             admission_no = COALESCE($3, admission_no),
+             course_branch = COALESCE($4, course_branch),
+             dob = COALESCE($5, dob),
+             date_of_admission = COALESCE($6, date_of_admission),
+             nationality = COALESCE($7, nationality),
+             religion = COALESCE($8, religion)
+         WHERE LOWER(pin) = LOWER($9)`,
+        [
+          student_name ? student_name.trim() : null,
+          father_name ? father_name.trim() : null,
+          admission_no ? admission_no.trim() : null,
+          course_branch ? course_branch.trim() : null,
+          dob ? dob.trim() : null,
+          date_of_admission ? date_of_admission.trim() : null,
+          nationality ? nationality.trim() : null,
+          religion ? religion.trim() : null,
+          cleanPin
+        ]
+      );
     }
 
     const t_no = deriveTNo(cleanPin);
@@ -599,7 +629,7 @@ async function updateCertificateData(req, res) {
       );
     }
 
-    return res.json({ success: true, message: 'Certificate data saved successfully.' });
+    return res.json({ success: true, message: 'Student master records and certificate data saved successfully.' });
   } catch (err) {
     console.error('updateCertificateData error:', err);
     return res.status(500).json({ success: false, error: 'Failed to save certificate data.' });

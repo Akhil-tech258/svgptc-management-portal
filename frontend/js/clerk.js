@@ -809,7 +809,7 @@ async function loadCertificateStudents() {
     let actionButtons = '';
     if (!isLocked) {
       actionButtons += `
-        <button class="btn btn-sm btn-secondary" onclick="openEditCertModal('${st.pin}', '${(st.student_name || '').replace(/'/g, "\\'")}', '${st.date_of_leaving || ''}', '${st.fees_paid || 'No'}', '${(st.promotion_status || '').replace(/'/g, "\\'")}', '${st.conduct_character || 'Good'}')">
+        <button class="btn btn-sm btn-secondary" onclick="openEditCertModal('${st.pin}')">
           ✏️ Edit Data
         </button>
       `;
@@ -860,22 +860,61 @@ async function loadCertificateStudents() {
 }
 
 
-function openEditCertModal(pin, name, leavingDate, feesPaid, promoStatus, conduct) {
+function openEditCertModal(pin) {
   editingStudentPin = pin;
-  document.getElementById('cert-modal-student-name').innerText = name;
-  document.getElementById('cert-modal-pin').innerText = pin;
-  document.getElementById('cert-date-of-leaving').value = leavingDate;
-  document.getElementById('cert-fees-paid').value = feesPaid || 'No';
-  document.getElementById('cert-promotion-status').value = promoStatus;
+  const st = (cachedCertificateStudents || []).find(s => s.pin.toLowerCase() === pin.toLowerCase()) || 
+             (cachedMasterStudents || []).find(s => s.pin.toLowerCase() === pin.toLowerCase()) || {};
 
+  document.getElementById('cert-modal-student-name').innerText = st.student_name || 'Student';
+  document.getElementById('cert-modal-pin').innerText = pin;
+
+  // Master Identity Fields
+  const nameEl = document.getElementById('cert-edit-name');
+  if (nameEl) nameEl.value = st.student_name || '';
+
+  const fatherEl = document.getElementById('cert-edit-father');
+  if (fatherEl) fatherEl.value = st.father_name || '';
+
+  const admEl = document.getElementById('cert-edit-adm-no');
+  if (admEl) admEl.value = st.admission_no || '';
+
+  const branchEl = document.getElementById('cert-edit-branch');
+  if (branchEl) branchEl.value = st.course_branch || '';
+
+  const dobEl = document.getElementById('cert-edit-dob');
+  if (dobEl) dobEl.value = st.dob || '';
+
+  const doaEl = document.getElementById('cert-edit-doa');
+  if (doaEl) doaEl.value = st.date_of_admission || '';
+
+  const natEl = document.getElementById('cert-edit-nat');
+  if (natEl) natEl.value = st.nationality || 'Indian';
+
+  const relEl = document.getElementById('cert-edit-rel');
+  if (relEl) relEl.value = st.religion || 'Hindu';
+
+  // TC Leaving Fields
+  const leavingEl = document.getElementById('cert-date-of-leaving');
+  if (leavingEl) leavingEl.value = st.date_of_leaving || '';
+
+  const feesEl = document.getElementById('cert-fees-paid');
+  if (feesEl) feesEl.value = st.fees_paid || 'Yes';
+
+  const promoEl = document.getElementById('cert-promotion-status');
+  if (promoEl) promoEl.value = st.promotion_status || '';
+
+  const conduct = st.conduct_character || 'Good';
   const conductSelect = document.getElementById('cert-conduct');
-  if (['Good', 'Satisfactory', 'Poor'].includes(conduct)) {
-    conductSelect.value = conduct;
-    toggleConductCustomInput(conduct);
-  } else {
-    conductSelect.value = 'Other';
-    toggleConductCustomInput('Other');
-    document.getElementById('cert-conduct-custom').value = conduct;
+  if (conductSelect) {
+    if (['Good', 'Satisfactory', 'Poor'].includes(conduct)) {
+      conductSelect.value = conduct;
+      toggleConductCustomInput(conduct);
+    } else {
+      conductSelect.value = 'Other';
+      toggleConductCustomInput('Other');
+      const customEl = document.getElementById('cert-conduct-custom');
+      if (customEl) customEl.value = conduct;
+    }
   }
 
   document.getElementById('modal-edit-cert').style.display = 'flex';
@@ -899,6 +938,15 @@ async function submitCertData(e) {
   e.preventDefault();
   if (!editingStudentPin) return;
 
+  const student_name = (document.getElementById('cert-edit-name') ? document.getElementById('cert-edit-name').value.trim() : '');
+  const father_name = (document.getElementById('cert-edit-father') ? document.getElementById('cert-edit-father').value.trim() : '');
+  const admission_no = (document.getElementById('cert-edit-adm-no') ? document.getElementById('cert-edit-adm-no').value.trim() : '');
+  const course_branch = (document.getElementById('cert-edit-branch') ? document.getElementById('cert-edit-branch').value.trim() : '');
+  const dob = (document.getElementById('cert-edit-dob') ? document.getElementById('cert-edit-dob').value.trim() : '');
+  const date_of_admission = (document.getElementById('cert-edit-doa') ? document.getElementById('cert-edit-doa').value.trim() : '');
+  const nationality = (document.getElementById('cert-edit-nat') ? document.getElementById('cert-edit-nat').value.trim() : '');
+  const religion = (document.getElementById('cert-edit-rel') ? document.getElementById('cert-edit-rel').value.trim() : '');
+
   const date_of_leaving = document.getElementById('cert-date-of-leaving').value.trim();
   const fees_paid = document.getElementById('cert-fees-paid').value;
   const promotion_status = document.getElementById('cert-promotion-status').value.trim();
@@ -914,10 +962,24 @@ async function submitCertData(e) {
     conduct_character = customVal;
   }
 
+  const btn = document.getElementById('btn-save-cert-data');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = '💾 Saving Data...';
+  }
+
   const res = await API.request('/clerk/certificates/data', {
     method: 'POST',
     body: {
       student_pin: editingStudentPin,
+      student_name,
+      father_name,
+      admission_no,
+      course_branch,
+      dob,
+      date_of_admission,
+      nationality,
+      religion,
       date_of_leaving,
       fees_paid,
       promotion_status,
@@ -925,10 +987,16 @@ async function submitCertData(e) {
     }
   });
 
+  if (btn) {
+    btn.disabled = false;
+    btn.innerText = '💾 Save All Student & Certificate Data';
+  }
+
   if (res.ok && res.data.success) {
-    API.showToast('Certificate data saved successfully.', 'success');
+    API.showToast('All student details & certificate draft saved successfully.', 'success');
     closeEditCertModal();
     loadCertificateStudents();
+    loadMasterStudents();
   } else {
     API.showToast(res.data.error || 'Failed to save certificate data.', 'error');
   }

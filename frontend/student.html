@@ -193,6 +193,34 @@
         <div id="department-grid" class="clearance-grid">
           <!-- Dynamically populated department cards -->
         </div>
+
+        <!-- Clearance Approver Summary Table -->
+        <div style="margin-top: 2rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+            <h4 style="font-size:0.95rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:0.5rem; margin:0;">
+              <span>📋</span> Department Clearance &amp; Approver Audit Roster
+            </h4>
+            <span style="font-size:0.78rem; color:var(--text-muted);">Real-time status of all required institutional approvals</span>
+          </div>
+
+          <div class="table-responsive" style="background:var(--bg-surface); border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+            <table class="data-table" style="margin:0;">
+              <thead>
+                <tr>
+                  <th>Department / Lab</th>
+                  <th>Type</th>
+                  <th>Clearance Status</th>
+                  <th>Approved By</th>
+                  <th>Approval Date &amp; Time</th>
+                  <th>Remarks / Dues</th>
+                </tr>
+              </thead>
+              <tbody id="clearances-table-body">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
 

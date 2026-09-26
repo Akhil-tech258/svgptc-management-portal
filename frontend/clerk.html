@@ -584,59 +584,110 @@
 
     </div>
 
-    <!-- MODAL: EDIT CERTIFICATE DATA -->
+    <!-- MODAL: EDIT COMPLETE STUDENT & CERTIFICATE DATA -->
     <div id="modal-edit-cert" class="modal-backdrop" style="display: none;">
-      <div class="modal-dialog">
+      <div class="modal-dialog" style="max-width: 780px;">
         <div class="modal-header">
-          <h3>Edit Certificate Data</h3>
+          <div>
+            <h3>✏️ Edit Student Master &amp; Certificate Data</h3>
+            <p style="font-size:0.8rem; color:var(--text-secondary); margin:0.2rem 0 0 0;">
+              Verify and edit complete student particulars before locking and generating the official Transfer Certificate (TC).
+            </p>
+          </div>
           <button class="modal-close" onclick="closeEditCertModal()">&times;</button>
         </div>
         <form id="form-edit-cert" onsubmit="submitCertData(event)">
-          <div class="modal-body">
-            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1.2rem;">
-              Editing details for <strong id="cert-modal-student-name">Student</strong> (PIN: <span id="cert-modal-pin" style="font-family:var(--font-mono); color:var(--accent-gold);"></span>).
-            </p>
-
-            <div class="form-group">
-              <label for="cert-date-of-leaving">Date of Leaving (Text String, e.g. "May/June 2026") *</label>
-              <input type="text" id="cert-date-of-leaving" class="form-control" placeholder="May/June 2026" required>
+          <div class="modal-body" style="max-height: calc(85vh - 160px); overflow-y: auto; padding-right: 0.5rem;">
+            <div style="background:var(--bg-subtle); border:1px solid var(--border-color); border-left:4px solid var(--accent-gold); padding:0.8rem 1rem; border-radius:var(--radius-sm); margin-bottom:1.2rem; font-size:0.85rem;">
+              Editing details for: <strong id="cert-modal-student-name" style="color:var(--text-primary);">Student</strong> 
+              • Permanent PIN: <span id="cert-modal-pin" style="font-family:var(--font-mono); font-weight:bold; color:var(--accent-gold);"></span>
             </div>
 
-            <div class="form-group">
-              <label for="cert-fees-paid">College Fees Paid *</label>
-              <select id="cert-fees-paid" class="form-control" required>
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
-              </select>
+            <!-- Section 1: Student Identity & Academic Profile -->
+            <div style="margin-bottom:1.5rem;">
+              <h4 style="font-size:0.88rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent-gold); margin-bottom:0.8rem; border-bottom:1px solid var(--border-color); padding-bottom:0.4rem;">
+                🎓 1. Student Master Identity Particulars
+              </h4>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label for="cert-edit-name">Student Full Name *</label>
+                  <input type="text" id="cert-edit-name" class="form-control" required placeholder="Full Name as per SSC">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label for="cert-edit-father">Father's / Guardian's Name *</label>
+                  <input type="text" id="cert-edit-father" class="form-control" required placeholder="Father's Full Name">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label for="cert-edit-adm-no">Admission Number *</label>
+                  <input type="text" id="cert-edit-adm-no" class="form-control" required placeholder="e.g. ADM-2023-0145">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label for="cert-edit-branch">Diploma Branch / Course *</label>
+                  <input type="text" id="cert-edit-branch" class="form-control" required placeholder="e.g. Computer Engineering">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label for="cert-edit-dob">Date of Birth (DOB) *</label>
+                  <input type="text" id="cert-edit-dob" class="form-control" required placeholder="DD-MM-YYYY">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label for="cert-edit-doa">Date of Admission *</label>
+                  <input type="text" id="cert-edit-doa" class="form-control" required placeholder="DD-MM-YYYY">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label for="cert-edit-nat">Nationality *</label>
+                  <input type="text" id="cert-edit-nat" class="form-control" required value="Indian">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label for="cert-edit-rel">Religion *</label>
+                  <input type="text" id="cert-edit-rel" class="form-control" required value="Hindu">
+                </div>
+              </div>
             </div>
 
-            <div class="form-group">
-              <label for="cert-promotion-status">Whether Qualified for Promotion / Class (Free Text) *</label>
-              <input type="text" id="cert-promotion-status" class="form-control" placeholder="e.g. Passed Diploma in First Class with Distinction" required>
+            <!-- Section 2: Leaving & Certificate Details -->
+            <div>
+              <h4 style="font-size:0.88rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent-gold); margin-bottom:0.8rem; border-bottom:1px solid var(--border-color); padding-bottom:0.4rem;">
+                📜 2. Transfer Certificate (TC) Leaving Details
+              </h4>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label for="cert-date-of-leaving">Date of Leaving College *</label>
+                  <input type="text" id="cert-date-of-leaving" class="form-control" placeholder="e.g. May/June 2026" required>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label for="cert-fees-paid">College Fees Paid *</label>
+                  <select id="cert-fees-paid" class="form-control" required>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0; grid-column: span 2;">
+                  <label for="cert-promotion-status">Whether Qualified for Promotion / Class (Free Text) *</label>
+                  <input type="text" id="cert-promotion-status" class="form-control" placeholder="e.g. Passed Diploma in First Class with Distinction" required>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label for="cert-conduct">Conduct &amp; Character *</label>
+                  <select id="cert-conduct" class="form-control" onchange="toggleConductCustomInput(this.value)" required>
+                    <option value="Good">Good</option>
+                    <option value="Satisfactory">Satisfactory</option>
+                    <option value="Poor">Poor</option>
+                    <option value="Other">Other (Specify Custom Wording)</option>
+                  </select>
+                </div>
+                <div class="form-group" id="group-conduct-custom" style="display: none; margin-bottom:0;">
+                  <label for="cert-conduct-custom">Custom Conduct &amp; Character</label>
+                  <input type="text" id="cert-conduct-custom" class="form-control" placeholder="e.g. Exemplary and Highly Commendable">
+                </div>
+              </div>
             </div>
 
-            <div class="form-group">
-              <label for="cert-conduct">Conduct &amp; Character *</label>
-              <select id="cert-conduct" class="form-control" onchange="toggleConductCustomInput(this.value)" required>
-                <option value="Good">Good</option>
-                <option value="Satisfactory">Satisfactory</option>
-                <option value="Poor">Poor</option>
-                <option value="Other">Other (Specify Custom Wording)</option>
-              </select>
-            </div>
-
-            <div class="form-group" id="group-conduct-custom" style="display: none;">
-              <label for="cert-conduct-custom">Custom Conduct &amp; Character Wording</label>
-              <input type="text" id="cert-conduct-custom" class="form-control" placeholder="e.g. Exemplary and Highly Commendable">
-            </div>
-
-            <p style="font-size:0.78rem; color:var(--text-muted);">
-              * Note: Saving updates the draft certificate data. You must perform "Final Verify &amp; Lock" before generating certificates.
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-top:1rem; margin-bottom:0;">
+              * Note: Saving updates both the student master particulars and draft certificate data. You can then perform "Lock &amp; Verify" to generate the official TC.
             </p>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeEditCertModal()">Cancel</button>
-            <button type="submit" class="btn btn-primary" id="btn-save-cert-data">Save Certificate Data</button>
+            <button type="submit" class="btn btn-primary" id="btn-save-cert-data">💾 Save All Student &amp; Certificate Data</button>
           </div>
         </form>
       </div>

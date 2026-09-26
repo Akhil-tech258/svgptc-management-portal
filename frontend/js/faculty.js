@@ -521,27 +521,49 @@ async function markDueCleared(dueId, pin) {
 }
 
 async function exportFacultyQueueCSV() {
-  let list = cachedStudents;
+  let list = currentRequests;
   if (!list || list.length === 0) {
     const res = await API.request('/faculty/dashboard');
     if (res.ok && res.data && Array.isArray(res.data.requests)) {
       list = res.data.requests;
-      cachedStudents = list;
+      currentRequests = list;
     }
   }
   if (!list || list.length === 0) {
     API.showToast('No clearance requests available to export.', 'info');
     return;
   }
+  const formattedRows = list.map(req => {
+    const activeDuesCount = (req.active_dues && req.active_dues.length) || 0;
+    const activeDuesText = activeDuesCount > 0 
+      ? req.active_dues.map(d => `${d.reason || 'Due'}${d.amount && d.amount !== '0' ? ` (₹${d.amount})` : ''}`).join('; ')
+      : 'None';
+    return {
+      student_pin: req.student_pin || '',
+      student_name: req.student_name || '',
+      admission_no: req.admission_no || '',
+      course_branch: req.course_branch || '',
+      submitted_at: req.submitted_at ? new Date(req.submitted_at).toLocaleDateString() : 'N/A',
+      clearance_status: req.clearance_status || 'Pending',
+      active_dues_count: activeDuesCount,
+      dues_details: activeDuesText,
+      approved_by: req.approved_by || 'N/A',
+      approved_at: req.approved_at ? new Date(req.approved_at).toLocaleString() : 'N/A'
+    };
+  });
   const headers = [
     { key: 'student_pin', label: 'Student PIN' },
     { key: 'student_name', label: 'Student Full Name' },
     { key: 'admission_no', label: 'Admission No' },
     { key: 'course_branch', label: 'Branch / Program' },
     { key: 'submitted_at', label: 'Submission Date' },
-    { key: 'clearance_status', label: 'Status' }
+    { key: 'clearance_status', label: 'Clearance Status' },
+    { key: 'active_dues_count', label: 'Active Dues Count' },
+    { key: 'dues_details', label: 'Dues Remarks & Amount' },
+    { key: 'approved_by', label: 'Approved By' },
+    { key: 'approved_at', label: 'Approval Timestamp' }
   ];
-  API.exportToCSV('SVGP_Faculty_Clearance_Queue.csv', list, headers);
+  API.exportToCSV('SVGP_Faculty_Clearance_Queue.csv', formattedRows, headers);
 }
 
 // Window global bindings for all HTML onclick handlers

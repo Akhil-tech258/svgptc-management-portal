@@ -263,10 +263,15 @@ function renderProfile(student, request) {
 
 function renderClearances(clearances) {
   const container = document.getElementById('department-grid');
+  const tbody = document.getElementById('clearances-table-body');
   container.innerHTML = '';
+  if (tbody) tbody.innerHTML = '';
 
   if (!clearances || clearances.length === 0) {
     API.renderEmptyState(container, 'No Department Clearances', 'No department clearances are currently assigned.', '📋');
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No department clearance records found.</td></tr>';
+    }
     return;
   }
 
@@ -355,72 +360,117 @@ function renderClearances(clearances) {
         `;
       }
       container.appendChild(card);
-      return;
-    }
-
-    // --- Standard Rendering for Other College Departments ---
-    let dueHtml = '';
-    if (item.active_dues && item.active_dues.length > 0) {
-      dueHtml = `
-        <div class="due-alert-box">
-          ${item.active_dues.map(d => `
-            <div class="due-reason">⚠️ Due: ${d.reason}</div>
-            <div class="due-contact-instruction">
-              📍 ${d.contact_instruction}
-            </div>
-          `).join('')}
-        </div>
-      `;
-    }
-
-    let metaText = `${item.department_type} Department`;
-    if (isNcc && item.department_type === 'Physical') {
-      metaText = '🏛️ Non-Cadet (Clerk Verification)';
-    } else if (isNcc) {
-      metaText = '🎖️ Enrolled Cadet (Faculty Incharge)';
-    }
-
-    let reNotifyHtml = '';
-    if (item.department_type === 'Online' && item.status !== 'Approved') {
-      if (item.can_re_notify) {
-        reNotifyHtml = `
-          <button class="btn btn-sm btn-secondary btn-block" style="margin-top:0.75rem;" onclick="reNotify(${item.department_id})">
-            🔔 Re-notify Incharge
-          </button>
-        `;
-      } else {
-        reNotifyHtml = `
-          <button class="btn btn-sm btn-secondary btn-block" style="margin-top:0.75rem;" disabled title="Allowed once every 20 hours">
-            ⏳ Re-notify available in ${item.remaining_hours_to_re_notify}h
-          </button>
+    } else {
+      // --- Standard Rendering for Other College Departments ---
+      let dueHtml = '';
+      if (item.active_dues && item.active_dues.length > 0) {
+        dueHtml = `
+          <div class="due-alert-box">
+            ${item.active_dues.map(d => `
+              <div class="due-reason">⚠️ Due: ${escapeHtml(d.reason)}${d.amount && d.amount !== '0' ? ` (Fine: ₹${escapeHtml(d.amount)})` : ''}</div>
+              <div class="due-contact-instruction">
+                📍 ${escapeHtml(d.contact_instruction || 'Please contact the Lab Incharge.')}
+              </div>
+            `).join('')}
+          </div>
         `;
       }
-    } else if (item.department_type === 'Physical' && item.status !== 'Approved') {
-      reNotifyHtml = `
-        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.6rem;">
-          ℹ️ ${isNcc ? 'Non-cadet clearance will be verified by the Clerk.' : 'Physical clearance will be recorded by Clerk.'}
+
+      let metaText = `${item.department_type} Department`;
+      if (isNcc && item.department_type === 'Physical') {
+        metaText = '🏛️ Non-Cadet (Clerk Verification)';
+      } else if (isNcc) {
+        metaText = '🎖️ Enrolled Cadet (Faculty Incharge)';
+      }
+
+      let approvalBannerHtml = '';
+      if (item.status === 'Approved') {
+        const appDate = item.approved_at ? new Date(item.approved_at).toLocaleString() : '';
+        approvalBannerHtml = `
+          <div style="font-size:0.78rem; color:var(--status-approved); margin-top:0.75rem; line-height:1.4; background:rgba(34,197,94,0.08); padding:0.6rem 0.75rem; border-radius:var(--radius-sm); border:1px solid rgba(34,197,94,0.2);">
+            ✓ <strong>Approved by:</strong> ${escapeHtml(item.approved_by || 'Faculty Incharge')}
+            ${appDate ? `<div style="font-size:0.72rem; color:var(--text-secondary); margin-top:0.15rem;">Timestamp: ${appDate}</div>` : ''}
+          </div>
+        `;
+      }
+
+      let reNotifyHtml = '';
+      if (item.department_type === 'Online' && item.status !== 'Approved') {
+        if (item.can_re_notify) {
+          reNotifyHtml = `
+            <button class="btn btn-sm btn-secondary btn-block" style="margin-top:0.75rem;" onclick="reNotify(${item.department_id})">
+              🔔 Re-notify Incharge
+            </button>
+          `;
+        } else {
+          reNotifyHtml = `
+            <button class="btn btn-sm btn-secondary btn-block" style="margin-top:0.75rem;" disabled title="Allowed once every 20 hours">
+              ⏳ Re-notify available in ${item.remaining_hours_to_re_notify}h
+            </button>
+          `;
+        }
+      } else if (item.department_type === 'Physical' && item.status !== 'Approved') {
+        reNotifyHtml = `
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.6rem;">
+            ℹ️ ${isNcc ? 'Non-cadet clearance will be verified by the Clerk.' : 'Physical clearance will be recorded by Clerk.'}
+          </div>
+        `;
+      }
+
+      card.innerHTML = `
+        <div>
+          <div class="clearance-header">
+            <div>
+              <div class="dept-name">${escapeHtml(item.department_name)}</div>
+              <div class="dept-meta">${metaText}</div>
+            </div>
+            <span class="badge ${badgeClass}">${statusText}</span>
+          </div>
+          ${dueHtml}
+          ${approvalBannerHtml}
+        </div>
+        <div>
+          ${reNotifyHtml}
         </div>
       `;
+
+      container.appendChild(card);
     }
 
-    card.innerHTML = `
-      <div>
-        <div class="clearance-header">
-          <div>
-            <div class="dept-name">${item.department_name}</div>
-            <div class="dept-meta">${metaText}</div>
-          </div>
-          <span class="badge ${badgeClass}">${statusText}</span>
-        </div>
-        ${dueHtml}
-      </div>
-      <div>
-        ${item.approved_by ? `<div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem;">Approved by: ${item.approved_by}</div>` : ''}
-        ${reNotifyHtml}
-      </div>
-    `;
+    // --- Add row to Approvals Summary Table ---
+    if (tbody) {
+      const isApproved = item.status === 'Approved';
+      const isDue = item.status === 'Due Found';
+      let tableBadge = '<span class="badge badge-pending">Pending</span>';
+      if (isApproved) tableBadge = '<span class="badge badge-approved">✓ Approved</span>';
+      else if (isDue) tableBadge = '<span class="badge badge-due">⚠️ Due Found</span>';
 
-    container.appendChild(card);
+      const approvedByText = item.approved_by 
+        ? `<strong style="color:var(--text-primary); font-size:0.85rem;">${escapeHtml(item.approved_by)}</strong>` 
+        : (isApproved ? '<span style="color:var(--status-approved); font-size:0.85rem;">Faculty Incharge</span>' : '<span style="color:var(--text-muted); font-size:0.85rem;">Awaiting Review</span>');
+
+      const approvedAtText = item.approved_at 
+        ? `<span style="font-size:0.8rem; color:var(--text-secondary);">${new Date(item.approved_at).toLocaleString()}</span>`
+        : '<span style="color:var(--text-muted); font-size:0.8rem;">—</span>';
+
+      let duesSummary = '<span style="color:var(--text-muted); font-size:0.8rem;">No Active Dues</span>';
+      if (item.active_dues && item.active_dues.length > 0) {
+        duesSummary = `<span style="color:var(--status-due); font-size:0.8rem; font-weight:600;">${item.active_dues.map(d => `${escapeHtml(d.reason)}${d.amount && d.amount !== '0' ? ` (₹${escapeHtml(d.amount)})` : ''}`).join('; ')}</span>`;
+      } else if (isApproved) {
+        duesSummary = '<span style="color:var(--status-approved); font-size:0.8rem; font-weight:600;">✓ 100% Cleared</span>';
+      }
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${escapeHtml(item.department_name)}</strong></td>
+        <td><span style="font-size:0.82rem; color:var(--text-secondary);">${escapeHtml(item.department_type)}</span></td>
+        <td>${tableBadge}</td>
+        <td>${approvedByText}</td>
+        <td>${approvedAtText}</td>
+        <td>${duesSummary}</td>
+      `;
+      tbody.appendChild(tr);
+    }
   });
 }
 
