@@ -779,16 +779,16 @@ input[type="date"].form-control::-webkit-calendar-picker-indicator:hover {
 .toast-info { border-left: 4px solid var(--accent-gold); }
 
 /* =========================================================
-   CERTIFICATE PREVIEW & PRINT STYLES
+   CERTIFICATE PREVIEW & PRINT STYLES (PHYSICAL TC REPLICA)
    ========================================================= */
 
 .cert-container {
   background-color: #ffffff;
-  color: #111827;
-  max-width: 850px;
+  color: #000000;
+  max-width: 820px;
   margin: 1.5rem auto;
-  padding: 2.5rem 3rem;
-  border: 4px double #1f2937;
+  padding: 2.2rem 2.8rem 2rem;
+  border: 1px solid #d1d5db;
   border-radius: 4px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.4);
   position: relative;
@@ -806,160 +806,464 @@ input[type="date"].form-control::-webkit-calendar-picker-indicator:hover {
   pointer-events: none;
 }
 
-.cert-header {
+/* --- Official TC Header (Matching Physical Certificate) --- */
+.tc-official-header {
   text-align: center;
-  border-bottom: 2px solid #1f2937;
-  padding-bottom: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.8rem;
 }
 
-.cert-header .college-title {
-  font-size: 1.5rem;
+.tc-govt-crest {
+  width: 62px;
+  height: 62px;
+  object-fit: contain;
+  margin: 0 auto 0.4rem;
+  display: block;
+}
+
+.tc-govt-title {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.08rem;
   font-weight: bold;
+  letter-spacing: 0.04em;
+  color: #000000;
   text-transform: uppercase;
+  margin-bottom: 0.15rem;
+}
+
+.tc-dept-title {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1rem;
+  font-weight: bold;
+  letter-spacing: 0.03em;
+  color: #000000;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.tc-college-title {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.35rem;
+  font-weight: 800;
   letter-spacing: 0.05em;
-  margin-bottom: 0.2rem;
-}
-
-.cert-header .college-sub {
-  font-size: 0.95rem;
-  color: #374151;
-  margin-bottom: 0.2rem;
-}
-
-.cert-header .college-code {
-  font-size: 0.88rem;
-  font-weight: 600;
-  margin-top: 0.3rem;
-}
-
-.cert-title-badge {
-  display: inline-block;
-  font-size: 1.25rem;
-  font-weight: bold;
+  color: #000000;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 0.3rem 1.5rem;
-  border: 1px solid #1f2937;
-  margin: 1rem 0 1.5rem;
-  background-color: #f9fafb;
+  margin-top: 0.25rem;
 }
 
-.cert-meta-row {
+.tc-header-divider {
+  border-bottom: 3px double #000000;
+  margin: 0.5rem 0 0.8rem 0;
+}
+
+/* Meta Row (Admn No & T. No) */
+.tc-meta-row {
   display: flex;
   justify-content: space-between;
-  font-size: 0.95rem;
-  margin-bottom: 1.2rem;
-  font-weight: 600;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.05rem;
+  font-weight: bold;
+  margin-bottom: 0.8rem;
+  color: #000000;
 }
 
-.cert-table {
+/* Document Main Title */
+.tc-main-title {
+  text-align: center;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.28rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  margin: 0.6rem 0 1.1rem 0;
+  color: #000000;
+  text-transform: uppercase;
+}
+
+/* 13 Official Table Rows */
+.tc-official-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 2rem;
-  font-size: 1rem;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 0.98rem;
+  line-height: 1.38;
+  color: #000000;
+  margin-bottom: 1.2rem;
 }
 
-.cert-table td {
-  padding: 0.55rem 0.5rem;
+.tc-official-table td {
+  padding: 0.35rem 0.4rem;
   vertical-align: top;
 }
 
-.cert-table td.col-num {
-  width: 35px;
-  font-weight: bold;
+.tc-official-table td.tc-num {
+  width: 34px;
+  font-weight: normal;
 }
 
-.cert-table td.col-label {
-  width: 45%;
-  font-weight: 600;
+.tc-official-table td.tc-label {
+  width: 48%;
+  font-weight: normal;
 }
 
-.cert-table td.col-sep {
-  width: 20px;
+.tc-official-table td.tc-sep {
+  width: 18px;
   text-align: center;
-}
-
-.cert-table td.col-val {
-  border-bottom: 1px dotted #6b7280;
-  font-style: italic;
   font-weight: bold;
 }
 
-.cert-conduct-paragraph {
-  font-size: 1.05rem;
-  line-height: 2;
-  text-align: justify;
-  margin: 2rem 0;
+.tc-official-table td.tc-val {
+  font-weight: normal;
 }
 
-.cert-conduct-paragraph .fill-in {
-  display: inline-block;
-  border-bottom: 1px dotted #374151;
+.tc-bold {
+  font-weight: bold !important;
+}
+
+.tc-dob-words {
+  display: block;
+  font-size: 0.84rem;
   font-weight: bold;
-  padding: 0 0.5rem;
-  font-style: italic;
+  margin-top: 0.15rem;
+  letter-spacing: 0.02em;
+  color: #111827;
 }
 
-.cert-footer-signatures {
+/* Footer / Principal Stamp */
+.tc-official-footer {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-top: 3.5rem;
-  padding-top: 1rem;
+  margin-top: 2.2rem;
+  padding-top: 0.5rem;
+  font-family: 'Times New Roman', Times, serif;
 }
 
-.signature-block {
-  text-align: center;
-  min-width: 150px;
+.tc-footer-left {
+  min-width: 120px;
 }
 
-.signature-line {
-  border-top: 1px solid #111827;
-  padding-top: 0.3rem;
+.tc-clerk-date {
+  font-size: 0.9rem;
   font-weight: bold;
-  font-size: 0.92rem;
+  color: #000000;
 }
 
-.cert-version-tag {
-  position: absolute;
-  bottom: 0.8rem;
-  left: 2rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #6b7280;
-  font-family: var(--font-sans);
+.tc-principal-stamp {
+  text-align: center;
+  font-weight: bold;
+  color: #000000;
+  min-width: 250px;
 }
+
+.tc-principal-title {
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+
+.tc-principal-clg {
+  font-size: 0.88rem;
+  font-weight: bold;
+}
+
+/* --- Official Study & Conduct Certificate (Matching Physical Photo) --- */
+.sc-official-header {
+  text-align: center;
+  margin-bottom: 0.8rem;
+}
+
+.sc-govt-crest {
+  width: 62px;
+  height: 62px;
+  object-fit: contain;
+  margin: 0 auto 0.4rem;
+  display: block;
+}
+
+.sc-office-title {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.08rem;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  color: #000000;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.sc-college-title {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #000000;
+  text-transform: uppercase;
+  margin-top: 0.25rem;
+}
+
+.sc-header-divider {
+  border-bottom: 3px double #000000;
+  margin: 0.5rem 0 0.8rem 0;
+}
+
+.sc-meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.05rem;
+  font-weight: bold;
+  margin-bottom: 1.2rem;
+  color: #000000;
+}
+
+.sc-main-title {
+  text-align: center;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.28rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  margin: 0.8rem 0 2rem 0;
+  color: #000000;
+  text-transform: uppercase;
+  text-decoration: underline;
+}
+
+.sc-body-paragraph {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.05rem;
+  line-height: 2.2;
+  color: #000000;
+  text-align: justify;
+  margin: 2.5rem 0 4rem 0;
+}
+
+.sc-para-1 {
+  margin-bottom: 2rem;
+}
+
+.sc-para-2 {
+  margin-bottom: 1.5rem;
+}
+
+.sc-fill-val {
+  font-weight: bold;
+  text-decoration: underline;
+  padding: 0 0.2rem;
+}
+
+.sc-official-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 4rem;
+  padding-top: 0.5rem;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.sc-footer-left {
+  min-width: 120px;
+}
+
+.sc-clerk-date {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #000000;
+}
+
+.sc-principal-stamp {
+  text-align: center;
+  font-weight: bold;
+  color: #000000;
+  min-width: 250px;
+}
+
+.sc-principal-title {
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+
+.sc-principal-clg {
+  font-size: 0.88rem;
+  font-weight: bold;
+}
+
+/* =========================================================
+   PRINT STYLES (EXACT FULL-PAGE A4 SIZING)
+   ========================================================= */
 
 @media print {
   @page {
     size: A4 portrait;
-    margin: 10mm 15mm;
+    margin: 8mm 12mm 10mm 12mm;
   }
-  body {
+  
+  html, body {
     background: #ffffff !important;
     color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
+  
   .app-header, .no-print, .print-bar {
     display: none !important;
   }
+  
   .main-container {
     margin: 0 !important;
     padding: 0 !important;
     max-width: 100% !important;
+    width: 100% !important;
   }
+  
   .cert-container {
-    border: 2px solid #000000 !important;
+    border: none !important;
     box-shadow: none !important;
-    margin: 0 !important;
-    padding: 1.5cm 2cm !important;
-    page-break-after: always;
-    page-break-inside: avoid;
-    break-after: page;
-    min-height: 260mm;
-    box-sizing: border-box;
+    margin: 0 auto !important;
+    padding: 6mm 10mm 6mm 10mm !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: 275mm !important;
+    box-sizing: border-box !important;
+  }
+  
+  #tc-document {
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  
+  #conduct-document {
+    page-break-before: always !important;
+    break-before: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: auto !important;
+    break-after: auto !important;
+    margin-top: 0 !important;
+  }
+
+  /* TC Print Styles */
+  .tc-govt-crest {
+    width: 54px !important;
+    height: 54px !important;
+    margin-bottom: 0.3rem !important;
+  }
+
+  .tc-govt-title {
+    font-size: 1.02rem !important;
+  }
+
+  .tc-dept-title {
+    font-size: 0.94rem !important;
+  }
+
+  .tc-college-title {
+    font-size: 1.25rem !important;
+  }
+
+  .tc-header-divider {
+    border-bottom: 2.5px double #000000 !important;
+    margin: 0.4rem 0 0.6rem 0 !important;
+  }
+
+  .tc-meta-row {
+    font-size: 1rem !important;
+    margin-bottom: 0.6rem !important;
+  }
+
+  .tc-main-title {
+    font-size: 1.22rem !important;
+    margin: 0.4rem 0 0.8rem 0 !important;
+  }
+
+  .tc-official-table {
+    font-size: 0.95rem !important;
+    line-height: 1.35 !important;
+    margin-bottom: 0.8rem !important;
+  }
+
+  .tc-official-table td {
+    padding: 0.30rem 0.35rem !important;
+  }
+
+  .tc-official-table td.tc-num {
+    width: 30px !important;
+  }
+
+  .tc-official-table td.tc-label {
+    width: 48% !important;
+  }
+
+  .tc-dob-words {
+    font-size: 0.82rem !important;
+  }
+
+  .tc-official-footer {
+    margin-top: 1.8rem !important;
+    padding-top: 0.3rem !important;
+  }
+
+  .tc-principal-title {
+    font-size: 1rem !important;
+  }
+
+  .tc-principal-clg {
+    font-size: 0.84rem !important;
+  }
+
+  /* Study & Conduct Certificate Print Styles */
+  .sc-govt-crest {
+    width: 54px !important;
+    height: 54px !important;
+    margin-bottom: 0.3rem !important;
+  }
+
+  .sc-office-title {
+    font-size: 1.02rem !important;
+  }
+
+  .sc-college-title {
+    font-size: 1.25rem !important;
+  }
+
+  .sc-header-divider {
+    border-bottom: 2.5px double #000000 !important;
+    margin: 0.4rem 0 0.6rem 0 !important;
+  }
+
+  .sc-meta-row {
+    font-size: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .sc-main-title {
+    font-size: 1.22rem !important;
+    margin: 0.6rem 0 1.5rem 0 !important;
+  }
+
+  .sc-body-paragraph {
+    font-size: 1.02rem !important;
+    line-height: 2.1 !important;
+    margin: 2rem 0 3.5rem 0 !important;
+  }
+
+  .sc-official-footer {
+    margin-top: 3.5rem !important;
+    padding-top: 0.3rem !important;
+  }
+
+  .sc-principal-title {
+    font-size: 1rem !important;
+  }
+
+  .sc-principal-clg {
+    font-size: 0.84rem !important;
   }
 }
 

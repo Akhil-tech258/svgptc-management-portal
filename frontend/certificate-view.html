@@ -50,133 +50,128 @@
     <!-- 1. TRANSFER CERTIFICATE (TC) -->
     <!-- ======================================================== -->
     <div class="cert-container" id="tc-document">
-      <img src="assets/logo.png" class="cert-watermark" alt="Watermark Crest">
+      <!-- ========================================================
+           WATERMARK PLACEHOLDER (CUSTOMIZABLE)
+           Change src="assets/logo.png" below to any custom watermark image or adjust opacity in style.css
+           ======================================================== -->
+      <img id="tc-watermark" src="assets/logo.png" class="cert-watermark" alt="Watermark Crest Placeholder">
 
-      <!-- College Header -->
-      <div class="cert-header">
-        <div style="display:flex; align-items:center; justify-content:center; gap:1.2rem; margin-bottom:0.5rem;">
-          <img id="cert-crest-img" src="assets/logo.png" style="width:65px; height:65px; object-fit:contain;" alt="Crest">
-          <div>
-            <div class="college-title" id="cert-college-name">SRI VENKATESWARA GOVERNMENT POLYTECHNIC (SVGP)</div>
-            <div class="college-sub" id="cert-college-sub">Government Autonomous Polytechnic | Approved by AICTE &amp; SBTET AP</div>
-            <div class="college-code" id="cert-college-code">INSTITUTION CODE: 018 | TIRUPATI, ANDHRA PRADESH</div>
-          </div>
-        </div>
-        <div class="cert-title-badge">TRANSFER CERTIFICATE</div>
+      <!-- Official College Header -->
+      <div class="tc-official-header">
+        <img id="cert-crest-img" src="assets/logo.png" class="tc-govt-crest" alt="Govt Emblem">
+        <div class="tc-govt-title">GOVERNMENT OF ANDHRA PRADESH</div>
+        <div class="tc-dept-title">DEPARTMENT OF TECHNICAL EDUCATION</div>
+        <div class="tc-college-title" id="cert-college-name">S.V. GOVERNMENT POLYTECHNIC :: TIRUPATI</div>
+        <div class="tc-header-divider"></div>
       </div>
 
-      <!-- Meta Row -->
-      <div class="cert-meta-row">
-        <div>T. No: <span id="tc-t-no" style="font-size:1.1rem; text-decoration:underline;">--</span></div>
-        <div>Admission No: <span id="tc-adm-no">--</span></div>
-        <div>Date of Issue: <span id="tc-issue-date">--</span></div>
+      <!-- Meta Row: Admn No & T. No -->
+      <div class="tc-meta-row">
+        <div>Admn. No: <span id="tc-adm-no">--</span></div>
+        <div>T. No: <span id="tc-t-no">--</span></div>
       </div>
 
-      <!-- Field Mapping Table according to SRS Section 3 & 4 -->
-      <table class="cert-table">
+      <!-- Main Title -->
+      <div class="tc-main-title">TRANSFER CERTIFICATE (TC)</div>
+
+      <!-- 13 Official Field Rows -->
+      <table class="tc-official-table">
         <tbody>
           <tr>
-            <td class="col-num">1.</td>
-            <td class="col-label">Name of the Student (in full)</td>
-            <td class="col-sep">:</td>
-            <td class="col-val" id="tc-name">--</td>
+            <td class="tc-num">1.</td>
+            <td class="tc-label">Name of the institution which the Pupil is leaving</td>
+            <td class="tc-sep">:</td>
+            <td class="tc-val tc-bold" id="tc-inst-leaving">S.V.Govt Polytechnic, Tirupati</td>
           </tr>
           <tr>
-            <td class="col-num">2.</td>
-            <td class="col-label">Father's / Guardian's Name</td>
-            <td class="col-sep">:</td>
-            <td class="col-val" id="tc-father">--</td>
+            <td class="tc-num">2.</td>
+            <td class="tc-label">Name of the Pupil</td>
+            <td class="tc-sep">:</td>
+            <td class="tc-val tc-bold" id="tc-name">--</td>
           </tr>
           <tr>
-            <td class="col-num">3.</td>
-            <td class="col-label">Permanent Student PIN</td>
-            <td class="col-sep">:</td>
-            <td class="col-val" id="tc-pin" style="font-family:monospace;">--</td>
+            <td class="tc-num">3.</td>
+            <td class="tc-label">Name of the Father/Guardian</td>
+            <td class="tc-sep">:</td>
+            <td class="tc-val tc-bold" id="tc-father">--</td>
           </tr>
           <tr>
-            <td class="col-num">4.</td>
-            <td class="col-label">Nationality and Religion</td>
-            <td class="col-sep">:</td>
-            <td class="col-val"><span id="tc-nat">--</span> / <span id="tc-rel">--</span></td>
+            <td class="tc-num">4.</td>
+            <td class="tc-label">Permanent Identification Number</td>
+            <td class="tc-sep">:</td>
+            <td class="tc-val tc-bold" id="tc-pin" style="font-family:monospace;">--</td>
           </tr>
           <tr>
-            <td class="col-num">5.</td>
-            <td class="col-label">Date of Birth (as recorded in Admission Register)</td>
-            <td class="col-sep">:</td>
-            <td class="col-val" id="tc-dob">--</td>
+            <td class="tc-num">5.</td>
+            <td class="tc-label">Nationality, Religion</td>
+            <td class="tc-sep">:</td>
+            <td class="tc-val tc-bold" id="tc-nat-rel">--</td>
           </tr>
           <tr>
-            <td class="col-num">6.</td>
-            <td class="col-label">Course / Branch of Study</td>
-            <td class="col-sep">:</td>
-            <td class="col-val" id="tc-course">--</td>
+            <td class="tc-num">6.</td>
+            <td class="tc-label">Date of Birth as entered in the Admission Register</td>
+            <td class="tc-sep">:</td>
+            <td class="tc-val">
+              <span id="tc-dob" class="tc-bold">--</span><br>
+              <span id="tc-dob-words" class="tc-dob-words">(--)</span>
+            </td>
           </tr>
           <tr>
-            <td class="col-num">7.</td>
-            <td class="col-label">Date of Admission (Admission From)</td>
-            <td class="col-sep">:</td>
-            <td class="col-val" id="tc-doa">--</td>
+            <td class="tc-num">7.</td>
+            <td class="tc-label">Class in which the pupil was Studying at the time of leaving</td>
+            <td class="tc-sep">:</td>
+            <td class="tc-val tc-bold" id="tc-course">--</td>
           </tr>
           <tr>
-            <td class="col-num">8.</td>
-            <td class="col-label">Date of Leaving College (Admission To)</td>
-            <td class="col-sep">:</td>
-            <td class="col-val" id="tc-leaving">--</td>
+            <td class="tc-num">8.</td>
+            <td class="tc-label">Date of admission into that Class</td>
+            <td class="tc-sep">:</td>
+            <td class="tc-val tc-bold" id="tc-doa">--</td>
           </tr>
           <tr>
-            <td class="col-num">9.</td>
-            <td class="col-label">Whether the student has paid all College Dues</td>
-            <td class="col-sep">:</td>
-            <td class="col-val" id="tc-dues-paid">--</td>
+            <td class="tc-num">9.</td>
+            <td class="tc-label">Date on which the pupil actually left the institution</td>
+            <td class="tc-sep">:</td>
+            <td class="tc-val tc-bold" id="tc-leaving">--</td>
           </tr>
           <tr>
-            <td class="col-num">10.</td>
-            <td class="col-label">Whether qualified for Promotion / Examination Result</td>
-            <td class="col-sep">:</td>
-            <td class="col-val" id="tc-promotion">--</td>
+            <td class="tc-num">10.</td>
+            <td class="tc-label">Whether qualified for promotion</td>
+            <td class="tc-sep">:</td>
+            <td class="tc-val tc-bold" id="tc-promotion">--</td>
           </tr>
           <tr>
-            <td class="col-num">11.</td>
-            <td class="col-label">General Conduct and Character</td>
-            <td class="col-sep">:</td>
-            <td class="col-val" id="tc-conduct">--</td>
+            <td class="tc-num">11.</td>
+            <td class="tc-label">Conduct &amp; Character</td>
+            <td class="tc-sep">:</td>
+            <td class="tc-val tc-bold" id="tc-conduct">--</td>
+          </tr>
+          <tr>
+            <td class="tc-num">12.</td>
+            <td class="tc-label">Whether the pupil has paid all the Fees due to the institution</td>
+            <td class="tc-sep">:</td>
+            <td class="tc-val tc-bold" id="tc-dues-paid">--</td>
+          </tr>
+          <tr>
+            <td class="tc-num">13.</td>
+            <td class="tc-label">Date on which the application for TC was made</td>
+            <td class="tc-sep">:</td>
+            <td class="tc-val tc-bold" id="tc-app-date">--</td>
           </tr>
         </tbody>
       </table>
 
-      <!-- Signatures Footer -->
-      <div class="cert-footer-signatures">
-        <div class="signature-block">
-          <br><br>
-          <div class="signature-line">Clerk / Senior Assistant</div>
+      <!-- Footer / Principal Stamp & Signature Area -->
+      <div class="tc-official-footer">
+        <div class="tc-footer-left">
+          <div class="tc-clerk-sig-line"></div>
+          <div class="tc-clerk-date" id="tc-clerk-date"></div>
         </div>
-        <div class="signature-block">
-          <div style="border:1px dashed #9ca3af; width:90px; height:90px; border-radius:50%; margin:0 auto 0.5rem; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:#6b7280;">
-            COLLEGE SEAL
+        <div class="tc-footer-right">
+          <div class="tc-principal-stamp">
+            <div class="tc-principal-title">PRINCIPAL</div>
+            <div class="tc-principal-clg">S.V. GOVT POLYTECHNIC :: TIRUPATI</div>
           </div>
-        </div>
-        <div class="signature-block">
-          <br><br>
-          <div class="signature-line">Head of Section / Incharge</div>
-        </div>
-        <div class="signature-block">
-          <br><br>
-          <div class="signature-line">Principal</div>
-        </div>
-      </div>
-
-      <div style="display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid #e5e7eb; padding-top:0.75rem; margin-top:1rem; font-size:0.72rem; color:#6b7280;">
-        <div style="display:flex; align-items:center; gap:0.6rem;">
-          <div style="width:44px; height:44px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; padding:3px; display:flex; align-items:center; justify-content:center; font-family:monospace; font-size:0.55rem; text-align:center; font-weight:bold; color:#1e40af;">
-            🏛️ QR<br>VERIFIED
-          </div>
-          <div>
-            <div style="font-weight:700; color:#1e293b;">Official Digital Institution Record</div>
-            <div>Auth Token: <span id="tc-auth-key" style="font-family:monospace; color:#475569;">SVGP-018-DTE-AP</span></div>
-          </div>
-        </div>
-        <div class="cert-version-tag" id="tc-version-tag" style="text-align:right;">
-          Sri Venkateswara Government Polytechnic, Tirupati
         </div>
       </div>
     </div>
@@ -184,64 +179,54 @@
 
 
     <!-- ======================================================== -->
-    <!-- 2. STUDY & CONDUCT CERTIFICATE -->
+    <!-- 2. STUDY & CONDUCT CERTIFICATE (MATCHING PHYSICAL PHOTO) -->
     <!-- ======================================================== -->
     <div class="cert-container" id="conduct-document" style="margin-top: 3rem;">
-      <img src="assets/logo.png" class="cert-watermark" alt="Watermark Crest">
+      <!-- ========================================================
+           WATERMARK PLACEHOLDER (CUSTOMIZABLE)
+           Change src="assets/logo.png" below to any custom watermark image or adjust opacity in style.css
+           ======================================================== -->
+      <img id="sc-watermark" src="assets/logo.png" class="cert-watermark" alt="Watermark Crest Placeholder">
 
-      <!-- College Header -->
-      <div class="cert-header">
-        <div style="display:flex; align-items:center; justify-content:center; gap:1.2rem; margin-bottom:0.5rem;">
-          <img id="cert-crest-img-2" src="assets/logo.png" style="width:65px; height:65px; object-fit:contain;" alt="Crest">
-          <div>
-            <div class="college-title" id="cert-college-name-2">SRI VENKATESWARA GOVERNMENT POLYTECHNIC (SVGP)</div>
-            <div class="college-sub" id="cert-college-sub-2">Government Autonomous Polytechnic | Approved by AICTE &amp; SBTET AP</div>
-            <div class="college-code" id="cert-college-code-2">INSTITUTION CODE: 018 | TIRUPATI, ANDHRA PRADESH</div>
+      <!-- Official College Header -->
+      <div class="sc-official-header">
+        <img id="cert-crest-img-2" src="assets/logo.png" class="sc-govt-crest" alt="Govt Emblem">
+        <div class="sc-office-title">OFFICE OF THE PRINCIPAL</div>
+        <div class="sc-college-title" id="cert-college-name-2">S.V. GOVERNMENT POLYTECHNIC :: TIRUPATI</div>
+        <div class="sc-header-divider"></div>
+      </div>
+
+      <!-- Meta Row: No. & Dt. -->
+      <div class="sc-meta-row">
+        <div>No. <span id="sc-adm-no">--</span></div>
+        <div>Dt. <span id="sc-date">--</span></div>
+      </div>
+
+      <!-- Main Title -->
+      <div class="sc-main-title">STUDY &amp; CONDUCT CERTIFICATE</div>
+
+      <!-- Official Body Paragraph matching physical certificate -->
+      <div class="sc-body-paragraph">
+        <p class="sc-para-1">
+          This is to certify that Sri <span class="sc-fill-val" id="sc-name">--</span>, PIN Number <span class="sc-fill-val" id="sc-pin" style="font-family:monospace;">--</span>, S/o, D/o <span class="sc-fill-val" id="sc-father">--</span> has studied at this institution during the period <span class="sc-fill-val" id="sc-period">--</span>
+        </p>
+        <p class="sc-para-2">
+          His/ Her Conduct and character are <span class="sc-fill-val" id="sc-conduct">--</span> during the period.
+        </p>
+      </div>
+
+      <!-- Footer / Principal Stamp Area matching physical certificate -->
+      <div class="sc-official-footer">
+        <div class="sc-footer-left">
+          <div class="sc-clerk-sig-line"></div>
+          <div class="sc-clerk-date" id="sc-clerk-date"></div>
+        </div>
+        <div class="sc-footer-right">
+          <div class="sc-principal-stamp">
+            <div class="sc-principal-title">PRINCIPAL</div>
+            <div class="sc-principal-clg">S.V. GOVT POLYTECHNIC :: TIRUPATI</div>
           </div>
         </div>
-        <div class="cert-title-badge">STUDY &amp; CONDUCT CERTIFICATE</div>
-      </div>
-
-      <!-- Meta Row -->
-      <div class="cert-meta-row">
-        <div>Ref: GITP/SCC/<span id="sc-ref-no">--</span></div>
-        <div>Date: <span id="sc-issue-date">--</span></div>
-      </div>
-
-      <!-- Conduct Certificate Paragraph -->
-      <div class="cert-conduct-paragraph">
-        This is to certify that Mr. / Ms. <span class="fill-in" id="sc-name" style="min-width:200px;">--</span>,
-        Son / Daughter of <span class="fill-in" id="sc-father" style="min-width:180px;">--</span>,
-        bearing Permanent Student PIN <span class="fill-in" id="sc-pin" style="min-width:140px; font-family:monospace;">--</span>,
-        is / was a bonafide student of this institution in the department of
-        <span class="fill-in" id="sc-course" style="min-width:160px;">--</span>.
-        <br><br>
-        He / She has studied in this Institution from <span class="fill-in" id="sc-doa">--</span>
-        to <span class="fill-in" id="sc-leaving">--</span>.
-        <br><br>
-        During his / her period of study in this college, his / her Conduct and Character
-        has been found to be <span class="fill-in" id="sc-conduct" style="min-width:120px; font-size:1.1rem;">--</span>.
-      </div>
-
-      <!-- Signatures Footer -->
-      <div class="cert-footer-signatures" style="margin-top: 5rem;">
-        <div class="signature-block">
-          <br><br>
-          <div class="signature-line">Senior Assistant</div>
-        </div>
-        <div class="signature-block">
-          <div style="border:1px dashed #9ca3af; width:90px; height:90px; border-radius:50%; margin:0 auto 0.5rem; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:#6b7280;">
-            COLLEGE SEAL
-          </div>
-        </div>
-        <div class="signature-block">
-          <br><br>
-          <div class="signature-line">Principal / Head of Institution</div>
-        </div>
-      </div>
-
-      <div class="cert-version-tag" id="sc-version-tag">
-        Sri Venkateswara Government Polytechnic, Tirupati
       </div>
     </div>
 

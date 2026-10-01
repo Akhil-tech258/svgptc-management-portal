@@ -9,15 +9,38 @@ function initBranding() {
   if (window.APP_CONFIG && window.APP_CONFIG.COLLEGE) {
     const col = window.APP_CONFIG.COLLEGE;
     
-    document.getElementById('cert-college-name').innerText = col.NAME;
-    document.getElementById('cert-college-sub').innerText = col.SUBTITLE;
-    document.getElementById('cert-college-code').innerText = `INST CODE: ${col.INSTITUTION_CODE} | ${col.AFFILIATION}`;
-    document.getElementById('cert-crest-img').src = col.LOGO_PATH;
+    const elName1 = document.getElementById('cert-college-name');
+    if (elName1) elName1.innerText = col.NAME || 'S.V. GOVERNMENT POLYTECHNIC :: TIRUPATI';
 
-    document.getElementById('cert-college-name-2').innerText = col.NAME;
-    document.getElementById('cert-college-sub-2').innerText = col.SUBTITLE;
-    document.getElementById('cert-college-code-2').innerText = `INST CODE: ${col.INSTITUTION_CODE}`;
-    document.getElementById('cert-crest-img-2').src = col.LOGO_PATH;
+    const elSub1 = document.getElementById('cert-college-sub');
+    if (elSub1) elSub1.innerText = col.SUBTITLE || '';
+
+    const elCode1 = document.getElementById('cert-college-code');
+    if (elCode1) elCode1.innerText = `INST CODE: ${col.INSTITUTION_CODE} | ${col.AFFILIATION}`;
+
+    const elCrest1 = document.getElementById('cert-crest-img');
+    if (elCrest1 && col.LOGO_PATH) elCrest1.src = col.LOGO_PATH;
+
+    const elName2 = document.getElementById('cert-college-name-2');
+    if (elName2) elName2.innerText = col.NAME || 'S.V. GOVERNMENT POLYTECHNIC :: TIRUPATI';
+
+    const elSub2 = document.getElementById('cert-college-sub-2');
+    if (elSub2) elSub2.innerText = col.SUBTITLE || '';
+
+    const elCode2 = document.getElementById('cert-college-code-2');
+    if (elCode2) elCode2.innerText = `INST CODE: ${col.INSTITUTION_CODE}`;
+
+    const elCrest2 = document.getElementById('cert-crest-img-2');
+    if (elCrest2 && col.LOGO_PATH) elCrest2.src = col.LOGO_PATH;
+
+    // Optional Watermark branding if defined in config
+    const watermarkPath = col.WATERMARK_PATH || col.LOGO_PATH;
+    if (watermarkPath) {
+      const tcWm = document.getElementById('tc-watermark');
+      if (tcWm) tcWm.src = watermarkPath;
+      const scWm = document.getElementById('sc-watermark');
+      if (scWm) scWm.src = watermarkPath;
+    }
   }
 }
 
@@ -85,47 +108,141 @@ async function loadCertificate() {
   populateConduct(cert);
 }
 
-function populateTC(c) {
-  document.getElementById('tc-t-no').innerText = c.t_no || '--';
-  document.getElementById('tc-adm-no').innerText = c.admission_no || '--';
-  document.getElementById('tc-issue-date').innerText = c.generated_date || '--';
+const digitWords = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE'];
+const monthNames = ['', 'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
 
-  document.getElementById('tc-name').innerText = c.student_name || '--';
-  document.getElementById('tc-father').innerText = c.father_name || '--';
-  document.getElementById('tc-pin').innerText = c.student_pin || '--';
-  document.getElementById('tc-nat').innerText = c.nationality || 'Indian';
-  document.getElementById('tc-rel').innerText = c.religion || '--';
-  document.getElementById('tc-dob').innerText = c.dob || '--';
-  document.getElementById('tc-course').innerText = c.course_branch || '--';
-  document.getElementById('tc-doa').innerText = c.date_of_admission || '--';
-  document.getElementById('tc-leaving').innerText = c.date_of_leaving || '--';
-  document.getElementById('tc-dues-paid').innerText = (c.fees_paid || 'No').toUpperCase() === 'YES' ? 'YES (All Dues Cleared)' : 'NO';
-  document.getElementById('tc-promotion').innerText = c.promotion_status || '--';
-  document.getElementById('tc-conduct').innerText = c.conduct_character || 'Good';
+function dateToWords(dateStr) {
+  if (!dateStr) return '';
+  const parts = String(dateStr).trim().match(/^(\d{1,2})[-\/\.](\d{1,2})[-\/\.](\d{4})$/);
+  if (!parts) return '';
+  const d = String(parts[1]).padStart(2, '0');
+  const m = parseInt(parts[2], 10);
+  const y = String(parts[3]);
 
-  const institutionFooter = 'Sri Venkateswara Government Polytechnic, Tirupati';
-  const tcTag = document.getElementById('tc-version-tag');
-  if (tcTag) {
-    tcTag.innerText = institutionFooter;
+  const dWords = d.split('').map(digit => digitWords[parseInt(digit, 10)]).join(' ');
+  const mWord = monthNames[m] || 'MONTH';
+  const yWords = y.split('').map(digit => digitWords[parseInt(digit, 10)]).join(' ');
+
+  return `(${dWords}-${mWord}-${yWords})`;
+}
+
+function formatClassStudied(course) {
+  if (!course) return '--';
+  const str = String(course).trim().toUpperCase();
+  if (str.includes('FINAL') || str.includes('DCME') || str.includes('DECE') || str.includes('DEEE') || str.includes('DME') || str.includes('DCE')) {
+    return str;
   }
-  document.getElementById('doc-version-banner').innerText = `Version v${c.version_number} (${c.is_current ? 'Current Active' : 'Superseded Internal Copy'})`;
+  // Standard polytechnic abbreviations
+  if (str.includes('COMPUTER')) return 'DCME FINAL YEAR';
+  if (str.includes('ELECTRONICS AND COMM')) return 'DECE (II) FINAL YEAR';
+  if (str.includes('ELECTRICAL')) return 'DEEE FINAL YEAR';
+  if (str.includes('MECHANICAL')) return 'DME FINAL YEAR';
+  if (str.includes('CIVIL')) return 'DCE FINAL YEAR';
+  if (str.includes('PHARM')) return 'D.PHARMA FINAL YEAR';
+  if (str.includes('AUTO')) return 'DAE FINAL YEAR';
+  return `${str} FINAL YEAR`;
+}
+
+function populateTC(c) {
+  const elAdm = document.getElementById('tc-adm-no');
+  if (elAdm) elAdm.innerText = c.admission_no || '--';
+
+  const elTNo = document.getElementById('tc-t-no');
+  if (elTNo) elTNo.innerText = c.t_no || '--';
+
+  const elName = document.getElementById('tc-name');
+  if (elName) elName.innerText = (c.student_name || '--').toUpperCase();
+
+  const elFather = document.getElementById('tc-father');
+  if (elFather) elFather.innerText = (c.father_name || '--').toUpperCase();
+
+  const elPin = document.getElementById('tc-pin');
+  if (elPin) elPin.innerText = c.student_pin || '--';
+
+  // Combined Nationality, Religion e.g. "INDIAN-HINDU-KALINGA-BC-A" or "INDIAN - HINDU"
+  const elNatRel = document.getElementById('tc-nat-rel');
+  if (elNatRel) {
+    const nat = (c.nationality || 'INDIAN').trim().toUpperCase();
+    const rel = (c.religion || '').trim().toUpperCase();
+    if (rel) {
+      if (rel.startsWith(nat)) {
+        elNatRel.innerText = rel;
+      } else {
+        elNatRel.innerText = `${nat}-${rel}`;
+      }
+    } else {
+      elNatRel.innerText = nat;
+    }
+  }
+
+  const elDob = document.getElementById('tc-dob');
+  if (elDob) elDob.innerText = c.dob || '--';
+
+  const elDobWords = document.getElementById('tc-dob-words');
+  if (elDobWords) elDobWords.innerText = dateToWords(c.dob);
+
+  const elCourse = document.getElementById('tc-course');
+  if (elCourse) elCourse.innerText = formatClassStudied(c.course_branch);
+
+  const elDoa = document.getElementById('tc-doa');
+  if (elDoa) elDoa.innerText = c.date_of_admission || '--';
+
+  const elLeaving = document.getElementById('tc-leaving');
+  if (elLeaving) elLeaving.innerText = c.date_of_leaving || '--';
+
+  const elPromotion = document.getElementById('tc-promotion');
+  if (elPromotion) elPromotion.innerText = c.promotion_status || '--';
+
+  const elConduct = document.getElementById('tc-conduct');
+  if (elConduct) elConduct.innerText = c.conduct_character || '--';
+
+  const elDues = document.getElementById('tc-dues-paid');
+  if (elDues) elDues.innerText = (c.fees_paid || 'YES').toUpperCase() === 'YES' ? 'YES' : 'NO';
+
+  const elAppDate = document.getElementById('tc-app-date');
+  if (elAppDate) elAppDate.innerText = c.generated_date || c.application_date || '--';
+
+  const elClerkDate = document.getElementById('tc-clerk-date');
+  if (elClerkDate) {
+    const d = c.generated_date ? c.generated_date.replace(/-/g, '/') : '';
+    elClerkDate.innerText = d;
+  }
+
+  const banner = document.getElementById('doc-version-banner');
+  if (banner) {
+    banner.innerText = `Version v${c.version_number} (${c.is_current ? 'Current Active' : 'Superseded Internal Copy'})`;
+  }
 }
 
 function populateConduct(c) {
-  document.getElementById('sc-ref-no').innerText = `${c.t_no || '00'}/${c.student_pin || ''}`;
-  document.getElementById('sc-issue-date').innerText = c.generated_date || '--';
+  const elNo = document.getElementById('sc-adm-no');
+  if (elNo) elNo.innerText = c.admission_no || c.t_no || '--';
 
-  document.getElementById('sc-name').innerText = c.student_name || '--';
-  document.getElementById('sc-father').innerText = c.father_name || '--';
-  document.getElementById('sc-pin').innerText = c.student_pin || '--';
-  document.getElementById('sc-course').innerText = c.course_branch || '--';
-  document.getElementById('sc-doa').innerText = c.date_of_admission || '--';
-  document.getElementById('sc-leaving').innerText = c.date_of_leaving || '--';
-  document.getElementById('sc-conduct').innerText = (c.conduct_character || 'Good').toUpperCase();
+  const elDate = document.getElementById('sc-date');
+  if (elDate) elDate.innerText = c.generated_date ? c.generated_date.replace(/-/g, '.') : '--';
 
-  const institutionFooter = 'Sri Venkateswara Government Polytechnic, Tirupati';
-  const scTag = document.getElementById('sc-version-tag');
-  if (scTag) {
-    scTag.innerText = institutionFooter;
+  const elName = document.getElementById('sc-name');
+  if (elName) elName.innerText = (c.student_name || '--').toUpperCase();
+
+  const elPin = document.getElementById('sc-pin');
+  if (elPin) elPin.innerText = c.student_pin || '--';
+
+  const elFather = document.getElementById('sc-father');
+  if (elFather) elFather.innerText = (c.father_name || '--').toUpperCase();
+
+  const elPeriod = document.getElementById('sc-period');
+  if (elPeriod) {
+    const fromDate = c.date_of_admission ? c.date_of_admission.replace(/-/g, '.') : '--';
+    const toDate = c.date_of_leaving || 'May/June-2026';
+    elPeriod.innerText = `${fromDate} to ${toDate}`;
+  }
+
+  const elConduct = document.getElementById('sc-conduct');
+  if (elConduct) elConduct.innerText = c.conduct_character || 'Satisfactory';
+
+  const elClerkDate = document.getElementById('sc-clerk-date');
+  if (elClerkDate) {
+    const d = c.generated_date ? c.generated_date.replace(/-/g, '/') : '';
+    elClerkDate.innerText = d;
   }
 }
