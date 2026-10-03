@@ -824,19 +824,31 @@ async function getStudentsMaster(req, res) {
              sr.registered_at, 
              cd.is_locked, 
              cd.t_no,
-             ndr.status as no_dues_status
+             ndr.id as request_id,
+             ndr.status as no_dues_status,
+             COALESCE(clr.total_departments, 0) as total_departments,
+             COALESCE(clr.approved_departments, 0) as approved_departments,
+             COALESCE(clr.due_departments, 0) as due_departments
       FROM students_master sm
-      LEFT JOIN students_registered sr ON sm.pin = sr.pin
-      LEFT JOIN certificate_data cd ON sm.pin = cd.student_pin
+      LEFT JOIN students_registered sr ON LOWER(sm.pin) = LOWER(sr.pin)
+      LEFT JOIN certificate_data cd ON LOWER(sm.pin) = LOWER(cd.student_pin)
       LEFT JOIN (
-        SELECT r1.student_pin, r1.status 
+        SELECT r1.id, r1.student_pin, r1.status 
         FROM no_dues_requests r1
         INNER JOIN (
-          SELECT student_pin, MAX(id) as max_id 
+          SELECT LOWER(student_pin) as lpin, MAX(id) as max_id 
           FROM no_dues_requests 
-          GROUP BY student_pin
+          GROUP BY LOWER(student_pin)
         ) r2 ON r1.id = r2.max_id
-      ) ndr ON sm.pin = ndr.student_pin
+      ) ndr ON LOWER(sm.pin) = LOWER(ndr.student_pin)
+      LEFT JOIN (
+        SELECT request_id,
+               COUNT(*) as total_departments,
+               SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) as approved_departments,
+               SUM(CASE WHEN status = 'Due Found' THEN 1 ELSE 0 END) as due_departments
+        FROM department_clearances
+        GROUP BY request_id
+      ) clr ON ndr.id = clr.request_id
     `;
     const params = [];
 
@@ -852,6 +864,86 @@ async function getStudentsMaster(req, res) {
   } catch (err) {
     console.error('getStudentsMaster error:', err);
     return res.status(500).json({ success: false, error: 'Failed to search students: ' + err.message });
+  }
+}
+
+async function getStudentClearanceDetails(req, res) {
+  try {
+    const pin = (req.params.pin || '').trim();
+    if (!pin) {
+      return res.status(400).json({ success: false, error: 'Student PIN is required.' });
+    }
+
+    const studentRes = await db.query('SELECT * FROM students_master WHERE LOWER(pin) = LOWER($1)', [pin]);
+    if (studentRes.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Student master record not found.' });
+    }
+    const student = studentRes.rows[0];
+
+    const reqRes = await db.query(
+      'SELECT * FROM no_dues_requests WHERE LOWER(student_pin) = LOWER($1) ORDER BY id DESC LIMIT 1',
+      [pin]
+    );
+
+    if (reqRes.rows.length === 0) {
+      return res.json({
+        success: true,
+        student,
+        request: null,
+        clearances: []
+      });
+    }
+
+    const currentRequest = reqRes.rows[0];
+
+    const clearRes = await db.query(
+      `SELECT dc.*, COALESCE(d.type, 'Online') as department_type
+       FROM department_clearances dc
+       LEFT JOIN departments d ON d.id = dc.department_id
+       WHERE dc.request_id = $1
+       ORDER BY dc.id ASC`,
+      [currentRequest.id]
+    );
+
+    const duesRes = await db.query(
+      'SELECT * FROM dues WHERE LOWER(student_pin) = LOWER($1) AND status = $2',
+      [pin, 'Active']
+    );
+
+    const duesByDept = {};
+    duesRes.rows.forEach(d => {
+      if (!duesByDept[d.department_id]) duesByDept[d.department_id] = [];
+      duesByDept[d.department_id].push(d);
+    });
+
+    const clearances = clearRes.rows.map(item => {
+      const deptDues = duesByDept[item.department_id] || [];
+      return {
+        id: item.id,
+        department_id: item.department_id,
+        department_name: item.department_name,
+        department_type: item.department_type,
+        status: deptDues.length > 0 ? 'Due Found' : item.status,
+        approved_by: item.approved_by,
+        approved_at: item.approved_at,
+        dues: deptDues.map(d => ({
+          id: d.id,
+          reason: d.reason,
+          amount: d.amount || '0',
+          created_at: d.created_at
+        }))
+      };
+    });
+
+    return res.json({
+      success: true,
+      student,
+      request: currentRequest,
+      clearances
+    });
+  } catch (err) {
+    console.error('getStudentClearanceDetails error:', err);
+    return res.status(500).json({ success: false, error: 'Failed to fetch student clearances: ' + err.message });
   }
 }
 
@@ -1087,6 +1179,7 @@ module.exports = {
   verifyAndLockCertificate,
   unlockCertificate,
   generateCertificate,
-  getCertificateAuditHistory
+  getCertificateAuditHistory,
+  getStudentClearanceDetails
 };
 

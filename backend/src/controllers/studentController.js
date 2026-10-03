@@ -1,5 +1,49 @@
 const db = require('../config/db');
 
+async function getApplicableDepartments(studentCourse) {
+  const branchesRes = await db.query('SELECT * FROM branches WHERE is_active = 1');
+  let studentBranchCode = '';
+  const sCourse = (studentCourse || '').toLowerCase();
+
+  // Priority checks for exact match or specific keywords
+  if (sCourse.includes('industry integrated') || sCourse.includes('ece-ii')) {
+    studentBranchCode = 'ECE-II';
+  } else if (sCourse.includes('pharmacy') || sCourse.includes('d.pharma') || sCourse.includes('pharm')) {
+    studentBranchCode = 'PHARM';
+  } else if (sCourse.includes('sugar') || sCourse.includes('chemical') || sCourse.includes('che')) {
+    studentBranchCode = 'CHE';
+  } else if (sCourse.includes('biomedical') || sCourse.includes('bme')) {
+    studentBranchCode = 'BME';
+  } else if (sCourse.includes('computer') || sCourse.includes('cme') || sCourse.includes('cse')) {
+    studentBranchCode = 'CME';
+  } else if (sCourse.includes('electrical and electronics') || sCourse.includes('eee')) {
+    studentBranchCode = 'EEE';
+  } else if (sCourse.includes('electronics and communication') || sCourse.includes('ece')) {
+    studentBranchCode = 'ECE';
+  } else if (sCourse.includes('civil')) {
+    studentBranchCode = 'CIVIL';
+  } else if (sCourse.includes('mech')) {
+    studentBranchCode = 'MECH';
+  } else {
+    for (const b of branchesRes.rows) {
+      if (sCourse === b.name.toLowerCase() || sCourse === b.code.toLowerCase()) {
+        studentBranchCode = b.code;
+        break;
+      }
+    }
+  }
+
+  const deptRes = await db.query('SELECT * FROM departments WHERE is_active = 1 ORDER BY id ASC');
+
+  return deptRes.rows.filter(dept => {
+    if (!dept.branch_code || dept.branch_code === 'ALL') return true;
+    if (studentBranchCode && dept.branch_code.toUpperCase() === studentBranchCode.toUpperCase()) return true;
+    if (sCourse.includes(dept.branch_code.toLowerCase())) return true;
+    if (dept.name.toLowerCase().includes(sCourse) || sCourse.includes(dept.name.toLowerCase())) return true;
+    return false;
+  });
+}
+
 async function getStudentDashboard(req, res) {
   try {
     const pin = req.student.pin;
@@ -28,13 +72,36 @@ async function getStudentDashboard(req, res) {
     if (reqRes.rows.length > 0) {
       currentRequest = reqRes.rows[0];
 
-      // Fetch clearances
+      // Auto-heal / sync missing departments for active pending requests
+      if (currentRequest.status !== 'Completed') {
+        const applicableDepts = await getApplicableDepartments(studentInfo.course_branch);
+        const existingClearRes = await db.query(
+          'SELECT department_id FROM department_clearances WHERE request_id = $1',
+          [currentRequest.id]
+        );
+        const existingDeptIds = new Set(existingClearRes.rows.map(r => r.department_id));
+
+        for (const dept of applicableDepts) {
+          if (!existingDeptIds.has(dept.id)) {
+            const isNcc = dept.name.toUpperCase().includes('NSS') || dept.name.toUpperCase().includes('NCC');
+            const deptName = (isNcc && currentRequest.is_ncc_cadet !== 1) ? `${dept.name} (Non-Cadet)` : dept.name;
+            await db.query(
+              `INSERT INTO department_clearances 
+               (request_id, student_pin, department_id, department_name, status, last_notified_at)
+               VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)`,
+              [currentRequest.id, pin, dept.id, deptName, 'Pending']
+            );
+          }
+        }
+      }
+
+      // Fetch clearances with LEFT JOIN to prevent dropped records
       const clearRes = await db.query(
-        `SELECT dc.*, d.type as department_type
+        `SELECT dc.*, COALESCE(d.type, 'Online') as department_type
          FROM department_clearances dc
-         JOIN departments d ON d.id = dc.department_id
+         LEFT JOIN departments d ON d.id = dc.department_id
          WHERE dc.request_id = $1
-         ORDER BY d.id ASC`,
+         ORDER BY dc.id ASC`,
         [currentRequest.id]
       );
 
@@ -188,16 +255,39 @@ async function submitNoDuesRequest(req, res) {
 
     // Check if there is already an existing pending or completed request
     const existingReq = await db.query(
-      'SELECT * FROM no_dues_requests WHERE student_pin = $1 ORDER BY id DESC LIMIT 1',
+      'SELECT * FROM no_dues_requests WHERE LOWER(student_pin) = LOWER($1) ORDER BY id DESC LIMIT 1',
       [pin]
     );
 
     if (existingReq.rows.length > 0) {
       const current = existingReq.rows[0];
       if (current.status !== 'Completed') {
+        const studentRes = await db.query('SELECT course_branch FROM students_master WHERE LOWER(pin) = LOWER($1)', [pin]);
+        const studentCourse = (studentRes.rows[0] && studentRes.rows[0].course_branch) || '';
+        const applicableDepts = await getApplicableDepartments(studentCourse);
+
+        const existingClearRes = await db.query(
+          'SELECT department_id FROM department_clearances WHERE request_id = $1',
+          [current.id]
+        );
+        const existingDeptIds = new Set(existingClearRes.rows.map(r => r.department_id));
+
+        for (const dept of applicableDepts) {
+          if (!existingDeptIds.has(dept.id)) {
+            const isNcc = dept.name.toUpperCase().includes('NSS') || dept.name.toUpperCase().includes('NCC');
+            const deptName = (isNcc && current.is_ncc_cadet !== 1) ? `${dept.name} (Non-Cadet)` : dept.name;
+            await db.query(
+              `INSERT INTO department_clearances 
+               (request_id, student_pin, department_id, department_name, status, last_notified_at)
+               VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)`,
+              [current.id, pin, dept.id, deptName, 'Pending']
+            );
+          }
+        }
+
         return res.json({
           success: true,
-          message: 'No-Dues request is already in progress.',
+          message: 'No-Dues request is already in progress and all departments are synchronized.',
           requestId: current.id
         });
       }
@@ -214,62 +304,17 @@ async function submitNoDuesRequest(req, res) {
 
     // Get the request ID
     const reqRes = await db.query(
-      'SELECT id FROM no_dues_requests WHERE student_pin = $1 ORDER BY id DESC LIMIT 1',
+      'SELECT id FROM no_dues_requests WHERE LOWER(student_pin) = LOWER($1) ORDER BY id DESC LIMIT 1',
       [pin]
     );
     const requestId = reqRes.rows[0].id;
 
     // Fetch student's course_branch from students_master
-    const studentRes = await db.query('SELECT course_branch FROM students_master WHERE pin = $1', [pin]);
+    const studentRes = await db.query('SELECT course_branch FROM students_master WHERE LOWER(pin) = LOWER($1)', [pin]);
     const studentCourse = (studentRes.rows[0] && studentRes.rows[0].course_branch) || '';
 
-    // Fetch branches to resolve student's branch code (Strictly for 9 Official SVGP Courses)
-    const branchesRes = await db.query('SELECT * FROM branches WHERE is_active = 1');
-    let studentBranchCode = '';
-    const sCourse = studentCourse.toLowerCase();
-
-    // Priority checks for exact match or specific keywords
-    if (sCourse.includes('industry integrated') || sCourse.includes('ece-ii')) {
-      studentBranchCode = 'ECE-II';
-    } else if (sCourse.includes('pharmacy') || sCourse.includes('d.pharma') || sCourse.includes('pharm')) {
-      studentBranchCode = 'PHARM';
-    } else if (sCourse.includes('sugar') || sCourse.includes('chemical') || sCourse.includes('che')) {
-      studentBranchCode = 'CHE';
-    } else if (sCourse.includes('biomedical') || sCourse.includes('bme')) {
-      studentBranchCode = 'BME';
-    } else if (sCourse.includes('computer') || sCourse.includes('cme') || sCourse.includes('cse')) {
-      studentBranchCode = 'CME';
-    } else if (sCourse.includes('electrical and electronics') || sCourse.includes('eee')) {
-      studentBranchCode = 'EEE';
-    } else if (sCourse.includes('electronics and communication') || sCourse.includes('ece')) {
-      studentBranchCode = 'ECE';
-    } else if (sCourse.includes('civil')) {
-      studentBranchCode = 'CIVIL';
-    } else if (sCourse.includes('mech')) {
-      studentBranchCode = 'MECH';
-    } else {
-      // Direct branch match fallback
-      for (const b of branchesRes.rows) {
-        if (sCourse === b.name.toLowerCase() || sCourse === b.code.toLowerCase()) {
-          studentBranchCode = b.code;
-          break;
-        }
-      }
-    }
-
-    // Fetch all active departments
-    const deptRes = await db.query(
-      'SELECT * FROM departments WHERE is_active = 1 ORDER BY id ASC'
-    );
-
-    // Filter departments: Common (ALL) + matching student's branch
-    const applicableDepts = deptRes.rows.filter(dept => {
-      if (!dept.branch_code || dept.branch_code === 'ALL') return true;
-      if (studentBranchCode && dept.branch_code.toUpperCase() === studentBranchCode.toUpperCase()) return true;
-      if (studentCourse.toLowerCase().includes(dept.branch_code.toLowerCase())) return true;
-      if (dept.name.toLowerCase().includes(studentCourse.toLowerCase()) || studentCourse.toLowerCase().includes(dept.name.toLowerCase())) return true;
-      return false;
-    });
+    // Fetch and filter departments: Common (ALL) + matching student's branch
+    const applicableDepts = await getApplicableDepartments(studentCourse);
 
     // Insert department clearances
     for (const dept of applicableDepts) {

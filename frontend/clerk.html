@@ -996,10 +996,70 @@
       </div>
     </div>
 
+    <!-- MODAL: VIEW STUDENT CLEARANCE BREAKDOWN (DEPARTMENT AUDIT) -->
+    <div id="modal-view-student-clearances" class="modal-backdrop" style="display: none;">
+      <div class="modal-dialog" style="max-width: 860px;">
+        <div class="modal-header">
+          <div>
+            <h3 style="margin: 0; display:flex; align-items:center; gap:0.5rem;">
+              <span>📋</span> Department No-Dues Clearance Breakdown
+            </h3>
+            <p style="font-size:0.83rem; color:var(--text-secondary); margin:0.3rem 0 0 0;">
+              Student: <strong id="clearance-modal-student-name" style="color:var(--text-primary);">—</strong> 
+              • PIN: <strong id="clearance-modal-pin" style="font-family:var(--font-mono); color:var(--accent-gold);">—</strong>
+              • Course: <span id="clearance-modal-branch" style="color:var(--text-secondary);">—</span>
+            </p>
+          </div>
+          <button class="modal-close" onclick="closeStudentClearanceModal()">&times;</button>
+        </div>
+
+        <div class="modal-body" style="max-height: calc(85vh - 160px); overflow-y: auto;">
+          <!-- Clearance Progress Summary Banner -->
+          <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:1rem; margin-bottom:1.25rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem;">
+              <span style="font-size:0.85rem; font-weight:700; color:var(--text-primary);">Overall Clearance Progress:</span>
+              <span id="clearance-modal-progress-badge" class="badge badge-pending">0 / 8 Approved</span>
+            </div>
+            <div class="progress-meter" style="margin-bottom:0.5rem;">
+              <div id="clearance-modal-progress-fill" class="progress-meter-fill" style="width:0%;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-secondary);">
+              <span>Application Status: <strong id="clearance-modal-req-status">—</strong></span>
+              <span>Cadet Status: <strong id="clearance-modal-cadet">—</strong></span>
+              <span>Submitted: <strong id="clearance-modal-submitted">—</strong></span>
+            </div>
+          </div>
+
+          <!-- Itemized Department Clearances Table -->
+          <div class="table-responsive" style="border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+            <table class="data-table" style="margin:0;">
+              <thead>
+                <tr>
+                  <th>Department / Lab</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Approved By</th>
+                  <th>Approval Date &amp; Time</th>
+                  <th>Dues / Remarks</th>
+                </tr>
+              </thead>
+              <tbody id="clearance-modal-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeStudentClearanceModal()">Close</button>
+        </div>
+      </div>
+    </div>
+
   </main>
 
-  <script src="js/config.js?v=2.0"></script>
-  <script src="js/api.js?v=2.0"></script>
-  <script src="js/clerk.js?v=2.0"></script>
+  <script src="js/config.js?v=2.2"></script>
+  <script src="js/api.js?v=2.2"></script>
+  <script src="js/clerk.js?v=2.2"></script>
 </body>
 </html>

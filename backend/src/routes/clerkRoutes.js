@@ -50,6 +50,7 @@ router.get('/students', clerkController.getStudentsMaster);
 router.post('/students', clerkController.createSingleStudent);
 router.delete('/students/purge-all', clerkController.purgeAllStudents);
 router.post('/students/purge-all', clerkController.purgeAllStudents);
+router.get('/students/:pin/clearance-details', clerkController.getStudentClearanceDetails);
 router.delete('/students/:pin', clerkController.deleteSingleStudent);
 router.post('/students/:pin/delete', clerkController.deleteSingleStudent);
 router.put('/students/:pin', clerkController.updateStudentMaster);

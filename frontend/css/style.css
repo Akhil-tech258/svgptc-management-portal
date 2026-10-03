@@ -1095,7 +1095,7 @@ input[type="date"].form-control::-webkit-calendar-picker-indicator:hover {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 8mm 12mm 10mm 12mm;
+    margin: 0;
   }
   
   html, body {
@@ -1107,7 +1107,7 @@ input[type="date"].form-control::-webkit-calendar-picker-indicator:hover {
     print-color-adjust: exact !important;
   }
   
-  .app-header, .no-print, .print-bar {
+  .app-header, .no-print, .print-bar, .back-to-top-btn, #back-to-top-btn {
     display: none !important;
   }
   
@@ -1122,12 +1122,12 @@ input[type="date"].form-control::-webkit-calendar-picker-indicator:hover {
     border: none !important;
     box-shadow: none !important;
     margin: 0 auto !important;
-    padding: 6mm 10mm 6mm 10mm !important;
+    padding: 10mm 14mm 10mm 14mm !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     height: auto !important;
     min-height: auto !important;
-    max-height: 275mm !important;
+    max-height: 285mm !important;
     box-sizing: border-box !important;
   }
   

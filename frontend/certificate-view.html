@@ -24,6 +24,10 @@
       top: 0;
       z-index: 100;
     }
+    /* Never show back-to-top floating button on official certificate view */
+    #back-to-top-btn, .back-to-top-btn {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
@@ -186,7 +190,7 @@
            WATERMARK PLACEHOLDER (CUSTOMIZABLE)
            Change src="assets/logo.png" below to any custom watermark image or adjust opacity in style.css
            ======================================================== -->
-      <img id="sc-watermark" src="assets/logo.png" class="cert-watermark" alt="Watermark Crest Placeholder">
+      <img id="sc-watermark" src="assets/logo.png" class="cert-watermark" alt="akhil">
 
       <!-- Official College Header -->
       <div class="sc-official-header">
@@ -232,8 +236,8 @@
 
   </div>
 
-  <script src="js/config.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/certificate.js"></script>
+  <script src="js/config.js?v=2.2"></script>
+  <script src="js/api.js?v=2.2"></script>
+  <script src="js/certificate.js?v=2.2"></script>
 </body>
 </html>

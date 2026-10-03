@@ -28,7 +28,7 @@ async function seed() {
   }
   console.log('Official 9 SVGP Tirupati branches verified.');
 
-  // 2. Strictly Seed ONLY the 8 Official Common College Departments
+  // Ensure the 8 official base departments exist without deleting custom departments added by clerk
   const official8Departments = [
     { name: 'Library', type: 'Physical', branch_code: 'ALL' },
     { name: 'Accounts', type: 'Online', branch_code: 'ALL' },
@@ -39,12 +39,6 @@ async function seed() {
     { name: 'Chemistry Lab', type: 'Online', branch_code: 'ALL' },
     { name: 'NSS/NCC', type: 'Online', branch_code: 'ALL' }
   ];
-
-  // Remove any extra departments not in the 8 official list
-  await db.query(`
-    DELETE FROM departments 
-    WHERE name NOT IN ('Library', 'Accounts', 'Scholarship', 'Hostel', 'Physical Director', 'Physics Lab', 'Chemistry Lab', 'NSS/NCC')
-  `);
 
   for (const dept of official8Departments) {
     const existing = await db.query('SELECT id FROM departments WHERE name = $1', [dept.name]);
@@ -74,31 +68,7 @@ async function seed() {
     console.log(`Official Clerk account verified/updated: ${clerkUsername}`);
   }
 
-  // 5. Seed Pre-registered Librarian Faculty Account (Central Library Department Incharge)
-  const libDeptRes = await db.query("SELECT id, name FROM departments WHERE name = 'Library'");
-  if (libDeptRes.rows.length > 0) {
-    const libDept = libDeptRes.rows[0];
-    const librarianUsername = (process.env.LIBRARIAN_USERNAME || 'librarian').trim();
-    const librarianPassword = process.env.LIBRARIAN_PASSWORD || 'librarian123';
-    const libHash = hashPassword(librarianPassword);
-
-    const existingLib = await db.query('SELECT id FROM faculty_accounts WHERE LOWER(username) = LOWER($1)', [librarianUsername]);
-    if (existingLib.rows.length === 0) {
-      await db.query(
-        'INSERT INTO faculty_accounts (username, password_hash, department_id, department_name, branch_code, is_active) VALUES ($1, $2, $3, $4, $5, 1)',
-        [librarianUsername, libHash, libDept.id, libDept.name, 'ALL']
-      );
-      console.log(`Pre-registered Librarian faculty account created: ${librarianUsername}`);
-    } else {
-      await db.query(
-        'UPDATE faculty_accounts SET password_hash = $1, department_id = $2, department_name = $3, branch_code = $4, is_active = 1 WHERE LOWER(username) = LOWER($5)',
-        [libHash, libDept.id, libDept.name, 'ALL', librarianUsername]
-      );
-      console.log(`Pre-registered Librarian faculty account verified: ${librarianUsername}`);
-    }
-  }
-
-  // 6. Clean up student data only when explicitly requested (e.g. --purge flag or PURGE_ON_SEED=true)
+  // 5. Clean up student data only when explicitly requested (e.g. --purge flag or PURGE_ON_SEED=true)
   if (process.env.PURGE_ON_SEED === 'true' || process.argv.includes('--purge')) {
     await db.query('DELETE FROM dues');
     await db.query('DELETE FROM department_clearances');
@@ -110,76 +80,6 @@ async function seed() {
     console.log('All student records purged (--purge flag detected). System is clean with 0 students.');
   } else {
     console.log('Existing student data preserved.');
-  }
-
-  // 7. Seed Official Demo Students in unsubmitted state for instant portal testing
-  const demoStudents = [
-    {
-      pin: '23018-CM-007',
-      admission_no: 'ADM-2023-007',
-      student_name: 'Keerthan',
-      father_name: 'Institutional Guardian',
-      dob: '01-01-2005',
-      nationality: 'Indian',
-      religion: 'Hindu',
-      course_branch: 'Computer Engineering',
-      date_of_admission: '10-07-2023'
-    },
-    {
-      pin: '23018-CM-001',
-      admission_no: 'ADM-2023-001',
-      student_name: 'Guntaka Yaswanth Kumar',
-      father_name: 'Guntaka Ramana',
-      dob: '15-06-2005',
-      nationality: 'Indian',
-      religion: 'Hindu',
-      course_branch: 'Computer Engineering',
-      date_of_admission: '10-07-2023'
-    },
-    {
-      pin: '24018-CM-812',
-      admission_no: 'ADM-2024-812',
-      student_name: 'Dileep Kumar',
-      father_name: 'Venkata Ramana',
-      dob: '10-06-2005',
-      nationality: 'Indian',
-      religion: 'Hindu',
-      course_branch: 'Computer Engineering',
-      date_of_admission: '01-07-2024'
-    }
-  ];
-
-  for (const s of demoStudents) {
-    const existingMaster = await db.query('SELECT pin FROM students_master WHERE LOWER(pin) = LOWER($1)', [s.pin]);
-    if (existingMaster.rows.length === 0) {
-      await db.query(`
-        INSERT INTO students_master (
-          pin, admission_no, student_name, father_name, dob, nationality, religion, course_branch, date_of_admission
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9
-        )
-      `, [
-        s.pin,
-        s.admission_no,
-        s.student_name,
-        s.father_name,
-        s.dob,
-        s.nationality,
-        s.religion,
-        s.course_branch,
-        s.date_of_admission
-      ]);
-      console.log(`Official demo student master record seeded: ${s.pin} (${s.student_name})`);
-    }
-
-    const existingReg = await db.query('SELECT pin FROM students_registered WHERE LOWER(pin) = LOWER($1)', [s.pin]);
-    if (existingReg.rows.length === 0) {
-      await db.query('INSERT INTO students_registered (pin, student_name, course_branch) VALUES ($1, $2, $3)', [
-        s.pin,
-        s.student_name,
-        s.course_branch
-      ]);
-    }
   }
 
   console.log('--- Database seeding completed successfully ---');

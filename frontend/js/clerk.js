@@ -503,14 +503,59 @@ async function loadMasterStudents(search = '') {
   cachedMasterStudents.forEach(s => {
     const tr = document.createElement('tr');
     
-    // Status Badge
-    let statusBadge = '<span class="badge badge-due">Not Started</span>';
-    if (s.no_dues_status === 'Completed') {
-      statusBadge = '<span class="badge badge-approved">Completed</span>';
-    } else if (s.no_dues_status === 'In Progress' || s.no_dues_status === 'Pending') {
-      statusBadge = '<span class="badge badge-pending">In Progress</span>';
+    // Status Badge & Department Breakdown
+    let statusCell = '<span class="badge badge-due">Not Started</span>';
+    
+    if (s.no_dues_status) {
+      const total = Number(s.total_departments) || 0;
+      const approved = Number(s.approved_departments) || 0;
+      const due = Number(s.due_departments) || 0;
+      
+      let badgeClass = 'badge-pending';
+      let statusText = s.no_dues_status;
+      if (s.no_dues_status === 'Completed') {
+        badgeClass = 'badge-approved';
+        statusText = `✓ Completed (${approved}/${total})`;
+      } else if (due > 0) {
+        badgeClass = 'badge-due';
+        statusText = `⚠️ Dues Found (${approved}/${total})`;
+      } else {
+        badgeClass = 'badge-pending';
+        statusText = `⏳ In Progress (${approved}/${total})`;
+      }
+
+      statusCell = `
+        <div style="display:flex; flex-direction:column; gap:0.35rem; align-items:flex-start;">
+          <span class="badge ${badgeClass}" style="white-space:nowrap; font-size:0.75rem;">${escapeHtml(statusText)}</span>
+          <button class="btn btn-sm btn-secondary" 
+                  style="padding:0.2rem 0.5rem; font-size:0.72rem; line-height:1.2; display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap;" 
+                  onclick="viewStudentClearances('${escapeHtml(s.pin)}', '${escapeHtml(s.student_name).replace(/'/g, "\\'")}')">
+            📋 View Depts
+          </button>
+        </div>
+      `;
     } else if (s.registered_at) {
-      statusBadge = '<span class="badge badge-info">Registered</span>';
+      statusCell = `
+        <div style="display:flex; flex-direction:column; gap:0.35rem; align-items:flex-start;">
+          <span class="badge badge-info" style="font-size:0.75rem;">Registered</span>
+          <button class="btn btn-sm btn-secondary" 
+                  style="padding:0.2rem 0.5rem; font-size:0.72rem; line-height:1.2; display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap;" 
+                  onclick="viewStudentClearances('${escapeHtml(s.pin)}', '${escapeHtml(s.student_name).replace(/'/g, "\\'")}')">
+            📋 View Depts
+          </button>
+        </div>
+      `;
+    } else {
+      statusCell = `
+        <div style="display:flex; flex-direction:column; gap:0.35rem; align-items:flex-start;">
+          <span class="badge badge-due" style="font-size:0.75rem;">Not Started</span>
+          <button class="btn btn-sm btn-secondary" 
+                  style="padding:0.2rem 0.5rem; font-size:0.72rem; line-height:1.2; display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap;" 
+                  onclick="viewStudentClearances('${escapeHtml(s.pin)}', '${escapeHtml(s.student_name).replace(/'/g, "\\'")}')">
+            📋 View Depts
+          </button>
+        </div>
+      `;
     }
 
     tr.innerHTML = `
@@ -521,7 +566,7 @@ async function loadMasterStudents(search = '') {
       <td><span class="badge badge-info">${s.course_branch}</span></td>
       <td>${s.dob || '-'}</td>
       <td>${s.date_of_admission || '-'}</td>
-      <td>${statusBadge}</td>
+      <td>${statusCell}</td>
       <td>
         <button class="btn btn-sm btn-secondary" onclick="openEditMasterStudentModal('${escapeHtml(s.pin)}')">
           ✏️ Edit
@@ -1858,6 +1903,144 @@ async function exportCertStudentsCSV() {
   API.exportToCSV('SVGP_Transfer_Certificate_Clearance_List.csv', list, headers);
 }
 
+function formatDateTime(dateStr) {
+  if (!dateStr) return '—';
+  try {
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? String(dateStr) : d.toLocaleString();
+  } catch {
+    return String(dateStr);
+  }
+}
+
+async function viewStudentClearances(pin, studentName) {
+  const modal = document.getElementById('modal-view-student-clearances');
+  if (!modal) return;
+
+  const nameEl = document.getElementById('clearance-modal-student-name');
+  const pinEl = document.getElementById('clearance-modal-pin');
+  const branchEl = document.getElementById('clearance-modal-branch');
+  const badgeEl = document.getElementById('clearance-modal-progress-badge');
+  const fillEl = document.getElementById('clearance-modal-progress-fill');
+  const reqStatusEl = document.getElementById('clearance-modal-req-status');
+  const cadetEl = document.getElementById('clearance-modal-cadet');
+  const subEl = document.getElementById('clearance-modal-submitted');
+  const tbody = document.getElementById('clearance-modal-table-body');
+
+  if (nameEl) nameEl.textContent = studentName || pin;
+  if (pinEl) pinEl.textContent = pin;
+  if (branchEl) branchEl.textContent = 'Loading...';
+  if (badgeEl) {
+    badgeEl.textContent = 'Loading...';
+    badgeEl.className = 'badge badge-pending';
+  }
+  if (fillEl) fillEl.style.width = '0%';
+  if (reqStatusEl) reqStatusEl.textContent = 'Loading...';
+  if (cadetEl) cadetEl.textContent = '—';
+  if (subEl) subEl.textContent = '—';
+  if (tbody) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--text-muted);">Fetching clearance records...</td></tr>';
+  }
+
+  modal.style.display = 'flex';
+
+  try {
+    const res = await API.request(`/clerk/students/${encodeURIComponent(pin)}/clearance-details`);
+    if (!res.ok || !res.data) {
+      throw new Error(res.error || 'Failed to load department clearance details.');
+    }
+
+    const { student, request, clearances } = res.data;
+
+    if (nameEl) nameEl.textContent = student ? student.student_name : (studentName || pin);
+    if (branchEl) branchEl.textContent = student ? student.course_branch : '—';
+
+    if (!request || !clearances || clearances.length === 0) {
+      if (badgeEl) {
+        badgeEl.textContent = 'No Request Submitted';
+        badgeEl.className = 'badge badge-due';
+      }
+      if (reqStatusEl) reqStatusEl.textContent = 'Not Started';
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--text-muted);">This student has not submitted a No-Dues application yet.</td></tr>';
+      }
+      return;
+    }
+
+    const total = clearances.length;
+    const approved = clearances.filter(c => c.status === 'Approved').length;
+    const dueCount = clearances.filter(c => c.status === 'Due Found' || (c.dues && c.dues.length > 0)).length;
+    const pct = total > 0 ? Math.round((approved / total) * 100) : 0;
+
+    if (badgeEl) {
+      badgeEl.textContent = `${approved} / ${total} Approved (${pct}%)`;
+      if (approved === total) {
+        badgeEl.className = 'badge badge-approved';
+      } else if (dueCount > 0) {
+        badgeEl.className = 'badge badge-due';
+      } else {
+        badgeEl.className = 'badge badge-pending';
+      }
+    }
+
+    if (fillEl) fillEl.style.width = `${pct}%`;
+    if (reqStatusEl) reqStatusEl.textContent = request.status || 'In Progress';
+    if (cadetEl) cadetEl.textContent = request.is_cadet ? `Yes (${request.ncc_wing || 'NCC/NSS'})` : 'No';
+    if (subEl) subEl.textContent = request.created_at ? formatDateTime(request.created_at) : '—';
+
+    if (tbody) {
+      tbody.innerHTML = '';
+      clearances.forEach(c => {
+        const tr = document.createElement('tr');
+        
+        let statusBadge = '<span class="badge badge-pending">Pending</span>';
+        if (c.status === 'Approved') {
+          statusBadge = '<span class="badge badge-approved">✓ Approved</span>';
+        } else if (c.status === 'Due Found' || (c.dues && c.dues.length > 0)) {
+          statusBadge = '<span class="badge badge-due">⚠️ Due Found</span>';
+        }
+
+        let duesHtml = '<span style="color:var(--text-muted); font-size:0.8rem;">None (Clear)</span>';
+        if (c.dues && c.dues.length > 0) {
+          duesHtml = c.dues.map(d => `
+            <div style="font-size:0.8rem; color:var(--status-due); font-weight:600; margin-bottom:0.2rem;">
+              • ${escapeHtml(d.reason)}${d.amount && d.amount !== '0' ? ` (Fine: ₹${escapeHtml(d.amount)})` : ''}
+            </div>
+          `).join('');
+        }
+
+        const approver = c.approved_by 
+          ? `<strong style="font-family:var(--font-mono); color:var(--accent-gold); font-size:0.85rem;">${escapeHtml(c.approved_by)}</strong>` 
+          : '<span style="color:var(--text-muted); font-size:0.82rem;">Pending</span>';
+
+        const approvedTime = c.approved_at 
+          ? `<span style="font-size:0.8rem; color:var(--text-secondary);">${formatDateTime(c.approved_at)}</span>` 
+          : '<span style="color:var(--text-muted); font-size:0.8rem;">—</span>';
+
+        tr.innerHTML = `
+          <td><strong>${escapeHtml(c.department_name)}</strong></td>
+          <td><span class="badge ${c.department_type === 'Online' ? 'badge-info' : 'badge-pending'}" style="font-size:0.75rem;">${escapeHtml(c.department_type || 'Online')}</span></td>
+          <td>${statusBadge}</td>
+          <td>${approver}</td>
+          <td>${approvedTime}</td>
+          <td>${duesHtml}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  } catch (err) {
+    console.error('viewStudentClearances error:', err);
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--status-due);">Failed to load clearances: ${escapeHtml(err.message)}</td></tr>`;
+    }
+  }
+}
+
+function closeStudentClearanceModal() {
+  const modal = document.getElementById('modal-view-student-clearances');
+  if (modal) modal.style.display = 'none';
+}
+
 window.exportMasterStudentsCSV = exportMasterStudentsCSV;
 window.exportCertStudentsCSV = exportCertStudentsCSV;
 window.openEditCertModal = openEditCertModal;
@@ -1878,6 +2061,8 @@ window.submitEditMasterStudent = submitEditMasterStudent;
 window.searchMasterStudents = searchMasterStudents;
 window.resetMasterSearch = resetMasterSearch;
 window.loadCertificateStudents = loadCertificateStudents;
+window.viewStudentClearances = viewStudentClearances;
+window.closeStudentClearanceModal = closeStudentClearanceModal;
 
 
 

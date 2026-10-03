@@ -310,6 +310,7 @@ const API = {
 
   // Floating Back to Top Button
   initBackToTop() {
+    if (window.location.pathname.includes('certificate-view') || window.location.href.includes('certificate-view')) return;
     if (document.getElementById('back-to-top-btn')) return;
     const btn = document.createElement('button');
     btn.id = 'back-to-top-btn';
@@ -386,10 +387,37 @@ const API = {
       this.initDesktopBanner();
       this.initBackToTop();
     });
+  },
+
+  escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, m => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[m]));
+  },
+
+  formatDateTime(dateStr) {
+    if (!dateStr) return '—';
+    try {
+      const d = new Date(dateStr);
+      return isNaN(d.getTime()) ? String(dateStr) : d.toLocaleString();
+    } catch {
+      return String(dateStr);
+    }
   }
 };
 
+function escapeHtml(str) {
+  return API.escapeHtml(str);
+}
+window.escapeHtml = escapeHtml;
+
 API.initTheme();
 window.API = API;
+
 
 

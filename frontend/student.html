@@ -190,6 +190,14 @@
           </div>
         </div>
 
+        <!-- Department Clearances Navigation Tabs -->
+        <div class="tabs-nav" style="margin-bottom: 1.25rem;">
+          <button type="button" class="tab-btn active" id="tab-filter-all" onclick="filterDepartmentView('all')">🏛️ All Departments (<span id="tab-count-all">0</span>)</button>
+          <button type="button" class="tab-btn" id="tab-filter-pending" onclick="filterDepartmentView('pending')">⏳ Pending Review (<span id="tab-count-pending">0</span>)</button>
+          <button type="button" class="tab-btn" id="tab-filter-approved" onclick="filterDepartmentView('approved')">✓ Cleared (<span id="tab-count-approved">0</span>)</button>
+          <button type="button" class="tab-btn" id="tab-filter-dues" onclick="filterDepartmentView('dues')">⚠️ Dues Found (<span id="tab-count-dues">0</span>)</button>
+        </div>
+
         <div id="department-grid" class="clearance-grid">
           <!-- Dynamically populated department cards -->
         </div>
