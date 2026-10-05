@@ -46,6 +46,12 @@ It completely digitizes and automates the traditional, cumbersome paper-based no
 * **20-Hour Anti-Spam Rate Limiting:** Backend rate limiter preventing students from repeatedly spamming faculty inboxes with clearance requests.
 * **Dual-Database Abstraction Engine:** Seamless dynamic switching between embedded **SQLite** (for zero-setup local/offline execution) and **PostgreSQL on Supabase** (for cloud production hosting).
 
+### 🔬 F. Multi-Branch Dynamic Lab Architecture & 100% Clearance Enforcement (Branch AK)
+* **Branch-Specific Dynamic Lab Creation:** Administrative clerk can create and assign labs to specific engineering programs (e.g. CME Computer Labs, CIVIL Surveying Labs, MECH Machine Shops) or universal nodes.
+* **Isolated Pharmacy Department Routing:** Dedicated Pharmacy branch routing (`PHARM`) isolating D.Pharma students to pharmacy laboratories without cross-contaminating engineering queues.
+* **Strict 100% Clearance Rule:** No-Dues Form generation button remains locked on Student and Clerk portals until every required department marks `Approved`.
+* **Clean Seeder & Demo Lab Purge:** Seeder initializes strictly the 9 official branches and 8 official base departments, purging old prototype labs automatically.
+
 ---
 
 ## 3. Complete Project Directory & File Structure

@@ -2,30 +2,56 @@
 ## Automated Student No-Dues Clearance & Certificate Generator System
 **Enterprise Web Application | Built strictly according to Government SBTET/AICTE Polytechnic Specifications**
 
+> 🏛️ **Branch `AK`**: Production release featuring **Multi-Branch Dynamic Lab Architecture**, **Isolated Pharmacy Department Routing**, **Strict 100% Clearance Enforcement Rule**, and **Official Print-Optimized No-Dues Form Generation**.
+
 ---
 
 ## 📋 Table of Contents
 1. [🌟 System Overview](#-system-overview)
-2. [🔄 How the System Works in Real Life (End-to-End Walkthrough)](#-how-the-system-works-in-real-life-end-to-end-walkthrough)
-3. [✨ Comprehensive Feature Matrix](#-comprehensive-feature-matrix)
-4. [💾 Database Architecture (Zero-Config Built-in SQLite vs PostgreSQL)](#-database-architecture-zero-config-built-in-sqlite-vs-postgresql)
-5. [📱 How to Run on Android (Termux + Acode)](#-how-to-run-on-android-termux--acode)
-6. [💻 How to Run on PC (Windows / Mac / Linux)](#-how-to-run-on-pc-windows--mac--linux)
-7. [🌐 Production Deployment Guide (Render / Cloud + PostgreSQL)](#-production-deployment-guide-render--cloud--postgresql)
-8. [⏰ 24/7 Automated Supabase Keep-Alive (GitHub Actions)](#-247-automated-supabase-keep-alive-github-actions)
-9. [🎓 Official 9 SVGP Diploma Programs](#-official-9-svgp-diploma-programs)
-10. [⌨️ Keyboard Shortcuts](#️-keyboard-shortcuts)
-11. [📧 Institutional Support & Feedback](#-institutional-support--feedback)
-12. [🧪 Automated End-to-End Testing](#-automated-end-to-end-testing)
+2. [🔒 100% Clearance Enforcement Rule](#-100-clearance-enforcement-rule)
+3. [🔬 Multi-Branch Dynamic Lab Architecture & Isolated Pharmacy Routing](#-multi-branch-dynamic-lab-architecture--isolated-pharmacy-routing)
+4. [🔄 How the System Works in Real Life (End-to-End Walkthrough)](#-how-the-system-works-in-real-life-end-to-end-walkthrough)
+5. [✨ Comprehensive Feature Matrix](#-comprehensive-feature-matrix)
+6. [💾 Database Architecture (Zero-Config Built-in SQLite vs PostgreSQL)](#-database-architecture-zero-config-built-in-sqlite-vs-postgresql)
+7. [📱 How to Run on Android (Termux + Acode)](#-how-to-run-on-android-termux--acode)
+8. [💻 How to Run on PC (Windows / Mac / Linux)](#-how-to-run-on-pc-windows--mac--linux)
+9. [🌐 Production Deployment Guide (Render / Cloud + PostgreSQL)](#-production-deployment-guide-render--cloud--postgresql)
+10. [⏰ 24/7 Automated Supabase Keep-Alive (GitHub Actions)](#-247-automated-supabase-keep-alive-github-actions)
+11. [🎓 Official 9 SVGP Diploma Programs](#-official-9-svgp-diploma-programs)
+12. [⌨️ Keyboard Shortcuts](#️-keyboard-shortcuts)
+13. [📧 Institutional Support & Feedback](#-institutional-support--feedback)
+14. [🧪 Automated End-to-End Testing](#-automated-end-to-end-testing)
 
 ---
 
 ## 🌟 System Overview
 This web application digitizes and automates the complete student leaving workflow for **Sri Venkateswara Government Polytechnic (SVGP), Tirupati** (Established 1957, SBTET Code: 018):
-- **Clerk Administration**: Bulk Excel student enrollment (safely ignoring extra columns), enrolled student master directory, branch and department configuration, faculty scope toggling (Common vs Branch-Separated), certificate locking, and official document generation.
-- **Faculty Incharges**: Real-time review of student clearances across 28 official departments and laboratories, logging actionable dues with physical contact instructions, and 1-click approvals.
+- **Clerk Administration**: Bulk Excel student enrollment (safely ignoring extra columns), enrolled student master directory, dynamic branch and department lab configuration, faculty scope toggling, 100% clearance verification, certificate locking, and official document generation.
+- **Faculty Incharges**: Real-time review of student clearances across universal departments and branch-specific laboratories, logging actionable dues with physical contact instructions, and 1-click approvals.
 - **Student Self-Service**: Direct login using PIN and Name, optional NCC/NSS cadet declaration, 1-click No-Dues submission, live department status cards, and 20-hour faculty re-notification timers.
-- **Official Documents**: Government-compliant, print-optimized **Transfer Certificate (TC)** and **Study & Conduct Certificate** featuring institutional crest, seals, digital QR verification stamp, version tags, and authorized signatures.
+- **Official Documents**: Government-compliant, print-optimized **Transfer Certificate (TC)**, **Study & Conduct Certificate**, and official **No-Dues Form** featuring institutional crest, seals, digital QR verification stamp, version tags, and authorized signatures.
+
+---
+
+## 🔒 100% Clearance Enforcement Rule
+
+To maintain absolute institutional integrity and prevent unapproved document printing:
+- **No-Dues Form Generation:** The "📄 Generate No-Dues Form" button on both Student and Clerk dashboards remains strictly **locked and disabled** until **100% of assigned departments and laboratories** have verified and marked the student's status as `Approved`.
+- **Transfer Certificate Locking:** Clerks cannot lock or generate official Transfer Certificates (`v1`) until every required clearance node is satisfied.
+- **Direct Portal Access:** The moment all clearances reach 100%, direct buttons activate on both the Student Portal and Clerk Console to view, download, and print the official No-Dues clearance dossier.
+
+---
+
+## 🔬 Multi-Branch Dynamic Lab Architecture & Isolated Pharmacy Routing
+
+SVGP Tirupati houses 9 distinct Diploma courses, each with specialized laboratory requirements:
+1. **Dynamic Branch Labs:** The Administrative Clerk can add specialized labs tied specifically to one branch (e.g. *Computer Networks Lab* for **CME**, *CAD & Survey Lab* for **CIVIL**, *Machine Shop* for **MECH**).
+2. **Isolated Pharmacy Department Routing (`PHARM`):**
+   - Diploma in Pharmacy (D.Pharma) students do not attend engineering workshops.
+   - The system routes Pharmacy students exclusively through their dedicated Pharmacy labs and universal institutional clearance nodes without cross-contaminating engineering queues.
+3. **Clean Seeder Guarantee:**
+   - Seed data defaults strictly to the official **9 academic branches** and **8 official base departments** (`Library`, `Accounts`, `Scholarship`, `Hostel`, `Physical Director`, `Physics Lab`, `Chemistry Lab`, `NSS/NCC`).
+   - Legacy demo branch labs are automatically purged from the database on startup.
 
 ---
 
@@ -96,9 +122,11 @@ flowchart TD
 
 | Feature Module | Key Capabilities | Benefit to SVGP College |
 | :--- | :--- | :--- |
+| **🔒 100% Clearance Rule** | Strict lock blocking No-Dues Form & TC issuance until 100% of departments mark Approved | Eliminates unapproved document generation |
+| **🔬 Multi-Branch Dynamic Labs** | Branch-specific lab creation (CME, CIVIL, MECH, etc.), isolated Pharmacy routing, auto-purge of demo labs | Clean department segregation matching actual campus labs |
 | **🎓 Student Self-Service** | Direct PIN + Name login, 1-click No-Dues submission, live clearance status badges, cadet declaration, 20h re-notify throttle | Eliminates physical paper queues and student confusion |
-| **👨‍🏫 Faculty Console** | Live pending student queues, department scope filtering, free-text due logging with location notes, 1-click approvals | Fast clearance handling across all 28 departments/labs |
-| **🏛️ Clerk Administration** | Bulk Excel import with column tolerance, student master roster search, faculty account management, department config | Complete institutional governance and control |
+| **👨‍🏫 Faculty Console** | Live pending student queues, department scope filtering, free-text due logging with location notes, 1-click approvals | Fast clearance handling across all departments and labs |
+| **🏛️ Clerk Administration** | Bulk Excel import with column tolerance, student master roster search, faculty account management, dynamic branch lab config | Complete institutional governance and control |
 | **📜 TC & Conduct Generator** | Versioned certificate generation (`v1`, `v2`), audit history trail, digital QR stamp, print-ready dual certificate formatting | Tamper-proof, instant government-compliant certificates |
 | **💾 Dual Database Engine** | Built-in SQLite for zero-config offline use; PostgreSQL for cloud production (Supabase / Render) | Runs anywhere on PC, Android, or cloud without setup friction |
 | **⏰ Automated Keep-Alive** | GitHub Actions scheduled heartbeat every 3 days | Keeps free Supabase databases and Render servers active 24/7 |

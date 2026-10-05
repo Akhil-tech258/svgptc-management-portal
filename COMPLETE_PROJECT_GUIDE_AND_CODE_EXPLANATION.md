@@ -18,6 +18,7 @@
    - [Module 4: Faculty Department Dues & Actionable Logging](#module-4-faculty-department-dues--actionable-logging)
    - [Module 5: Clerk Administration & Smart Excel Ingestion](#module-5-clerk-administration--smart-excel-ingestion)
    - [Module 6: Certificate Generation, Hard Locks & A4 Printing](#module-6-certificate-generation-hard-locks--a4-printing)
+   - [Module 7: Multi-Branch Dynamic Lab Engine & 100% Clearance Rule (Branch AK)](#module-7-multi-branch-dynamic-lab-engine--100-clearance-rule-branch-ak)
 6. [👥 Team Member Roles & Module Distribution](#6-team-member-roles--module-distribution)
 7. [🧪 Automated Testing & Production Deployment](#7-automated-testing--production-deployment)
 
@@ -280,6 +281,40 @@ if (pendingCheck.rows.length > 0) {
 ```
 
 ---
+
+### Module 7: Multi-Branch Dynamic Lab Engine & 100% Clearance Rule (Branch AK)
+
+#### 📄 Files:
+- Backend: [`backend/src/config/seed.js`](file:///backend/src/config/seed.js), [`backend/src/controllers/clerkController.js`](file:///backend/src/controllers/clerkController.js), [`backend/src/controllers/studentController.js`](file:///backend/src/controllers/studentController.js)
+- Frontend: [`frontend/js/clerk.js`](file:///frontend/js/clerk.js), [`frontend/js/student.js`](file:///frontend/js/student.js)
+
+#### 📝 Code Walkthrough & Architecture:
+
+1. **Dynamic Branch Lab Association & Clean Seeder:**
+   ```javascript
+   // backend/src/config/seed.js
+   // Seeder initializes only the official 9 branches and 8 official base departments
+   // Clerk dynamically creates new labs tied directly to a specific branch:
+   await db.query(
+     'INSERT INTO departments (name, type, branch_code, is_active) VALUES ($1, $2, $3, 1)',
+     [name, type, branch_code]
+   );
+   ```
+
+2. **Isolated Pharmacy Department Routing (`PHARM`):**
+   - Pharmacy students only clear universal college nodes (`Library`, `Accounts`, `Hostel`, `PD`, `NSS/NCC`) and dedicated Pharmacy laboratories.
+   - Engineering labs (e.g. Workshop, Machine Shop, Surveying) are filtered out automatically so Pharmacy queues remain completely isolated.
+
+3. **Strict 100% Clearance Rule Enforcement:**
+   ```javascript
+   // Both backend and frontend strictly enforce that all clearances must be 'Approved'
+   const unapproved = clearances.filter(c => c.status !== 'Approved');
+   if (unapproved.length > 0) {
+     // No-Dues Form generation button is strictly disabled/locked
+     btn.disabled = true;
+     btn.title = `100% Clearance Required (${unapproved.length} departments remaining)`;
+   }
+   ```
 
 ## 6. 👥 Team Member Roles & Module Distribution
 

@@ -386,10 +386,10 @@ Guide suggested verifying that clerks can preview and print both certificates se
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Conducted comprehensive end-to-end testing across all student, faculty, and clerk workflows. Tested edge cases including partial department clearances, rejected logins, duplicate student PINs, and network timeouts. Fixed minor UI alignment issues and normalized API error responses.
+Implemented the dynamic multi-branch laboratory architecture and isolated Pharmacy (`PHARM`) department routing. Configured strict 100% clearance enforcement ensuring No-Dues Forms and Transfer Certificates remain locked until every assigned department approves. Conducted comprehensive end-to-end testing across edge cases including partial clearances, rejected logins, duplicate student PINs, and network timeouts.
 
 **Suggestions given by guide:**  
-Guide suggested testing edge cases thoroughly and verifying that all system error messages are user-friendly.
+Guide suggested verifying that Pharmacy students are strictly isolated from engineering labs and ensuring error messages for pending clearances are clear.
 
 **Signature of guide:**
 
@@ -400,7 +400,7 @@ Guide suggested testing edge cases thoroughly and verifying that all system erro
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Deployed the completed application to cloud hosting on Render connected to a Supabase PostgreSQL database. Configured an automated GitHub Actions keep-alive workflow to maintain continuous server uptime. Tested live URL accessibility across desktop and mobile browsers.
+Deployed the completed application to cloud hosting on Render connected to a Supabase PostgreSQL database. Configured an automated GitHub Actions keep-alive workflow to maintain continuous server uptime. Verified clean database seeding with official 9 branches, 8 base departments, and automatic purging of legacy demo labs. Tested live URL accessibility across desktop and mobile browsers.
 
 **Suggestions given by guide:**  
 Guide verified the live cloud deployment and advised monitoring server logs for smooth uptime.
@@ -414,7 +414,7 @@ Guide verified the live cloud deployment and advised monitoring server logs for 
 **Date:** ____________________
 
 **Points discussed with guide:**  
-Reviewed the completed project documentation, source code repository, and user manuals with the guide. Practiced the project presentation and demonstrated live clearance workflows for the external viva examination. Verified all deliverables against initial project objectives.
+Reviewed the completed project documentation, source code repository, and user manuals with the guide. Practiced the project presentation and demonstrated live multi-branch clearance workflows, 100% clearance lock enforcement, and official A4 certificate generation for the external viva examination. Verified all deliverables against initial project objectives.
 
 **Suggestions given by guide:**  
 Guide expressed full satisfaction with the working system and approved the project for final submission and viva presentation.
