@@ -29,9 +29,9 @@ async function seed() {
   console.log('Official 9 SVGP Tirupati branches verified.');
 
   // Ensure the official departments exist without deleting custom departments added by clerk
+  // Ensure official base departments and branch-specific labs exist for all 9 SVGP branches
   const officialDepartments = [
-    { name: 'Computer Lab', type: 'Online', branch_code: 'CME' },
-    { name: 'ITLAB', type: 'Online', branch_code: 'CME' },
+    // 8 Common Departments across all branches
     { name: 'Library', type: 'Physical', branch_code: 'ALL' },
     { name: 'Accounts', type: 'Online', branch_code: 'ALL' },
     { name: 'Scholarship', type: 'Online', branch_code: 'ALL' },
@@ -40,7 +40,44 @@ async function seed() {
     { name: 'Physics Lab', type: 'Online', branch_code: 'ALL' },
     { name: 'Chemistry Lab', type: 'Online', branch_code: 'ALL' },
     { name: 'NSS/NCC', type: 'Online', branch_code: 'ALL' },
-    { name: 'DE Lab', type: 'Online', branch_code: 'CME' }
+
+    // Computer Engineering (CME)
+    { name: 'Computer Lab', type: 'Online', branch_code: 'CME' },
+    { name: 'ITLAB', type: 'Online', branch_code: 'CME' },
+    { name: 'DE Lab', type: 'Online', branch_code: 'CME' },
+
+    // Civil Engineering (CIVIL)
+    { name: 'Surveying Lab', type: 'Online', branch_code: 'CIVIL' },
+    { name: 'CAD Lab (Civil)', type: 'Online', branch_code: 'CIVIL' },
+    { name: 'Material Testing Lab', type: 'Online', branch_code: 'CIVIL' },
+
+    // Mechanical Engineering (MECH)
+    { name: 'Machine Shop / Workshop', type: 'Online', branch_code: 'MECH' },
+    { name: 'Thermal Engineering Lab', type: 'Online', branch_code: 'MECH' },
+    { name: 'AutoCAD Lab (Mech)', type: 'Online', branch_code: 'MECH' },
+
+    // Electrical & Electronics Engineering (EEE)
+    { name: 'Electrical Machines Lab', type: 'Online', branch_code: 'EEE' },
+    { name: 'Power Electronics Lab', type: 'Online', branch_code: 'EEE' },
+    { name: 'Circuits & Measurements Lab', type: 'Online', branch_code: 'EEE' },
+
+    // Electronics & Communication Engineering (ECE & ECE-II)
+    { name: 'EC Lab', type: 'Online', branch_code: 'ECE' },
+    { name: 'Microprocessor & VLSI Lab', type: 'Online', branch_code: 'ECE' },
+    { name: 'Communication Engineering Lab', type: 'Online', branch_code: 'ECE' },
+    { name: 'Industry Integrated Lab', type: 'Online', branch_code: 'ECE-II' },
+
+    // Biomedical Engineering (BME)
+    { name: 'Biomedical Instrumentation Lab', type: 'Online', branch_code: 'BME' },
+    { name: 'Medical Electronics Lab', type: 'Online', branch_code: 'BME' },
+
+    // Chemical Engineering / Sugar Tech (CHE)
+    { name: 'Chemical Process & Technology Lab', type: 'Online', branch_code: 'CHE' },
+    { name: 'Sugar Technology Lab', type: 'Online', branch_code: 'CHE' },
+
+    // Pharmacy (PHARM)
+    { name: 'Pharmaceutics Lab', type: 'Online', branch_code: 'PHARM' },
+    { name: 'Pharmacology Lab', type: 'Online', branch_code: 'PHARM' }
   ];
 
   for (const dept of officialDepartments) {

@@ -180,6 +180,18 @@ async function getNoDuesFormData(req, res) {
       }));
     }
 
+    // STRICT RULE: No Dues Certificate can ONLY be generated after ALL department clearances are approved (100% cleared)
+    const totalCount = clearances.length;
+    const approvedCount = clearances.filter(c => c.is_cleared).length;
+    const isAllCleared = totalCount > 0 && approvedCount === totalCount;
+
+    if (!isAllCleared) {
+      return res.status(400).json({
+        success: false,
+        error: `No Dues Certificate cannot be generated until ALL department clearances are approved. (Currently ${approvedCount}/${totalCount} cleared).`
+      });
+    }
+
     return res.json({
       success: true,
       data: {

@@ -87,11 +87,26 @@ async function loadCertificate() {
     return;
   }
 
-  // 1. Fetch No Dues Form Data (Accessible even before TC is issued)
+  // 1. Fetch No Dues Form Data (Generated only after ALL department clearances are 100% approved)
   try {
     const ndRes = await API.request(`/certificates/${encodeURIComponent(pin)}/nodues-form`);
     if (ndRes.ok && ndRes.data && ndRes.data.data) {
       populateNoDuesForm(ndRes.data.data);
+    } else {
+      const ndDoc = document.getElementById('nodues-document');
+      if (ndDoc) {
+        const errorMsg = (ndRes.data && ndRes.data.error) ? ndRes.data.error : 'No Dues Certificate cannot be generated until ALL department clearances are approved.';
+        ndDoc.innerHTML = `
+          <div style="padding:2.5rem 1.5rem; text-align:center; background:#fff1f2; border:1px solid #fecdd3; border-radius:8px; color:#9f1239; font-family:sans-serif; margin:1rem auto; max-width:650px;">
+            <div style="font-size:3rem; margin-bottom:0.8rem;">🔒</div>
+            <h3 style="margin-bottom:0.6rem; color:#881337; font-size:1.25rem;">No Dues Certificate Generation Restricted</h3>
+            <p style="font-size:0.95rem; line-height:1.6; color:#9f1239; margin-bottom:1.2rem;">${errorMsg}</p>
+            <div style="font-size:0.85rem; background:#ffe4e6; padding:0.6rem 1rem; border-radius:6px; display:inline-block; font-weight:600;">
+              ⚠️ Requires 100% Department Approvals from all Laboratories &amp; Administrative Units
+            </div>
+          </div>
+        `;
+      }
     }
   } catch (err) {
     console.warn('Failed to load No Dues Form data:', err);
