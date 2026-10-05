@@ -28,67 +28,27 @@ async function seed() {
   }
   console.log('Official 9 SVGP Tirupati branches verified.');
 
-  // Ensure the official departments exist without deleting custom departments added by clerk
-  // Ensure official base departments and branch-specific labs exist for all 9 SVGP branches
-  const officialDepartments = [
-    // 8 Common Departments across all branches
+  // Ensure the 8 official base departments exist without deleting custom departments added by clerk
+  const official8Departments = [
     { name: 'Library', type: 'Physical', branch_code: 'ALL' },
     { name: 'Accounts', type: 'Online', branch_code: 'ALL' },
     { name: 'Scholarship', type: 'Online', branch_code: 'ALL' },
     { name: 'Hostel', type: 'Online', branch_code: 'ALL' },
     { name: 'Physical Director', type: 'Online', branch_code: 'ALL' },
-    { name: 'Physics Lab', type: 'Online', branch_code: 'ALL' },
-    { name: 'Chemistry Lab', type: 'Online', branch_code: 'ALL' },
-    { name: 'NSS/NCC', type: 'Online', branch_code: 'ALL' },
-
-    // Computer Engineering (CME)
-    { name: 'Computer Lab', type: 'Online', branch_code: 'CME' },
-    { name: 'ITLAB', type: 'Online', branch_code: 'CME' },
-    { name: 'DE Lab', type: 'Online', branch_code: 'CME' },
-
-    // Civil Engineering (CIVIL)
-    { name: 'Surveying Lab', type: 'Online', branch_code: 'CIVIL' },
-    { name: 'CAD Lab (Civil)', type: 'Online', branch_code: 'CIVIL' },
-    { name: 'Material Testing Lab', type: 'Online', branch_code: 'CIVIL' },
-
-    // Mechanical Engineering (MECH)
-    { name: 'Machine Shop / Workshop', type: 'Online', branch_code: 'MECH' },
-    { name: 'Thermal Engineering Lab', type: 'Online', branch_code: 'MECH' },
-    { name: 'AutoCAD Lab (Mech)', type: 'Online', branch_code: 'MECH' },
-
-    // Electrical & Electronics Engineering (EEE)
-    { name: 'Electrical Machines Lab', type: 'Online', branch_code: 'EEE' },
-    { name: 'Power Electronics Lab', type: 'Online', branch_code: 'EEE' },
-    { name: 'Circuits & Measurements Lab', type: 'Online', branch_code: 'EEE' },
-
-    // Electronics & Communication Engineering (ECE & ECE-II)
-    { name: 'EC Lab', type: 'Online', branch_code: 'ECE' },
-    { name: 'Microprocessor & VLSI Lab', type: 'Online', branch_code: 'ECE' },
-    { name: 'Communication Engineering Lab', type: 'Online', branch_code: 'ECE' },
-    { name: 'Industry Integrated Lab', type: 'Online', branch_code: 'ECE-II' },
-
-    // Biomedical Engineering (BME)
-    { name: 'Biomedical Instrumentation Lab', type: 'Online', branch_code: 'BME' },
-    { name: 'Medical Electronics Lab', type: 'Online', branch_code: 'BME' },
-
-    // Chemical Engineering / Sugar Tech (CHE)
-    { name: 'Chemical Process & Technology Lab', type: 'Online', branch_code: 'CHE' },
-    { name: 'Sugar Technology Lab', type: 'Online', branch_code: 'CHE' },
-
-    // Pharmacy (PHARM)
-    { name: 'Pharmaceutics Lab', type: 'Online', branch_code: 'PHARM' },
-    { name: 'Pharmacology Lab', type: 'Online', branch_code: 'PHARM' }
+    { name: 'Physics Lab', type: 'Online', branch_code: 'ENG' },
+    { name: 'Chemistry Lab', type: 'Online', branch_code: 'ENG' },
+    { name: 'NSS/NCC', type: 'Online', branch_code: 'ALL' }
   ];
 
-  for (const dept of officialDepartments) {
-    const existing = await db.query('SELECT id FROM departments WHERE LOWER(name) = LOWER($1)', [dept.name]);
+  for (const dept of official8Departments) {
+    const existing = await db.query('SELECT id FROM departments WHERE name = $1', [dept.name]);
     if (existing.rows.length === 0) {
       await db.query('INSERT INTO departments (name, type, branch_code, is_active) VALUES ($1, $2, $3, 1)', [dept.name, dept.type, dept.branch_code]);
     } else {
-      await db.query('UPDATE departments SET name = $1, branch_code = $2, type = $3, is_active = 1 WHERE id = $4', [dept.name, dept.branch_code, dept.type, existing.rows[0].id]);
+      await db.query('UPDATE departments SET branch_code = $1, type = $2, is_active = 1 WHERE id = $3', [dept.branch_code, dept.type, existing.rows[0].id]);
     }
   }
-  console.log('Official college departments and branch labs verified.');
+  console.log('Official 8 college departments verified (Library is Physical with dedicated Incharge).');
 
 
   // 3. Remove all other test / demo clerk accounts (admin, clerk, clerk_admin)

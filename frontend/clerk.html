@@ -793,24 +793,45 @@
 
     <!-- MODAL: SET FACULTY BRANCH SCOPE -->
     <div id="modal-set-faculty-scope" class="modal-backdrop" style="display: none;">
-      <div class="modal-dialog">
+      <div class="modal-dialog" style="max-width: 580px;">
         <div class="modal-header">
-          <h3>🏛️ Make Faculty Branch-Separated</h3>
+          <h3 id="scope-modal-title">🏛️ Set Applicable Branch Scope</h3>
           <button class="modal-close" onclick="closeSetFacultyScopeModal()">&times;</button>
         </div>
         <form id="form-set-faculty-scope" onsubmit="submitSetFacultyScope(event)">
           <div class="modal-body">
             <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">
-              Select the specific SVGP diploma branch for: <strong id="scope-fac-username" style="color:var(--accent-gold);">faculty</strong>
+              Target: <strong id="scope-fac-username" style="color:var(--accent-gold);">faculty</strong>
             </p>
             <div class="form-group">
-              <label for="scope-branch-select">Select Diploma Branch / Course *</label>
-              <select id="scope-branch-select" class="form-control" required>
-                <!-- Populated dynamically with the 9 official branches -->
-              </select>
+              <label>Select Branch Scope *</label>
+              <div style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.3rem;">
+                <label style="display:flex; align-items:center; gap:0.5rem; font-weight:normal; cursor:pointer;">
+                  <input type="radio" name="scope-edit-type" value="ALL" checked onchange="onEditScopeTypeChange(this.value)">
+                  <span>🌐 <strong>All Branches (College-wide)</strong> — Common across college</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:0.5rem; font-weight:normal; cursor:pointer;">
+                  <input type="radio" name="scope-edit-type" value="ENG" onchange="onEditScopeTypeChange(this.value)">
+                  <span>⚙️ <strong>All Engineering Branches (Excludes Pharmacy)</strong></span>
+                </label>
+                <label style="display:flex; align-items:center; gap:0.5rem; font-weight:normal; cursor:pointer;">
+                  <input type="radio" name="scope-edit-type" value="PHARM" onchange="onEditScopeTypeChange(this.value)">
+                  <span>💊 <strong>Pharmacy Only (D.Pharma)</strong></span>
+                </label>
+                <label style="display:flex; align-items:center; gap:0.5rem; font-weight:normal; cursor:pointer;">
+                  <input type="radio" name="scope-edit-type" value="CUSTOM" onchange="onEditScopeTypeChange(this.value)">
+                  <span>🏛️ <strong>Specific / Multiple Selected Branches</strong></span>
+                </label>
+              </div>
+              <div id="scope-edit-custom-container" style="display:none; margin-top:0.75rem; padding:0.75rem; background:var(--bg-subtle); border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+                <p style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:0.5rem;">Select applicable branch(es):</p>
+                <div id="scope-edit-checkboxes" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:0.5rem;">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
             </div>
-            <p style="font-size:0.78rem; color:var(--text-muted);">
-              * Once set to branch-separated, this faculty member will only clear students enrolled in the selected branch.
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.5rem;">
+              * Only students from the selected branch(es) will have this clearance section assigned to their No-Dues workflow.
             </p>
           </div>
           <div class="modal-footer">
@@ -849,23 +870,43 @@
 
     <!-- MODAL: ADD DEPARTMENT -->
     <div id="modal-add-dept" class="modal-backdrop" style="display: none;">
-      <div class="modal-dialog">
+      <div class="modal-dialog" style="max-width: 580px;">
         <div class="modal-header">
-          <h3>Add College Department</h3>
+          <h3>Add College Clearance Section</h3>
           <button class="modal-close" onclick="closeAddDeptModal()">&times;</button>
         </div>
         <form id="form-add-dept" onsubmit="submitAddDepartment(event)">
           <div class="modal-body">
             <div class="form-group">
-              <label for="dept-name-input">Department Name *</label>
-              <input type="text" id="dept-name-input" class="form-control" placeholder="e.g. Mechanical Workshop / Surveying Lab" required>
+              <label for="dept-name-input">Department / Lab Name *</label>
+              <input type="text" id="dept-name-input" class="form-control" placeholder="e.g. Mechanical Workshop / Pharmaceutics Lab" required>
             </div>
             <div class="form-group">
-              <label for="dept-branch-select">Applicable Branch / Scope *</label>
-              <select id="dept-branch-select" class="form-control" required>
-                <option value="ALL">All Branches (Common: e.g. Library, Accounts, Hostel, Physics, Chemistry)</option>
-                <!-- Populated dynamically with configured branches -->
-              </select>
+              <label>Applicable Branch Scope *</label>
+              <div style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.3rem;">
+                <label style="display:flex; align-items:center; gap:0.5rem; font-weight:normal; cursor:pointer;">
+                  <input type="radio" name="dept-scope-type" value="ALL" checked onchange="onDeptScopeTypeChange(this.value)">
+                  <span>🌐 <strong>All Branches (College-wide)</strong> — e.g. Library, Accounts, Hostel, PD</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:0.5rem; font-weight:normal; cursor:pointer;">
+                  <input type="radio" name="dept-scope-type" value="ENG" onchange="onDeptScopeTypeChange(this.value)">
+                  <span>⚙️ <strong>All Engineering Branches (Excludes Pharmacy)</strong> — e.g. Physics Lab, Chemistry Lab</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:0.5rem; font-weight:normal; cursor:pointer;">
+                  <input type="radio" name="dept-scope-type" value="PHARM" onchange="onDeptScopeTypeChange(this.value)">
+                  <span>💊 <strong>Pharmacy Only (D.Pharma)</strong> — e.g. Pharmaceutics Lab, Pharmacognosy Lab</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:0.5rem; font-weight:normal; cursor:pointer;">
+                  <input type="radio" name="dept-scope-type" value="CUSTOM" onchange="onDeptScopeTypeChange(this.value)">
+                  <span>🏛️ <strong>Specific / Multiple Selected Branches</strong></span>
+                </label>
+              </div>
+              <div id="dept-custom-branches-container" style="display:none; margin-top:0.75rem; padding:0.75rem; background:var(--bg-subtle); border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+                <p style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:0.5rem;">Select applicable branch(es):</p>
+                <div id="dept-branch-checkboxes" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:0.5rem;">
+                  <!-- Populated dynamically with checkboxes -->
+                </div>
+              </div>
             </div>
             <div class="form-group">
               <label for="dept-type-select">No-Dues Clearance Method *</label>
@@ -877,7 +918,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeAddDeptModal()">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save Department</button>
+            <button type="submit" class="btn btn-primary">Save Section</button>
           </div>
         </form>
       </div>

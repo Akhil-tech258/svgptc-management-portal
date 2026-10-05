@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { isDepartmentApplicableToBranch } = require('../utils/helpers');
 
 async function getCertificateDetails(req, res) {
   try {
@@ -120,20 +121,21 @@ async function getNoDuesFormData(req, res) {
       deptName = 'COMPUTER ENGINEERING';
     }
 
-    // Determine study period e.g. 2023 - 2026
+    // Determine study period e.g. 2023 - 2026 (or 2-year for Pharmacy)
+    const duration = branchCode === 'PHARM' ? 2 : 3;
     let startYear = '2023';
-    let endYear = '2026';
+    let endYear = String(parseInt(startYear, 10) + duration);
     if (st.date_of_admission) {
       const match = st.date_of_admission.match(/\d{4}/);
       if (match) {
         startYear = match[0];
-        endYear = String(parseInt(startYear, 10) + 3);
+        endYear = String(parseInt(startYear, 10) + duration);
       }
     } else if (cleanPin) {
       const match = cleanPin.match(/^(\d{2})/);
       if (match) {
         startYear = '20' + match[1];
-        endYear = String(parseInt(startYear, 10) + 3);
+        endYear = String(parseInt(startYear, 10) + duration);
       }
     }
     const studyPeriod = `${startYear} - ${endYear}`;
@@ -169,10 +171,10 @@ async function getNoDuesFormData(req, res) {
     // Fallback: if no request submitted yet, fetch applicable departments from DB
     if (clearances.length === 0) {
       const deptsRes = await db.query(
-        'SELECT * FROM departments WHERE is_active = 1 AND (branch_code = $1 OR branch_code = $2) ORDER BY id ASC',
-        [branchCode, 'ALL']
+        'SELECT * FROM departments WHERE is_active = 1 ORDER BY id ASC'
       );
-      clearances = deptsRes.rows.map(d => ({
+      const applicable = deptsRes.rows.filter(d => isDepartmentApplicableToBranch(d.branch_code, branchCode));
+      clearances = applicable.map(d => ({
         id: d.id,
         name: d.name,
         status: 'Pending',

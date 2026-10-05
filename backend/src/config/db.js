@@ -79,14 +79,14 @@ async function initDB() {
       id ${serialKey},
       name VARCHAR(100) UNIQUE NOT NULL,
       type VARCHAR(20) DEFAULT 'Online',
-      branch_code VARCHAR(50) DEFAULT 'ALL',
+      branch_code VARCHAR(255) DEFAULT 'ALL',
       is_active INTEGER DEFAULT 1
     );
   `);
 
   // Migration for existing tables without branch_code
   try {
-    await dbClient.query(`ALTER TABLE departments ADD COLUMN branch_code VARCHAR(50) DEFAULT 'ALL'`);
+    await dbClient.query(`ALTER TABLE departments ADD COLUMN branch_code VARCHAR(255) DEFAULT 'ALL'`);
   } catch (e) {}
 
   try {
@@ -110,14 +110,14 @@ async function initDB() {
       password_hash VARCHAR(255) NOT NULL,
       department_id INTEGER,
       department_name VARCHAR(100) NOT NULL,
-      branch_code VARCHAR(50) DEFAULT 'ALL',
+      branch_code VARCHAR(255) DEFAULT 'ALL',
       is_active INTEGER DEFAULT 1,
       created_at ${timestampType}
     );
   `);
 
   try {
-    await dbClient.query(`ALTER TABLE faculty_accounts ADD COLUMN branch_code VARCHAR(50) DEFAULT 'ALL'`);
+    await dbClient.query(`ALTER TABLE faculty_accounts ADD COLUMN branch_code VARCHAR(255) DEFAULT 'ALL'`);
   } catch (e) {}
 
   await dbClient.query(`
