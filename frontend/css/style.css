@@ -1089,6 +1089,136 @@ input[type="date"].form-control::-webkit-calendar-picker-indicator:hover {
 }
 
 /* =========================================================
+   OFFICIAL NO DUES CERTIFICATE STYLES (MATCHING PHYSICAL REPLICA)
+   ========================================================= */
+
+.nd-official-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.nd-college-title {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #000000;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+
+.nd-dept-title {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #000000;
+  text-transform: uppercase;
+  margin-bottom: 1.2rem;
+}
+
+.nd-main-title {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #000000;
+  text-transform: uppercase;
+  margin: 1.2rem 0;
+  text-decoration: underline;
+}
+
+.nd-body-statement {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.08rem;
+  line-height: 2.2;
+  color: #000000;
+  text-align: justify;
+  margin-bottom: 1.8rem;
+}
+
+.nd-fill-field {
+  display: inline-block;
+  font-weight: 700;
+  color: #000000;
+  border-bottom: 1px solid #000000;
+  padding: 0 0.5rem;
+  min-width: 100px;
+  text-align: center;
+}
+
+.nd-clearance-list {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.05rem;
+  line-height: 2.1;
+  color: #000000;
+  padding-left: 1.5rem;
+  margin-bottom: 3.5rem;
+  list-style-type: decimal;
+}
+
+.nd-clearance-item {
+  display: flex;
+  align-items: baseline;
+  max-width: 650px;
+  margin-bottom: 0.35rem;
+}
+
+.nd-dept-label {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  min-width: 240px;
+}
+
+.nd-colon-sep {
+  margin: 0 0.6rem;
+  font-weight: bold;
+}
+
+.nd-status-val {
+  flex: 1;
+  font-weight: bold;
+}
+
+.nd-status-val.cleared {
+  color: #047857;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.nd-status-val.pending {
+  color: #94a3b8;
+  font-weight: normal;
+}
+
+.nd-official-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 4rem;
+  padding: 0 1rem;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.nd-footer-col {
+  text-align: center;
+  min-width: 220px;
+}
+
+.nd-sig-line {
+  border-bottom: 1px dashed #000000;
+  height: 40px;
+  margin-bottom: 0.5rem;
+}
+
+.nd-sig-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #000000;
+}
+
+/* =========================================================
    PRINT STYLES (EXACT FULL-PAGE A4 SIZING)
    ========================================================= */
 

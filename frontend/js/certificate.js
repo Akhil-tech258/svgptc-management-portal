@@ -87,25 +87,81 @@ async function loadCertificate() {
     return;
   }
 
+  // 1. Fetch No Dues Form Data (Accessible even before TC is issued)
+  try {
+    const ndRes = await API.request(`/certificates/${encodeURIComponent(pin)}/nodues-form`);
+    if (ndRes.ok && ndRes.data && ndRes.data.data) {
+      populateNoDuesForm(ndRes.data.data);
+    }
+  } catch (err) {
+    console.warn('Failed to load No Dues Form data:', err);
+  }
+
+  // 2. Fetch TC & Conduct Certificate Details (Available after Clerk issuance)
   let endpoint = `/certificates/${encodeURIComponent(pin)}`;
   if (version) {
     endpoint += `/version/${encodeURIComponent(version)}`;
   }
 
   const res = await API.request(endpoint);
-  if (!res.ok) {
-    alert(res.data.error || 'Failed to load official certificate record.');
-    return;
+  if (res.ok && res.data && res.data.certificate) {
+    populateTC(res.data.certificate);
+    populateConduct(res.data.certificate);
+  } else {
+    const tcDoc = document.getElementById('tc-document');
+    if (tcDoc) {
+      const tcNotice = document.createElement('div');
+      tcNotice.style.cssText = 'padding:1.5rem; text-align:center; color:#94a3b8; font-style:italic; background:#f8fafc; border:1px dashed #cbd5e1; margin-bottom:2rem; font-family:sans-serif;';
+      tcNotice.innerHTML = '🎓 <strong>Transfer Certificate (TC) & Conduct Certificate:</strong> Pending issuance by Administrative Office (Clerk). Complete all department clearances first.';
+      tcDoc.parentNode.insertBefore(tcNotice, tcDoc);
+    }
   }
+}
 
-  const cert = res.data.certificate;
-  if (!cert) {
-    alert('Certificate data is empty.');
-    return;
+function populateNoDuesForm(nd) {
+  if (!nd) return;
+
+  const elDeptTitle = document.getElementById('nd-dept-title');
+  if (elDeptTitle) elDeptTitle.innerText = nd.department_title || 'DEPARTMENT OF COMPUTER ENGINEERING';
+
+  const elName = document.getElementById('nd-student-name');
+  if (elName) elName.innerText = (nd.student_name || '--').toUpperCase();
+
+  const elPin = document.getElementById('nd-pin-number');
+  if (elPin) elPin.innerText = nd.student_pin || '--';
+
+  const elPeriod = document.getElementById('nd-study-period');
+  if (elPeriod) elPeriod.innerText = nd.study_period || '2023 - 2026';
+
+  const elBranch = document.getElementById('nd-branch-name');
+  if (elBranch) elBranch.innerText = (nd.branch_code || 'CME').toUpperCase();
+
+  const listEl = document.getElementById('nd-clearance-list');
+  if (listEl && Array.isArray(nd.clearances)) {
+    listEl.innerHTML = '';
+    nd.clearances.forEach((c, idx) => {
+      const li = document.createElement('li');
+      li.className = 'nd-clearance-item';
+
+      const deptNameUpper = (c.name || `DEPARTMENT ${idx + 1}`).toUpperCase();
+
+      // Per user prompt requirement: "with only marked as cleared"
+      // Only items that are approved/cleared in system get marked as "NO DUES"!
+      let statusHtml = '';
+      if (c.is_cleared || c.status === 'Approved' || c.status === 'Cleared') {
+        statusHtml = `<span class="nd-status-val cleared">: NO DUES</span>`;
+      } else {
+        // Uncleared / Pending items are NOT marked as cleared (left with blank line for physical signature)
+        statusHtml = `<span class="nd-status-val pending">: _______________________</span>`;
+      }
+
+      li.innerHTML = `
+        <span class="nd-dept-label">${deptNameUpper}</span>
+        ${statusHtml}
+      `;
+      listEl.appendChild(li);
+    });
   }
-
-  populateTC(cert);
-  populateConduct(cert);
 }
 
 const digitWords = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE'];

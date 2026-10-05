@@ -28,8 +28,10 @@ async function seed() {
   }
   console.log('Official 9 SVGP Tirupati branches verified.');
 
-  // Ensure the 8 official base departments exist without deleting custom departments added by clerk
-  const official8Departments = [
+  // Ensure the official departments exist without deleting custom departments added by clerk
+  const officialDepartments = [
+    { name: 'Computer Lab', type: 'Online', branch_code: 'CME' },
+    { name: 'ITLAB', type: 'Online', branch_code: 'CME' },
     { name: 'Library', type: 'Physical', branch_code: 'ALL' },
     { name: 'Accounts', type: 'Online', branch_code: 'ALL' },
     { name: 'Scholarship', type: 'Online', branch_code: 'ALL' },
@@ -37,18 +39,19 @@ async function seed() {
     { name: 'Physical Director', type: 'Online', branch_code: 'ALL' },
     { name: 'Physics Lab', type: 'Online', branch_code: 'ALL' },
     { name: 'Chemistry Lab', type: 'Online', branch_code: 'ALL' },
-    { name: 'NSS/NCC', type: 'Online', branch_code: 'ALL' }
+    { name: 'NSS/NCC', type: 'Online', branch_code: 'ALL' },
+    { name: 'DE Lab', type: 'Online', branch_code: 'CME' }
   ];
 
-  for (const dept of official8Departments) {
-    const existing = await db.query('SELECT id FROM departments WHERE name = $1', [dept.name]);
+  for (const dept of officialDepartments) {
+    const existing = await db.query('SELECT id FROM departments WHERE LOWER(name) = LOWER($1)', [dept.name]);
     if (existing.rows.length === 0) {
       await db.query('INSERT INTO departments (name, type, branch_code, is_active) VALUES ($1, $2, $3, 1)', [dept.name, dept.type, dept.branch_code]);
     } else {
-      await db.query('UPDATE departments SET branch_code = $1, type = $2, is_active = 1 WHERE id = $3', [dept.branch_code, dept.type, existing.rows[0].id]);
+      await db.query('UPDATE departments SET name = $1, branch_code = $2, type = $3, is_active = 1 WHERE id = $4', [dept.name, dept.branch_code, dept.type, existing.rows[0].id]);
     }
   }
-  console.log('Official 8 college departments verified (Library is Physical with dedicated Incharge).');
+  console.log('Official college departments and branch labs verified.');
 
 
   // 3. Remove all other test / demo clerk accounts (admin, clerk, clerk_admin)
