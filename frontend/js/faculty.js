@@ -2,6 +2,8 @@
 
 let currentRequests = [];
 let activeDueStudentPin = null;
+let selectedCleanPins = new Set();
+let currentDisplayedRequests = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   initCollegeBranding();
@@ -123,21 +125,35 @@ async function loadFacultyDashboard() {
   const tabDues = document.getElementById('tab-badge-dues');
   if (tabDues) tabDues.innerText = stats.active_dues || 0;
 
+  // Clean up selected pins that are no longer eligible
+  const eligiblePinSet = new Set(
+    currentRequests
+      .filter(r => r.clearance_status !== 'Approved' && (!r.active_dues || r.active_dues.length === 0) && r.clearance_status !== 'Due Found')
+      .map(r => r.student_pin)
+  );
+  for (const pin of Array.from(selectedCleanPins)) {
+    if (!eligiblePinSet.has(pin)) {
+      selectedCleanPins.delete(pin);
+    }
+  }
+
   renderRequestsTable(currentRequests);
 }
 
 function renderRequestsTable(list) {
   const tbody = document.getElementById('requests-table-body');
   tbody.innerHTML = '';
+  currentDisplayedRequests = list || [];
 
   if (!list || list.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+        <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 2rem;">
           No student submissions found for this department.
         </td>
       </tr>
     `;
+    updateBatchUI();
     return;
   }
 
@@ -198,10 +214,37 @@ function renderRequestsTable(list) {
       `;
     }
 
-
     const subDate = req.submitted_at ? new Date(req.submitted_at).toLocaleDateString() : '-';
 
+    // Batch selection eligibility
+    const isApproved = req.clearance_status === 'Approved';
+    const hasDues = (req.active_dues && req.active_dues.length > 0) || req.clearance_status === 'Due Found';
+    const isEligible = !isApproved && !hasDues;
+
+    let checkboxCell = '';
+    if (isEligible) {
+      const isChecked = selectedCleanPins.has(req.student_pin);
+      checkboxCell = `
+        <td style="text-align: center; vertical-align: middle;">
+          <input type="checkbox" class="student-select-checkbox" data-pin="${escapeHtml(req.student_pin)}" ${isChecked ? 'checked' : ''} onchange="toggleStudentSelection('${escapeHtml(req.student_pin)}', this.checked)" title="Select ${escapeHtml(req.student_pin)} for batch approval">
+        </td>
+      `;
+    } else if (hasDues) {
+      checkboxCell = `
+        <td style="text-align: center; vertical-align: middle;">
+          <input type="checkbox" disabled title="Ineligible for batch approval: Student has active dues">
+        </td>
+      `;
+    } else {
+      checkboxCell = `
+        <td style="text-align: center; vertical-align: middle;">
+          <input type="checkbox" disabled title="Already approved">
+        </td>
+      `;
+    }
+
     tr.innerHTML = `
+      ${checkboxCell}
       <td style="font-family:var(--font-mono); font-weight:600; color:var(--accent-gold);">${req.student_pin}</td>
       <td><strong>${req.student_name}</strong></td>
       <td style="color:var(--text-secondary);">${req.admission_no}</td>
@@ -214,6 +257,128 @@ function renderRequestsTable(list) {
 
     tbody.appendChild(tr);
   });
+
+  updateBatchUI();
+}
+
+function updateBatchUI() {
+  const count = selectedCleanPins.size;
+  const countEl = document.getElementById('batch-selected-count');
+  const btnCountEl = document.getElementById('batch-btn-count');
+  const btnApprove = document.getElementById('btn-batch-approve');
+  const btnClear = document.getElementById('btn-clear-selection');
+  const selectAllCheckbox = document.getElementById('select-all-clean-checkbox');
+
+  if (countEl) countEl.innerText = count;
+  if (btnCountEl) btnCountEl.innerText = count;
+  if (btnApprove) btnApprove.disabled = count === 0;
+  if (btnClear) btnClear.style.display = count > 0 ? 'inline-block' : 'none';
+
+  if (selectAllCheckbox) {
+    const visibleEligible = currentDisplayedRequests.filter(r => 
+      r.clearance_status !== 'Approved' && 
+      (!r.active_dues || r.active_dues.length === 0) && 
+      r.clearance_status !== 'Due Found'
+    );
+    if (visibleEligible.length > 0 && visibleEligible.every(r => selectedCleanPins.has(r.student_pin))) {
+      selectAllCheckbox.checked = true;
+      selectAllCheckbox.indeterminate = false;
+    } else if (visibleEligible.some(r => selectedCleanPins.has(r.student_pin))) {
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.indeterminate = true;
+    } else {
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.indeterminate = false;
+    }
+  }
+}
+
+function toggleStudentSelection(pin, isChecked) {
+  if (isChecked) {
+    selectedCleanPins.add(pin);
+  } else {
+    selectedCleanPins.delete(pin);
+  }
+  updateBatchUI();
+}
+
+function toggleSelectAllClean(isChecked) {
+  const visibleEligible = currentDisplayedRequests.filter(r => 
+    r.clearance_status !== 'Approved' && 
+    (!r.active_dues || r.active_dues.length === 0) && 
+    r.clearance_status !== 'Due Found'
+  );
+
+  if (isChecked) {
+    visibleEligible.forEach(r => selectedCleanPins.add(r.student_pin));
+  } else {
+    visibleEligible.forEach(r => selectedCleanPins.delete(r.student_pin));
+  }
+
+  document.querySelectorAll('.student-select-checkbox').forEach(cb => {
+    const pin = cb.getAttribute('data-pin');
+    cb.checked = selectedCleanPins.has(pin);
+  });
+
+  updateBatchUI();
+}
+
+function clearCleanSelection() {
+  selectedCleanPins.clear();
+  document.querySelectorAll('.student-select-checkbox').forEach(cb => {
+    cb.checked = false;
+  });
+  updateBatchUI();
+}
+
+async function handleBatchApprove() {
+  if (selectedCleanPins.size === 0) {
+    API.showToast('No clean students selected for batch approval.', 'warning');
+    return;
+  }
+
+  const pinsToApprove = Array.from(selectedCleanPins);
+  const count = pinsToApprove.length;
+
+  if (!confirm(`Are you sure you want to batch approve department clearance for ${count} student(s) with zero dues?`)) {
+    return;
+  }
+
+  const btn = document.getElementById('btn-batch-approve');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Approving...';
+  }
+
+  const res = await API.request('/faculty/approve-batch', {
+    method: 'POST',
+    body: { student_pins: pinsToApprove }
+  });
+
+  if (res.ok && res.data && res.data.success) {
+    const approved = res.data.number_approved ?? res.data.approved_count ?? 0;
+    const skipped = res.data.number_skipped ?? res.data.skipped_dues_count ?? 0;
+    const invalid = res.data.number_invalid ?? res.data.invalid_count ?? 0;
+
+    if (approved > 0) {
+      API.showToast(`Batch approved clearance for ${approved} student(s) successfully!`, 'success');
+    }
+    if (skipped > 0) {
+      API.showToast(`${skipped} student(s) were skipped due to active dues.`, 'warning');
+    }
+    if (invalid > 0 && approved === 0) {
+      API.showToast(`${invalid} student(s) were ineligible or already approved.`, 'info');
+    }
+
+    selectedCleanPins.clear();
+    await loadFacultyDashboard();
+  } else {
+    API.showToast(res.data?.error || 'Failed to complete batch approval.', 'error');
+    if (btn) {
+      btn.disabled = false;
+      updateBatchUI();
+    }
+  }
 }
 
 function filterRequests() {
@@ -583,6 +748,10 @@ window.searchStudentForDue = searchStudentForDue;
 window.selectStudentForDue = selectStudentForDue;
 window.exportFacultyQueueCSV = exportFacultyQueueCSV;
 window.refreshFacultyDashboard = refreshFacultyDashboard;
+window.toggleStudentSelection = toggleStudentSelection;
+window.toggleSelectAllClean = toggleSelectAllClean;
+window.clearCleanSelection = clearCleanSelection;
+window.handleBatchApprove = handleBatchApprove;
 
 
 

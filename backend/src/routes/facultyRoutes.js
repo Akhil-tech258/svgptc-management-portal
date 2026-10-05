@@ -17,6 +17,7 @@ router.post('/dues/:dueId/delete', facultyController.clearDue);
 router.post('/dues/clear-all', facultyController.clearAllDues);
 router.post('/approve', facultyController.approveDepartment);
 router.post('/clearance/approve', facultyController.approveDepartment);
+router.post('/approve-batch', facultyController.approveBatchClearance);
 
 
 module.exports = router;
