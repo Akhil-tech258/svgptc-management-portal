@@ -50,6 +50,22 @@ async function seed() {
   }
   console.log('Official 8 college departments verified (Library is Physical with dedicated Incharge).');
 
+  // Purge any legacy demo branch labs if previously seeded
+  const legacyDemoLabs = [
+    'Computer Lab', 'ITLAB', 'it lab', 'DE Lab', 'Surveying Lab', 'CAD Lab (Civil)',
+    'Material Testing Lab', 'Machine Shop / Workshop', 'Thermal Engineering Lab',
+    'AutoCAD Lab (Mech)', 'Electrical Machines Lab', 'Power Electronics Lab',
+    'Circuits & Measurements Lab', 'EC Lab', 'Microprocessor & VLSI Lab',
+    'Communication Engineering Lab', 'Industry Integrated Lab',
+    'Biomedical Instrumentation Lab', 'Medical Electronics Lab',
+    'Chemical Process & Technology Lab', 'Sugar Technology Lab',
+    'Pharmaceutics Lab', 'Pharmacology Lab'
+  ];
+  for (const labName of legacyDemoLabs) {
+    await db.query('DELETE FROM departments WHERE LOWER(name) = LOWER($1)', [labName]);
+    await db.query('DELETE FROM faculty_accounts WHERE LOWER(department_name) = LOWER($1)', [labName]);
+  }
+
 
   // 3. Remove all other test / demo clerk accounts (admin, clerk, clerk_admin)
   await db.query("DELETE FROM clerks WHERE LOWER(username) != 'clerk@svgp'");
