@@ -27,8 +27,8 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check
-app.get('/api/health', (req, res) => {
+// Health check (supports both /health and /api/health for pre-warming pings)
+app.get(['/health', '/api/health'], (req, res) => {
   res.json({
     status: 'online',
     timestamp: new Date().toISOString(),

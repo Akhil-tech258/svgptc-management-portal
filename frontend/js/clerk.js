@@ -154,14 +154,8 @@ async function switchClerkTab(tab) {
 }
 
 
-async function loadClerkDashboard() {
-  const res = await API.request('/clerk/dashboard');
-  if (!res.ok) {
-    API.showToast(res.data.error || 'Failed to load Clerk statistics.', 'error');
-    return;
-  }
-
-  const s = res.data.stats || {};
+function renderClerkStats(s) {
+  if (!s) return;
   const masterCount = s.total_students_master != null ? s.total_students_master : 0;
   const regCount = s.registered_students != null ? s.registered_students : 0;
   const pendingCount = s.pending_no_dues != null ? s.pending_no_dues : 0;
@@ -204,6 +198,26 @@ async function loadClerkDashboard() {
 
   const branchesBadge = document.getElementById('tab-badge-branches');
   if (branchesBadge) branchesBadge.innerText = 9;
+}
+
+async function loadClerkDashboard() {
+  // Strategy 6: Cache-First Instant Paint
+  const cachedStats = API.getCache('clerk_stats');
+  if (cachedStats) {
+    renderClerkStats(cachedStats);
+  }
+
+  const res = await API.request('/clerk/dashboard');
+  if (!res.ok) {
+    if (!cachedStats) {
+      API.showToast(res.data.error || 'Failed to load Clerk statistics.', 'error');
+    }
+    return;
+  }
+
+  const s = res.data.stats || {};
+  API.setCache('clerk_stats', s);
+  renderClerkStats(s);
 
   // Refresh live overview role roster
   loadOverviewData();
@@ -1554,8 +1568,8 @@ function isDeptApplicableToBranchClient(deptBranchCode, targetBranch) {
   return false;
 }
 
-async function loadBranches() {
-  const res = await API.request('/clerk/branches');
+function renderBranchesUI(branches) {
+  if (!branches || !Array.isArray(branches)) return;
   const tbody = document.getElementById('branches-table-body');
   const chips = document.getElementById('branches-chips-container');
   const filterSelect = document.getElementById('filter-dept-branch');
@@ -1565,77 +1579,88 @@ async function loadBranches() {
   if (tbody) tbody.innerHTML = '';
   if (chips) chips.innerHTML = '';
 
-  if (res.ok && res.data.branches) {
-    cachedBranches = res.data.branches;
+  if (filterSelect) {
+    const prev = filterSelect.value || 'ALL';
+    filterSelect.innerHTML = `
+      <option value="ALL">Filter: All Branches &amp; Common</option>
+      <option value="ENG">Filter: Engineering Branches (Excl. Pharmacy)</option>
+      <option value="PHARM">Filter: Pharmacy Only (D.Pharma)</option>
+    `;
+    branches.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.code;
+      opt.innerText = `Branch: ${b.code} (${b.name})`;
+      if (b.code === prev) opt.selected = true;
+      filterSelect.appendChild(opt);
+    });
+  }
 
-    // Reset filter dropdown
-    if (filterSelect) {
-      filterSelect.innerHTML = `
-        <option value="ALL">Filter: All Branches &amp; Common</option>
-        <option value="ENG">Filter: Engineering Branches (Excl. Pharmacy)</option>
-        <option value="PHARM">Filter: Pharmacy Only (D.Pharma)</option>
+  if (deptCheckboxes) deptCheckboxes.innerHTML = '';
+  if (scopeCheckboxes) scopeCheckboxes.innerHTML = '';
+
+  branches.forEach(b => {
+    // 1. Branch Chip
+    if (chips) {
+      const chip = document.createElement('div');
+      chip.className = 'user-badge';
+      chip.style.borderColor = b.is_active ? 'var(--border-highlight)' : 'var(--status-due)';
+      chip.innerHTML = `
+        <strong style="color:var(--accent-gold);">${escapeHtml(b.code)}</strong>: ${escapeHtml(b.name)}
+        ${!b.is_active ? '<span style="color:var(--status-due); font-size:0.7rem; margin-left:0.3rem;">(Inactive)</span>' : ''}
       `;
+      chips.appendChild(chip);
     }
 
-    if (deptCheckboxes) deptCheckboxes.innerHTML = '';
-    if (scopeCheckboxes) scopeCheckboxes.innerHTML = '';
+    // 2. Populate Checkboxes for Add Dept Modal
+    if (deptCheckboxes) {
+      const lbl = document.createElement('label');
+      lbl.style.cssText = 'display:flex; align-items:center; gap:0.35rem; font-size:0.8rem; cursor:pointer; background:var(--bg-card); padding:0.3rem 0.5rem; border:1px solid var(--border-color); border-radius:4px;';
+      lbl.innerHTML = `<input type="checkbox" name="dept-custom-branch" value="${escapeHtml(b.code)}"> <strong>${escapeHtml(b.code)}</strong>`;
+      deptCheckboxes.appendChild(lbl);
+    }
 
-    cachedBranches.forEach(b => {
-      // 1. Branch Chip
-      if (chips) {
-        const chip = document.createElement('div');
-        chip.className = 'user-badge';
-        chip.style.borderColor = b.is_active ? 'var(--border-highlight)' : 'var(--status-due)';
-        chip.innerHTML = `
-          <strong style="color:var(--accent-gold);">${escapeHtml(b.code)}</strong>: ${escapeHtml(b.name)}
-          ${!b.is_active ? '<span style="color:var(--status-due); font-size:0.7rem; margin-left:0.3rem;">(Inactive)</span>' : ''}
-        `;
-        chips.appendChild(chip);
-      }
+    // 3. Populate Checkboxes for Edit Scope Modal
+    if (scopeCheckboxes) {
+      const lbl = document.createElement('label');
+      lbl.style.cssText = 'display:flex; align-items:center; gap:0.35rem; font-size:0.8rem; cursor:pointer; background:var(--bg-card); padding:0.3rem 0.5rem; border:1px solid var(--border-color); border-radius:4px;';
+      lbl.innerHTML = `<input type="checkbox" name="scope-edit-custom-branch" value="${escapeHtml(b.code)}"> <strong>${escapeHtml(b.code)}</strong>`;
+      scopeCheckboxes.appendChild(lbl);
+    }
 
-      // 2. Populate Checkboxes for Add Dept Modal
-      if (deptCheckboxes) {
-        const lbl = document.createElement('label');
-        lbl.style.cssText = 'display:flex; align-items:center; gap:0.35rem; font-size:0.8rem; cursor:pointer; background:var(--bg-card); padding:0.3rem 0.5rem; border:1px solid var(--border-color); border-radius:4px;';
-        lbl.innerHTML = `<input type="checkbox" name="dept-custom-branch" value="${escapeHtml(b.code)}"> <strong>${escapeHtml(b.code)}</strong>`;
-        deptCheckboxes.appendChild(lbl);
-      }
+    // 4. Table Row
+    if (tbody) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-family:var(--font-mono); font-weight:bold; color:var(--accent-gold);">${escapeHtml(b.code)}</td>
+        <td><strong>${escapeHtml(b.name)}</strong></td>
+        <td>${b.is_active ? '<span class="badge badge-approved">Active</span>' : '<span class="badge badge-due">Inactive</span>'}</td>
+        <td>
+          <button class="btn btn-sm ${b.is_active ? 'btn-danger' : 'btn-success'}" onclick="toggleBranchStatus(${b.id}, ${!b.is_active})">
+            ${b.is_active ? 'Deactivate' : 'Activate'}
+          </button>
+          <button class="btn btn-sm btn-danger" style="margin-left:0.3rem; background:#dc2626;" onclick="deleteBranch(${b.id})">
+            🗑️ Delete
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+  });
+}
 
-      // 3. Populate Checkboxes for Edit Scope Modal
-      if (scopeCheckboxes) {
-        const lbl = document.createElement('label');
-        lbl.style.cssText = 'display:flex; align-items:center; gap:0.35rem; font-size:0.8rem; cursor:pointer; background:var(--bg-card); padding:0.3rem 0.5rem; border:1px solid var(--border-color); border-radius:4px;';
-        lbl.innerHTML = `<input type="checkbox" name="scope-edit-custom-branch" value="${escapeHtml(b.code)}"> <strong>${escapeHtml(b.code)}</strong>`;
-        scopeCheckboxes.appendChild(lbl);
-      }
+async function loadBranches() {
+  // Strategy 6: Cache-First Instant Paint
+  const cached = API.getCache('branches');
+  if (cached && Array.isArray(cached) && cached.length > 0) {
+    cachedBranches = cached;
+    renderBranchesUI(cached);
+  }
 
-      // 4. Populate Filter Dropdown
-      if (filterSelect) {
-        const opt = document.createElement('option');
-        opt.value = b.code;
-        opt.innerText = `Branch: ${b.code} (${b.name})`;
-        filterSelect.appendChild(opt);
-      }
-
-      // 5. Table Row
-      if (tbody) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="font-family:var(--font-mono); font-weight:bold; color:var(--accent-gold);">${escapeHtml(b.code)}</td>
-          <td><strong>${escapeHtml(b.name)}</strong></td>
-          <td>${b.is_active ? '<span class="badge badge-approved">Active</span>' : '<span class="badge badge-due">Inactive</span>'}</td>
-          <td>
-            <button class="btn btn-sm ${b.is_active ? 'btn-danger' : 'btn-success'}" onclick="toggleBranchStatus(${b.id}, ${!b.is_active})">
-              ${b.is_active ? 'Deactivate' : 'Activate'}
-            </button>
-            <button class="btn btn-sm btn-danger" style="margin-left:0.3rem; background:#dc2626;" onclick="deleteBranch(${b.id})">
-              🗑️ Delete
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      }
-    });
+  const res = await API.request('/clerk/branches');
+  if (res.ok && res.data.branches) {
+    cachedBranches = res.data.branches;
+    API.setCache('branches', res.data.branches);
+    renderBranchesUI(cachedBranches);
   }
 }
 
@@ -1708,11 +1733,20 @@ async function toggleBranchStatus(id, newStatus) {
 
 // --- DEPARTMENTS MANAGEMENT ---
 async function loadDepartments() {
+  const filterEl = document.getElementById('filter-dept-branch');
+  const currentFilter = (filterEl && filterEl.value) || 'ALL';
+
+  // Strategy 6: Cache-First Instant Paint
+  const cached = API.getCache('departments');
+  if (cached && Array.isArray(cached) && cached.length > 0) {
+    cachedDepartments = cached;
+    filterDeptsByBranch(currentFilter);
+  }
+
   const res = await API.request('/clerk/departments');
   if (res.ok && res.data.departments) {
     cachedDepartments = res.data.departments;
-    const filterEl = document.getElementById('filter-dept-branch');
-    const currentFilter = (filterEl && filterEl.value) || 'ALL';
+    API.setCache('departments', res.data.departments);
     filterDeptsByBranch(currentFilter);
   }
 }

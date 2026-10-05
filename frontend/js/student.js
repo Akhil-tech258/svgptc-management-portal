@@ -48,8 +48,21 @@ async function loadDepartmentsDropdown() {
   const select = document.getElementById('reg-dept');
   if (!select) return;
 
+  // Cache-First (Strategy 6): render immediately from cache
+  const cachedBranches = API.getCache('branches');
+  if (cachedBranches && cachedBranches.length > 0) {
+    select.innerHTML = '<option value="">-- Select Branch / Course --</option>';
+    cachedBranches.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.name;
+      opt.textContent = `${b.name} (${b.code})`;
+      select.appendChild(opt);
+    });
+  }
+
   const branchRes = await API.request('/branches');
   if (branchRes.ok && branchRes.data.branches && branchRes.data.branches.length > 0) {
+    API.setCache('branches', branchRes.data.branches);
     select.innerHTML = '<option value="">-- Select Branch / Course --</option>';
     branchRes.data.branches.forEach(b => {
       const opt = document.createElement('option');
@@ -61,8 +74,20 @@ async function loadDepartmentsDropdown() {
   }
 
   // Fallback to departments if branches are not returned
+  const cachedDepts = API.getCache('departments');
+  if (cachedDepts && cachedDepts.length > 0 && (!cachedBranches || cachedBranches.length === 0)) {
+    select.innerHTML = '<option value="">-- Select Department / Course --</option>';
+    cachedDepts.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.name;
+      opt.textContent = `${d.name} (${d.type})`;
+      select.appendChild(opt);
+    });
+  }
+
   const res = await API.request('/departments');
   if (res.ok && res.data.departments) {
+    API.setCache('departments', res.data.departments);
     select.innerHTML = '<option value="">-- Select Department / Course --</option>';
     res.data.departments.forEach(d => {
       const opt = document.createElement('option');
@@ -148,20 +173,7 @@ async function refreshStudentDashboard() {
   API.showToast('Clearance dashboard refreshed with latest records.', 'info');
 }
 
-async function loadDashboard() {
-  const deptGrid = document.getElementById('department-grid');
-  if (deptGrid && deptGrid.children.length === 0) {
-    API.renderSkeletonCards(deptGrid, 4);
-  }
-
-
-  const res = await API.request('/students/dashboard');
-  if (!res.ok) {
-    API.showToast(res.data.error || 'Failed to load clearance records.', 'error');
-    return;
-  }
-
-  const data = res.data;
+function renderStudentDashboard(data) {
   renderProfile(data.student, data.request);
 
   const promptCard = document.getElementById('no-dues-prompt-card');
@@ -180,14 +192,16 @@ async function loadDashboard() {
   if (!data.request) {
     // No request submitted yet
     if (progressCard) progressCard.style.display = 'none';
-    promptCard.style.display = 'block';
-    trackerSection.style.display = 'none';
-    certSection.style.display = 'none';
-    statusBadge.className = 'badge badge-pending';
-    statusBadge.innerText = 'Not Submitted';
+    if (promptCard) promptCard.style.display = 'block';
+    if (trackerSection) trackerSection.style.display = 'none';
+    if (certSection) certSection.style.display = 'none';
+    if (statusBadge) {
+      statusBadge.className = 'badge badge-pending';
+      statusBadge.innerText = 'Not Submitted';
+    }
   } else {
-    promptCard.style.display = 'none';
-    trackerSection.style.display = 'block';
+    if (promptCard) promptCard.style.display = 'none';
+    if (trackerSection) trackerSection.style.display = 'block';
     if (progressCard) progressCard.style.display = 'block';
 
     const bannerCadet = document.getElementById('banner-cadet-status');
@@ -221,9 +235,11 @@ async function loadDashboard() {
     }
 
     if (data.is_no_dues_completed) {
-      statusBadge.className = 'badge badge-approved';
-      statusBadge.innerText = 'No-Dues Completed';
-      certSection.style.display = 'block';
+      if (statusBadge) {
+        statusBadge.className = 'badge badge-approved';
+        statusBadge.innerText = 'No-Dues Completed';
+      }
+      if (certSection) certSection.style.display = 'block';
       if (step3Item) {
         step3Item.className = 'step-item step-completed';
         if (step3Status) step3Status.innerHTML = '<span style="color:var(--status-approved);">✓ All Cleared</span>';
@@ -234,9 +250,11 @@ async function loadDashboard() {
       }
       renderCertificateDetails(data.certificate, data.student);
     } else {
-      statusBadge.className = 'badge badge-pending';
-      statusBadge.innerText = 'In Progress';
-      certSection.style.display = 'none';
+      if (statusBadge) {
+        statusBadge.className = 'badge badge-pending';
+        statusBadge.innerText = 'In Progress';
+      }
+      if (certSection) certSection.style.display = 'none';
       if (step3Item) {
         step3Item.className = 'step-item step-active';
         if (step3Status) step3Status.innerText = `${approvedDepts}/${totalDepts} Approved`;
@@ -249,7 +267,36 @@ async function loadDashboard() {
 
     renderClearances(data.clearances);
   }
+}
 
+async function loadDashboard() {
+  const user = API.getUser();
+  const cacheKey = user && user.pin ? `student_dash_${user.pin.toLowerCase()}` : null;
+
+  // Cache-First (Strategy 6): render immediately from cache if available
+  if (cacheKey) {
+    const cachedData = API.getCache(cacheKey);
+    if (cachedData) {
+      renderStudentDashboard(cachedData);
+    }
+  }
+
+  const deptGrid = document.getElementById('department-grid');
+  if (deptGrid && deptGrid.children.length === 0) {
+    API.renderSkeletonCards(deptGrid, 4);
+  }
+
+  const res = await API.request('/students/dashboard');
+  if (!res.ok) {
+    API.showToast(res.data.error || 'Failed to load clearance records.', 'error');
+    return;
+  }
+
+  const data = res.data;
+  if (cacheKey) {
+    API.setCache(cacheKey, data);
+  }
+  renderStudentDashboard(data);
 }
 
 function deriveTNo(pin) {

@@ -2397,5 +2397,73 @@ input[type="date"].form-control::-webkit-calendar-picker-indicator:hover {
   }
 }
 
+/* ========================================================
+   RENDER COLD-START REASSURANCE BANNER & SPINNER
+   ======================================================== */
+.cold-start-banner {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  max-width: 420px;
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--accent-gold, #f59e0b);
+  border-left: 5px solid var(--accent-gold, #f59e0b);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.22);
+  border-radius: var(--radius-md, 8px);
+  padding: 1rem 1.25rem;
+  z-index: 999999;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
+}
 
+.cold-start-banner.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
 
+.cold-start-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+
+.cold-start-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(245, 158, 11, 0.2);
+  border-top-color: var(--accent-gold, #f59e0b);
+  border-radius: 50%;
+  animation: coldStartSpin 0.8s linear infinite;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.cold-start-content strong {
+  font-size: 0.92rem;
+  color: var(--text-primary, #1e293b);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.cold-start-content p {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #64748b);
+  margin: 0;
+  line-height: 1.4;
+}
+
+@keyframes coldStartSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+  .cold-start-banner {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    max-width: none;
+  }
+}

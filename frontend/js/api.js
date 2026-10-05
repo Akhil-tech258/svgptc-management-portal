@@ -25,6 +25,78 @@ const API = {
     window.location.href = redirectPath;
   },
 
+  // Strategy 2: Pre-warm Render Free Tier Backend
+  prewarm() {
+    try {
+      const baseUrl = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || 'http://localhost:5000/api';
+      const healthUrl = baseUrl.endsWith('/api') ? `${baseUrl}/health` : `${baseUrl}/api/health`;
+      if (typeof fetch === 'function') {
+        fetch(healthUrl, { mode: 'no-cors', cache: 'no-store' }).catch(() => {});
+      }
+    } catch (e) {}
+  },
+
+  // Strategy 3: Cold-Start UI Indicators
+  showColdStartIndicator() {
+    let el = document.getElementById('render-cold-start-banner');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'render-cold-start-banner';
+      el.className = 'cold-start-banner';
+      el.innerHTML = `
+        <div class="cold-start-content">
+          <div class="cold-start-spinner"></div>
+          <div>
+            <strong>Connecting to Cloud Server...</strong>
+            <p>Render free instance is waking up from idle mode (~30s on first load). Please wait, your request is running automatically.</p>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(el);
+    }
+    setTimeout(() => {
+      if (el) el.classList.add('visible');
+    }, 10);
+  },
+
+  hideColdStartIndicator() {
+    const el = document.getElementById('render-cold-start-banner');
+    if (el) {
+      el.classList.remove('visible');
+      setTimeout(() => {
+        if (el && el.parentNode) el.parentNode.removeChild(el);
+      }, 350);
+    }
+  },
+
+  // Strategy 6: Cache-First Helpers (Stale-While-Revalidate)
+  getCache(key) {
+    try {
+      const raw = localStorage.getItem(`svgp_cache_${key}`);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  setCache(key, data) {
+    try {
+      localStorage.setItem(`svgp_cache_${key}`, JSON.stringify(data));
+    } catch (e) {}
+  },
+
+  clearCache(key) {
+    try {
+      if (key) {
+        localStorage.removeItem(`svgp_cache_${key}`);
+      } else {
+        Object.keys(localStorage).forEach(k => {
+          if (k.startsWith('svgp_cache_')) localStorage.removeItem(k);
+        });
+      }
+    } catch (e) {}
+  },
+
   async request(endpoint, options = {}) {
     const baseUrl = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || 'http://localhost:5000/api';
     const url = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`;
@@ -42,11 +114,31 @@ const API = {
       }
     }
 
+    // Trigger Cold Start reassurance banner if request takes longer than 2.2 seconds
+    let coldStartTimer = null;
+    if (!options._isBackground) {
+      coldStartTimer = setTimeout(() => {
+        this.showColdStartIndicator();
+      }, 2200);
+    }
+
+    const retryCount = options._retryCount || 0;
+    const maxRetries = options.retries !== undefined ? options.retries : 2;
+
     try {
       const res = await fetch(url, {
         ...options,
         headers
       });
+
+      if (coldStartTimer) clearTimeout(coldStartTimer);
+      this.hideColdStartIndicator();
+
+      // Check for temporary Render 502/503 during boot
+      if ((res.status === 502 || res.status === 503) && retryCount < maxRetries) {
+        await new Promise(r => setTimeout(r, 2500));
+        return this.request(endpoint, { ...options, _retryCount: retryCount + 1 });
+      }
 
       if (res.status === 401) {
         // If unauthorized, don't auto-redirect on registration/login attempts
@@ -61,11 +153,20 @@ const API = {
       const data = await res.json();
       return { ok: res.ok, status: res.status, data };
     } catch (err) {
-      console.error('API Request failed:', err);
+      if (coldStartTimer) clearTimeout(coldStartTimer);
+
+      // If connection dropped during container boot, retry up to maxRetries
+      if (retryCount < maxRetries) {
+        await new Promise(r => setTimeout(r, 2500));
+        return this.request(endpoint, { ...options, _retryCount: retryCount + 1 });
+      }
+
+      this.hideColdStartIndicator();
+      console.error('API Request failed after retries:', err);
       return {
         ok: false,
         status: 0,
-        data: { error: 'Network error or backend is not reachable. Check server connection.' }
+        data: { error: 'Network error or backend is waking up. Please retry in a few moments.' }
       };
     }
   },
