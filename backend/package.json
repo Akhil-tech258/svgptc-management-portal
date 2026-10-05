@@ -7,7 +7,7 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "seed": "node src/config/seed.js",
-    "test": "echo \"Ready for production\" && exit 0"
+    "test": "node --test src/tests/facultyBatchApproval.test.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

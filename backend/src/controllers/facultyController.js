@@ -362,6 +362,133 @@ async function approveDepartment(req, res) {
   }
 }
 
+async function approveBatchClearance(req, res) {
+  try {
+    const deptId = req.faculty.department_id;
+    const username = req.faculty.username;
+    const { student_pins, pins } = req.body;
+    const rawPins = student_pins || pins;
+
+    if (!rawPins || !Array.isArray(rawPins) || rawPins.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'A non-empty array of student_pins is required for batch approval.'
+      });
+    }
+
+    // Sanitize and deduplicate student PINs
+    const uniquePins = [];
+    const seen = new Set();
+    for (const p of rawPins) {
+      if (typeof p === 'string') {
+        const clean = p.trim();
+        if (clean && !seen.has(clean.toLowerCase())) {
+          seen.add(clean.toLowerCase());
+          uniquePins.push(clean);
+        }
+      }
+    }
+
+    if (uniquePins.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No valid student PINs found in the request.'
+      });
+    }
+
+    const totalRequested = uniquePins.length;
+    const approvedPins = [];
+    const skippedDues = [];
+    const invalidPins = [];
+    let completedRequestsCount = 0;
+
+    for (const pin of uniquePins) {
+      // 1. Verify student has an accessible department clearance record for this department
+      const clearRes = await db.query(
+        `SELECT id, status FROM department_clearances 
+         WHERE LOWER(student_pin) = LOWER($1) AND department_id = $2`,
+        [pin, deptId]
+      );
+
+      if (clearRes.rows.length === 0) {
+        invalidPins.push({ pin, reason: 'No clearance request found for this department' });
+        continue;
+      }
+
+      const clearance = clearRes.rows[0];
+      if (clearance.status === 'Approved') {
+        invalidPins.push({ pin, reason: 'Already approved' });
+        continue;
+      }
+
+      // 2. Verify that the student has ZERO active dues in this department
+      const duesRes = await db.query(
+        `SELECT COUNT(*) as count FROM dues 
+         WHERE LOWER(student_pin) = LOWER($1) AND department_id = $2 AND status = 'Active'`,
+        [pin, deptId]
+      );
+
+      const activeDuesCount = parseInt(duesRes.rows[0].count, 10);
+      if (activeDuesCount > 0) {
+        skippedDues.push({ pin, activeDuesCount, reason: 'Student has active dues' });
+        continue;
+      }
+
+      // 3. Mark clearance as Approved
+      await db.query(
+        `UPDATE department_clearances 
+         SET status = 'Approved', approved_by = $1, approved_at = CURRENT_TIMESTAMP 
+         WHERE LOWER(student_pin) = LOWER($2) AND department_id = $3`,
+        [username, pin, deptId]
+      );
+
+      approvedPins.push(pin);
+
+      // 4. Check if all other clearances for this student are now Approved
+      const pendingRes = await db.query(
+        `SELECT COUNT(*) as count 
+         FROM department_clearances 
+         WHERE LOWER(student_pin) = LOWER($1) AND status != 'Approved'`,
+        [pin]
+      );
+
+      const remainingPending = parseInt(pendingRes.rows[0].count, 10);
+      if (remainingPending === 0) {
+        await db.query(
+          `UPDATE no_dues_requests 
+           SET status = 'Completed', completed_at = CURRENT_TIMESTAMP 
+           WHERE LOWER(student_pin) = LOWER($1) AND status != 'Completed'`,
+          [pin]
+        );
+        completedRequestsCount++;
+      }
+    }
+
+    const approvedCount = approvedPins.length;
+    const skippedDuesCount = skippedDues.length;
+    const invalidCount = invalidPins.length;
+
+    return res.json({
+      success: true,
+      message: `Batch approval completed: ${approvedCount} approved, ${skippedDuesCount} skipped due to active dues, ${invalidCount} ineligible.`,
+      number_requested: totalRequested,
+      number_approved: approvedCount,
+      number_skipped: skippedDuesCount,
+      number_invalid: invalidCount,
+      total_requested: totalRequested,
+      approved_count: approvedCount,
+      skipped_dues_count: skippedDuesCount,
+      invalid_count: invalidCount,
+      approved_pins: approvedPins,
+      skipped_details: skippedDues,
+      invalid_details: invalidPins,
+      completed_requests_count: completedRequestsCount
+    });
+  } catch (err) {
+    console.error('approveBatchClearance error:', err);
+    return res.status(500).json({ success: false, error: 'Failed to process batch clearance approval.' });
+  }
+}
 
 module.exports = {
   getFacultyDashboard,
@@ -370,6 +497,7 @@ module.exports = {
   clearDue,
   clearAllDues,
   approveDepartment,
+  approveBatchClearance,
   searchStudents,
   getDepartmentDues
 };
