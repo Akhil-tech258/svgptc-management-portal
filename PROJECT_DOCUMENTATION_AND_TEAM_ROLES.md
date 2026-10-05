@@ -46,6 +46,12 @@ It completely digitizes and automates the traditional, cumbersome paper-based no
 * **20-Hour Anti-Spam Rate Limiting:** Backend rate limiter preventing students from repeatedly spamming faculty inboxes with clearance requests.
 * **Dual-Database Abstraction Engine:** Seamless dynamic switching between embedded **SQLite** (for zero-setup local/offline execution) and **PostgreSQL on Supabase** (for cloud production hosting).
 
+### ⚡ F. Render Free-Tier Optimization Engine (Branch AK_v2)
+* **Early Pre-warming Ping in `<head>` (Strategy 2):** Dispatches non-blocking GET `/health` at the earliest millisecond before HTML and stylesheets finish parsing, cutting 2–4 seconds off Render container spin-up.
+* **Cold-Start UX Reassurance & Smart Retry (Strategy 3):** Reassures students and staff with an animated golden banner when responses take > 2.2s; automatically retries requests on temporary 502/503 errors during Render container boot.
+* **Cache-First Stale-While-Revalidate (Strategy 6):** Delivers instant 0ms dashboard loading across Student, Clerk, and Faculty portals from local cache while silently syncing updates in the background.
+* **Multi-Branch Dynamic Labs & Isolated Pharmacy Routing:** Enforces branch-specific lab isolation (including segregated D.Pharma routing) and a strict 100% clearance rule before No-Dues Form issuance.
+
 ---
 
 ## 3. Complete Project Directory & File Structure
