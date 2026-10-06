@@ -877,16 +877,10 @@ async function loadCertificateStudents() {
       `;
     }
 
-    actionButtons += `
-      <a href="certificate-view.html?pin=${encodeURIComponent(st.pin)}#nodues-document" target="_blank" class="btn btn-sm btn-secondary" style="margin-left:0.3rem; text-decoration:none; background:#0284c7; color:#fff;" title="View and print official No-Dues Form">
-        📄 No-Dues Form
-      </a>
-    `;
-
     if (hasGenerated) {
       actionButtons += `
-        <a href="certificate-view.html?pin=${encodeURIComponent(st.pin)}" target="_blank" class="btn btn-sm btn-success" style="margin-left:0.3rem; text-decoration:none;">
-          🖨️ View / Print TC
+        <a href="certificate-view.html?pin=${encodeURIComponent(st.pin)}" target="_blank" class="btn btn-sm btn-success" style="margin-left:0.3rem; text-decoration:none;" title="View and print official Transfer Certificate, Conduct Certificate, and No-Dues Form">
+          🖨️ View / Print Certificates
         </a>
         <button class="btn btn-sm btn-secondary" style="margin-left:0.3rem;" onclick="viewAuditHistory('${st.pin}')">
           📜 History
