@@ -695,9 +695,6 @@ function renderCertificateDetails(cert, student) {
   if (isGenerated) {
     btnContainer.innerHTML = `
       <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
-        <a href="certificate-view.html?pin=${encodeURIComponent(pin)}#nodues-document" target="_blank" class="btn btn-sm btn-secondary" style="text-decoration:none; background:#0284c7; color:#fff; font-weight:600;">
-          📄 No-Dues Form
-        </a>
         <a href="certificate-view.html?pin=${encodeURIComponent(pin)}" target="_blank" class="btn btn-sm btn-primary" style="text-decoration:none; font-weight:600;">
           🖨️ View &amp; Print Transfer Certificate (TC) &rarr;
         </a>
@@ -709,9 +706,6 @@ function renderCertificateDetails(cert, student) {
   } else {
     btnContainer.innerHTML = `
       <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
-        <a href="certificate-view.html?pin=${encodeURIComponent(pin)}#nodues-document" target="_blank" class="btn btn-sm btn-secondary" style="text-decoration:none; background:#0284c7; color:#fff; font-weight:600;">
-          📄 View / Print No-Dues Form
-        </a>
         <span class="badge badge-info" style="font-size:0.85rem; padding:0.4rem 0.8rem;">
           ⏳ Clearances Approved • Awaiting Clerk to Issue Certificate
         </span>
@@ -721,18 +715,8 @@ function renderCertificateDetails(cert, student) {
 
 }
 
-function viewNoDuesForm() {
-  const pin = currentStudentPin || (currentStudent && currentStudent.pin) || (API.getUser() && API.getUser().pin);
-  if (pin) {
-    window.open(`certificate-view.html?pin=${encodeURIComponent(pin)}#nodues-document`, '_blank');
-  } else {
-    alert('Student PIN not found.');
-  }
-}
-
 // Window global bindings for student onclick handlers
 window.submitNoDues = submitNoDues;
-window.viewNoDuesForm = viewNoDuesForm;
 window.reNotify = reNotify;
 window.filterDepartmentView = filterDepartmentView;
 window.switchTab = filterDepartmentView;
