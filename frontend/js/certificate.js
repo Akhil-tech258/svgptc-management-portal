@@ -33,6 +33,12 @@ function initBranding() {
     const elCrest2 = document.getElementById('cert-crest-img-2');
     if (elCrest2 && col.LOGO_PATH) elCrest2.src = col.LOGO_PATH;
 
+    const elName3 = document.getElementById('cert-college-name-3');
+    if (elName3) elName3.innerText = col.NAME || 'S.V. GOVERNMENT POLYTECHNIC :: TIRUPATI';
+
+    const elCrest3 = document.getElementById('cert-crest-img-3');
+    if (elCrest3 && col.LOGO_PATH) elCrest3.src = col.LOGO_PATH;
+
     // Optional Watermark branding if defined in config
     const watermarkPath = col.WATERMARK_PATH || col.LOGO_PATH;
     if (watermarkPath) {
@@ -40,6 +46,8 @@ function initBranding() {
       if (tcWm) tcWm.src = watermarkPath;
       const scWm = document.getElementById('sc-watermark');
       if (scWm) scWm.src = watermarkPath;
+      const ndWm = document.getElementById('nd-watermark');
+      if (ndWm) ndWm.src = watermarkPath;
     }
   }
 }

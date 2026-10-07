@@ -1094,37 +1094,73 @@ input[type="date"].form-control::-webkit-calendar-picker-indicator:hover {
 
 .nd-official-header {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.nd-govt-crest {
+  width: 62px;
+  height: 62px;
+  object-fit: contain;
+  margin: 0 auto 0.4rem;
+  display: block;
+}
+
+.nd-govt-title {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.08rem;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  color: #000000;
+  text-transform: uppercase;
+  margin-bottom: 0.15rem;
+}
+
+.nd-dept-title-govt {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1rem;
+  font-weight: bold;
+  letter-spacing: 0.03em;
+  color: #000000;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
 }
 
 .nd-college-title {
   font-family: 'Times New Roman', Times, serif;
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: 0.05em;
   color: #000000;
   text-transform: uppercase;
-  margin-bottom: 0.3rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
 }
 
-.nd-dept-title {
+.nd-dept-subtitle {
   font-family: 'Times New Roman', Times, serif;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   color: #000000;
   text-transform: uppercase;
-  margin-bottom: 1.2rem;
+  margin-top: 0.2rem;
+  margin-bottom: 0.3rem;
+}
+
+.nd-header-divider {
+  border-bottom: 3px double #000000;
+  margin: 0.5rem 0 0.8rem 0;
 }
 
 .nd-main-title {
+  text-align: center;
   font-family: 'Times New Roman', Times, serif;
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1.28rem;
+  font-weight: 900;
   letter-spacing: 0.06em;
+  margin: 0.8rem 0 1.5rem 0;
   color: #000000;
   text-transform: uppercase;
-  margin: 1.2rem 0;
   text-decoration: underline;
 }
 
@@ -1394,6 +1430,47 @@ input[type="date"].form-control::-webkit-calendar-picker-indicator:hover {
 
   .sc-principal-clg {
     font-size: 0.84rem !important;
+  }
+
+  /* No Dues Certificate Print Styles */
+  #nodues-document {
+    page-break-before: always !important;
+    break-before: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin-top: 0 !important;
+  }
+
+  .nd-govt-crest {
+    width: 54px !important;
+    height: 54px !important;
+    margin-bottom: 0.3rem !important;
+  }
+
+  .nd-govt-title {
+    font-size: 1.02rem !important;
+  }
+
+  .nd-dept-title-govt {
+    font-size: 0.94rem !important;
+  }
+
+  .nd-college-title {
+    font-size: 1.25rem !important;
+  }
+
+  .nd-dept-subtitle {
+    font-size: 1rem !important;
+  }
+
+  .nd-header-divider {
+    border-bottom: 2.5px double #000000 !important;
+    margin: 0.4rem 0 0.6rem 0 !important;
+  }
+
+  .nd-main-title {
+    font-size: 1.22rem !important;
+    margin: 0.6rem 0 1.2rem 0 !important;
   }
 }
 
