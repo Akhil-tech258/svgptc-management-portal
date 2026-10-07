@@ -22,7 +22,7 @@ const APP_CONFIG = {
 
     // 3. GitHub Pages deployment: connect to Render backend
     if (window.location.hostname && window.location.hostname.includes('github.io')) {
-      return 'https://svgptc-management-portal.onrender.com/api';
+      return 'https://svgptc-management.onrender.com/api';
     }
 
     return '/api';
