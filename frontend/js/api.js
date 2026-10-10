@@ -25,6 +25,217 @@ const API = {
     window.location.href = redirectPath;
   },
 
+  // Strategy 2: Pre-warm & Keep-Alive Render Free Tier Backend
+  prewarm() {
+    try {
+      const baseUrl = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || 'http://localhost:5000/api';
+      let healthUrl = '/api/health';
+      if (baseUrl.startsWith('http')) {
+        healthUrl = baseUrl.replace(/\/api\/?$/, '') + '/health';
+      }
+      if (typeof fetch === 'function') {
+        fetch(healthUrl, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(() => {});
+      }
+      this._lastPingTime = Date.now();
+    } catch (e) {}
+  },
+
+  startHeartbeat() {
+    // 1. Initial wake-up ping immediately when script loads
+    this.prewarm();
+
+    // 2. Active keep-alive heartbeat every 8 minutes (Render sleeps after 15 min of inactivity)
+    if (!this._heartbeatInterval) {
+      this._heartbeatInterval = setInterval(() => {
+        this.prewarm();
+      }, 8 * 60 * 1000);
+    }
+
+    // 3. Re-ping when tab becomes active again if idle > 5 minutes
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          const elapsed = Date.now() - (this._lastPingTime || 0);
+          if (elapsed > 5 * 60 * 1000) {
+            this.prewarm();
+          }
+        }
+      });
+
+      // 4. Opportunistic pre-warming on interactive intent (hover/focus on buttons or forms)
+      document.addEventListener('mouseover', (e) => {
+        const target = e.target.closest('button, a, input, select');
+        if (target && !this._hoverPrewarmed) {
+          this._hoverPrewarmed = true;
+          this.prewarm();
+          setTimeout(() => { this._hoverPrewarmed = false; }, 60000);
+        }
+      }, { passive: true });
+    }
+  },
+
+  // Live Cloud Server Connection Status Pill (Option 1 & 3)
+  initServerStatusPill() {
+    if (typeof document === 'undefined') return;
+    if (document.getElementById('server-status-pill')) return;
+
+    // Target header-actions, print-bar, or fallback to header container
+    const target = document.querySelector('.header-actions') || document.querySelector('.print-bar') || document.querySelector('.header-container');
+    if (!target) return;
+
+    const pill = document.createElement('div');
+    pill.id = 'server-status-pill';
+    pill.className = 'server-status-pill standby';
+    pill.title = 'Cloud server status. Click to test connection.';
+    pill.innerHTML = `
+      <span class="status-dot pulsing-amber"></span>
+      <span class="status-text-full">Waking up cloud server... (~25s)</span>
+      <span class="status-text-mini">Waking...</span>
+    `;
+
+    pill.addEventListener('click', () => {
+      this.checkServerConnection(true);
+    });
+
+    if (target.firstChild) {
+      target.insertBefore(pill, target.firstChild);
+    } else {
+      target.appendChild(pill);
+    }
+
+    this.checkServerConnection();
+  },
+
+  async checkServerConnection(isManual = false) {
+    if (isManual) {
+      this.showToast('Checking server connection...', 'info', 1800);
+    }
+
+    const baseUrl = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || 'http://localhost:5000/api';
+    let healthUrl = '/api/health';
+    if (baseUrl.startsWith('http')) {
+      healthUrl = baseUrl.replace(/\/api\/?$/, '') + '/health';
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 7000);
+
+      const res = await fetch(healthUrl, {
+        signal: controller.signal,
+        cache: 'no-store'
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        this.setServerConnected(true);
+        if (isManual) this.showToast('Server is online and ready! 🟢', 'success', 2500);
+        return true;
+      } else {
+        throw new Error('Not OK');
+      }
+    } catch (err) {
+      this.setServerConnected(false);
+      // Auto-poll every 3.5 seconds until server boots
+      if (!this._pollTimer) {
+        this._pollTimer = setTimeout(() => {
+          this._pollTimer = null;
+          this.checkServerConnection();
+        }, 3500);
+      }
+      return false;
+    }
+  },
+
+  setServerConnected(connected) {
+    const pill = document.getElementById('server-status-pill');
+    if (!pill) return;
+
+    if (connected) {
+      pill.className = 'server-status-pill connected';
+      pill.innerHTML = `
+        <span class="status-dot solid-green"></span>
+        <span class="status-text-full">🟢 Server Connected!</span>
+        <span class="status-text-mini">Online</span>
+      `;
+      if (this._minimizeTimer) clearTimeout(this._minimizeTimer);
+      this._minimizeTimer = setTimeout(() => {
+        if (pill) pill.classList.add('minimized');
+      }, 4000);
+
+      this.hideColdStartIndicator();
+    } else {
+      pill.classList.remove('minimized');
+      pill.className = 'server-status-pill standby';
+      pill.innerHTML = `
+        <span class="status-dot pulsing-amber"></span>
+        <span class="status-text-full">Waking up cloud server... (~25s)</span>
+        <span class="status-text-mini">Waking...</span>
+      `;
+    }
+  },
+
+  // Strategy 3: Cold-Start UI Indicators
+  showColdStartIndicator() {
+    let el = document.getElementById('render-cold-start-banner');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'render-cold-start-banner';
+      el.className = 'cold-start-banner';
+      el.innerHTML = `
+        <div class="cold-start-content">
+          <div class="cold-start-spinner"></div>
+          <div>
+            <strong>Connecting to Cloud Server...</strong>
+            <p>Render free instance is waking up from idle mode (~30s on first load). Please wait, your request is running automatically.</p>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(el);
+    }
+    setTimeout(() => {
+      if (el) el.classList.add('visible');
+    }, 10);
+  },
+
+  hideColdStartIndicator() {
+    const el = document.getElementById('render-cold-start-banner');
+    if (el) {
+      el.classList.remove('visible');
+      setTimeout(() => {
+        if (el && el.parentNode) el.parentNode.removeChild(el);
+      }, 350);
+    }
+  },
+
+  // Strategy 6: Cache-First Helpers (Stale-While-Revalidate)
+  getCache(key) {
+    try {
+      const raw = localStorage.getItem(`svgp_cache_${key}`);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  setCache(key, data) {
+    try {
+      localStorage.setItem(`svgp_cache_${key}`, JSON.stringify(data));
+    } catch (e) {}
+  },
+
+  clearCache(key) {
+    try {
+      if (key) {
+        localStorage.removeItem(`svgp_cache_${key}`);
+      } else {
+        Object.keys(localStorage).forEach(k => {
+          if (k.startsWith('svgp_cache_')) localStorage.removeItem(k);
+        });
+      }
+    } catch (e) {}
+  },
+
   async request(endpoint, options = {}) {
     const baseUrl = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || 'http://localhost:5000/api';
     const url = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`;
@@ -42,11 +253,34 @@ const API = {
       }
     }
 
+    // Trigger Cold Start reassurance banner if request takes longer than 2.2 seconds
+    let coldStartTimer = null;
+    if (!options._isBackground) {
+      coldStartTimer = setTimeout(() => {
+        this.showColdStartIndicator();
+      }, 2200);
+    }
+
+    const retryCount = options._retryCount || 0;
+    const maxRetries = options.retries !== undefined ? options.retries : 3;
+
     try {
       const res = await fetch(url, {
         ...options,
         headers
       });
+
+      if (coldStartTimer) clearTimeout(coldStartTimer);
+      this.hideColdStartIndicator();
+      this.setServerConnected(true);
+
+      // Check for temporary Render 502/503 during boot
+      if ((res.status === 502 || res.status === 503) && retryCount < maxRetries) {
+        this.setServerConnected(false);
+        this.showColdStartIndicator();
+        await new Promise(r => setTimeout(r, 2500));
+        return this.request(endpoint, { ...options, _retryCount: retryCount + 1 });
+      }
 
       if (res.status === 401) {
         // If unauthorized, don't auto-redirect on registration/login attempts
@@ -61,11 +295,22 @@ const API = {
       const data = await res.json();
       return { ok: res.ok, status: res.status, data };
     } catch (err) {
-      console.error('API Request failed:', err);
+      if (coldStartTimer) clearTimeout(coldStartTimer);
+
+      // If connection dropped during container boot, retry up to maxRetries
+      if (retryCount < maxRetries) {
+        this.setServerConnected(false);
+        this.showColdStartIndicator();
+        await new Promise(r => setTimeout(r, 2500));
+        return this.request(endpoint, { ...options, _retryCount: retryCount + 1 });
+      }
+
+      this.hideColdStartIndicator();
+      console.error('API Request failed after retries:', err);
       return {
         ok: false,
         status: 0,
-        data: { error: 'Network error or backend is not reachable. Check server connection.' }
+        data: { error: 'Network error or backend is waking up. Please retry in a few moments.' }
       };
     }
   },
@@ -380,13 +625,21 @@ const API = {
   initTheme() {
     const current = this.getTheme();
     document.documentElement.setAttribute('data-theme', current);
-    document.addEventListener('DOMContentLoaded', () => {
+
+    const runInits = () => {
       this.updateThemeButton();
       this.initBranding();
       this.initKeyboardShortcuts();
       this.initDesktopBanner();
       this.initBackToTop();
-    });
+      this.initServerStatusPill();
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', runInits);
+    } else {
+      runInits();
+    }
   },
 
   escapeHtml(str) {
@@ -417,6 +670,7 @@ function escapeHtml(str) {
 window.escapeHtml = escapeHtml;
 
 API.initTheme();
+API.startHeartbeat();
 window.API = API;
 
 

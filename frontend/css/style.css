@@ -1089,6 +1089,136 @@ input[type="date"].form-control::-webkit-calendar-picker-indicator:hover {
 }
 
 /* =========================================================
+   OFFICIAL NO DUES CERTIFICATE STYLES (MATCHING PHYSICAL REPLICA)
+   ========================================================= */
+
+.nd-official-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.nd-college-title {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #000000;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+
+.nd-dept-title {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #000000;
+  text-transform: uppercase;
+  margin-bottom: 1.2rem;
+}
+
+.nd-main-title {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #000000;
+  text-transform: uppercase;
+  margin: 1.2rem 0;
+  text-decoration: underline;
+}
+
+.nd-body-statement {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.08rem;
+  line-height: 2.2;
+  color: #000000;
+  text-align: justify;
+  margin-bottom: 1.8rem;
+}
+
+.nd-fill-field {
+  display: inline-block;
+  font-weight: 700;
+  color: #000000;
+  border-bottom: 1px solid #000000;
+  padding: 0 0.5rem;
+  min-width: 100px;
+  text-align: center;
+}
+
+.nd-clearance-list {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.05rem;
+  line-height: 2.1;
+  color: #000000;
+  padding-left: 1.5rem;
+  margin-bottom: 3.5rem;
+  list-style-type: decimal;
+}
+
+.nd-clearance-item {
+  display: flex;
+  align-items: baseline;
+  max-width: 650px;
+  margin-bottom: 0.35rem;
+}
+
+.nd-dept-label {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  min-width: 240px;
+}
+
+.nd-colon-sep {
+  margin: 0 0.6rem;
+  font-weight: bold;
+}
+
+.nd-status-val {
+  flex: 1;
+  font-weight: bold;
+}
+
+.nd-status-val.cleared {
+  color: #047857;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.nd-status-val.pending {
+  color: #94a3b8;
+  font-weight: normal;
+}
+
+.nd-official-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 4rem;
+  padding: 0 1rem;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.nd-footer-col {
+  text-align: center;
+  min-width: 220px;
+}
+
+.nd-sig-line {
+  border-bottom: 1px dashed #000000;
+  height: 40px;
+  margin-bottom: 0.5rem;
+}
+
+.nd-sig-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #000000;
+}
+
+/* =========================================================
    PRINT STYLES (EXACT FULL-PAGE A4 SIZING)
    ========================================================= */
 
@@ -2267,5 +2397,175 @@ input[type="date"].form-control::-webkit-calendar-picker-indicator:hover {
   }
 }
 
+/* ========================================================
+   RENDER COLD-START REASSURANCE BANNER & SPINNER
+   ======================================================== */
+.cold-start-banner {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  max-width: 420px;
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--accent-gold, #f59e0b);
+  border-left: 5px solid var(--accent-gold, #f59e0b);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.22);
+  border-radius: var(--radius-md, 8px);
+  padding: 1rem 1.25rem;
+  z-index: 999999;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
+}
 
+.cold-start-banner.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
 
+.cold-start-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+
+.cold-start-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(245, 158, 11, 0.2);
+  border-top-color: var(--accent-gold, #f59e0b);
+  border-radius: 50%;
+  animation: coldStartSpin 0.8s linear infinite;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.cold-start-content strong {
+  font-size: 0.92rem;
+  color: var(--text-primary, #1e293b);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.cold-start-content p {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #64748b);
+  margin: 0;
+  line-height: 1.4;
+}
+
+@keyframes coldStartSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+  .cold-start-banner {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    max-width: none;
+  }
+}
+
+/* ========================================================
+   LIVE CLOUD SERVER CONNECTION STATUS PILL (RENDER COLD-START UX)
+   ======================================================== */
+.server-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.32rem 0.8rem;
+  border-radius: 9999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  white-space: nowrap;
+  font-family: var(--font-main, sans-serif);
+}
+
+.server-status-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+/* Standby / Waking up state (Warm amber) */
+.server-status-pill.standby {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+[data-theme="dark"] .server-status-pill.standby {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.server-status-pill .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.server-status-pill .status-dot.pulsing-amber {
+  background: #f59e0b;
+  box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+  animation: serverStatusPulse 1.6s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+
+/* Connected state (Fresh vibrant green) */
+.server-status-pill.connected {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+[data-theme="dark"] .server-status-pill.connected {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.server-status-pill .status-dot.solid-green {
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+/* Minimized text after 4s */
+.server-status-pill.minimized .status-text-full {
+  display: none;
+}
+.server-status-pill.minimized .status-text-mini {
+  display: inline;
+}
+.server-status-pill:not(.minimized) .status-text-mini {
+  display: none;
+}
+
+@keyframes serverStatusPulse {
+  0% {
+    transform: scale(0.92);
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+  }
+  70% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 7px rgba(245, 158, 11, 0);
+  }
+  100% {
+    transform: scale(0.92);
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+}
+
+@media (max-width: 600px) {
+  .server-status-pill {
+    padding: 0.25rem 0.55rem;
+    font-size: 0.72rem;
+  }
+}

@@ -1,13 +1,17 @@
 const db = require('../config/db');
+const { isDepartmentApplicableToBranch } = require('../utils/helpers');
 
 async function getCertificateDetails(req, res) {
   try {
     const { student_pin } = req.params;
     const cleanPin = student_pin.trim();
 
-    // Security check: if student role, they can only view their own certificate
-    if (req.user && req.user.role === 'student' && req.user.pin !== cleanPin) {
-      return res.status(403).json({ success: false, error: 'Access denied: You can only view your own certificate.' });
+    // Security check: Only Clerk is authorized to access printable certificates
+    if (req.user && req.user.role === 'student') {
+      return res.status(403).json({
+        success: false,
+        error: 'Access restricted: Official certificates can only be generated and printed by the College Administrative Office (Clerk Desk).'
+      });
     }
 
     // Fetch current active certificate version
@@ -68,7 +72,157 @@ async function getCertificateByVersion(req, res) {
   }
 }
 
+async function getNoDuesFormData(req, res) {
+  try {
+    const { student_pin } = req.params;
+    const cleanPin = student_pin.trim();
+
+    // Fetch student master record
+    const masterRes = await db.query(
+      'SELECT * FROM students_master WHERE LOWER(pin) = LOWER($1)',
+      [cleanPin]
+    );
+
+    if (masterRes.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Student master record not found.' });
+    }
+    const st = masterRes.rows[0];
+
+    // Security check: Only Clerk is authorized to access printable No Dues forms
+    if (req.user && req.user.role === 'student') {
+      return res.status(403).json({
+        success: false,
+        error: 'Access restricted: Official No Dues forms can only be generated and printed by the College Administrative Office (Clerk Desk).'
+      });
+    }
+
+    // Determine branch code and full department title
+    const course = st.course_branch || '';
+    let branchCode = 'CME';
+    let deptName = 'COMPUTER ENGINEERING';
+
+    if (course.toUpperCase().includes('CIVIL')) {
+      branchCode = 'CIVIL';
+      deptName = 'CIVIL ENGINEERING';
+    } else if (course.toUpperCase().includes('MECH')) {
+      branchCode = 'MECH';
+      deptName = 'MECHANICAL ENGINEERING';
+    } else if (course.toUpperCase().includes('ELECTRICAL AND ELECTRONICS') || course.toUpperCase().includes('EEE')) {
+      branchCode = 'EEE';
+      deptName = 'ELECTRICAL AND ELECTRONICS ENGINEERING';
+    } else if (course.toUpperCase().includes('ELECTRONICS AND COMM') || course.toUpperCase().includes('ECE')) {
+      branchCode = 'ECE';
+      deptName = 'ELECTRONICS AND COMMUNICATION ENGINEERING';
+    } else if (course.toUpperCase().includes('BIOMEDICAL') || course.toUpperCase().includes('BME')) {
+      branchCode = 'BME';
+      deptName = 'BIOMEDICAL ENGINEERING';
+    } else if (course.toUpperCase().includes('CHEMICAL') || course.toUpperCase().includes('CHE')) {
+      branchCode = 'CHE';
+      deptName = 'CHEMICAL ENGINEERING';
+    } else if (course.toUpperCase().includes('PHARM')) {
+      branchCode = 'PHARM';
+      deptName = 'PHARMACY';
+    } else {
+      branchCode = 'CME';
+      deptName = 'COMPUTER ENGINEERING';
+    }
+
+    // Determine study period e.g. 2023 - 2026 (or 2-year for Pharmacy)
+    const duration = branchCode === 'PHARM' ? 2 : 3;
+    let startYear = '2023';
+    let endYear = String(parseInt(startYear, 10) + duration);
+    if (st.date_of_admission) {
+      const match = st.date_of_admission.match(/\d{4}/);
+      if (match) {
+        startYear = match[0];
+        endYear = String(parseInt(startYear, 10) + duration);
+      }
+    } else if (cleanPin) {
+      const match = cleanPin.match(/^(\d{2})/);
+      if (match) {
+        startYear = '20' + match[1];
+        endYear = String(parseInt(startYear, 10) + duration);
+      }
+    }
+    const studyPeriod = `${startYear} - ${endYear}`;
+
+    // Fetch active request and department clearances for student
+    const reqRes = await db.query(
+      'SELECT * FROM no_dues_requests WHERE LOWER(student_pin) = LOWER($1) ORDER BY id DESC LIMIT 1',
+      [cleanPin]
+    );
+
+    let clearances = [];
+    if (reqRes.rows.length > 0) {
+      const requestId = reqRes.rows[0].id;
+      const clearRes = await db.query(
+        `SELECT dc.*, d.name as canonical_dept_name
+         FROM department_clearances dc
+         LEFT JOIN departments d ON d.id = dc.department_id
+         WHERE dc.request_id = $1
+         ORDER BY dc.id ASC`,
+        [requestId]
+      );
+
+      clearances = clearRes.rows.map(c => ({
+        id: c.department_id,
+        name: c.department_name || c.canonical_dept_name,
+        status: c.status,
+        is_cleared: c.status === 'Approved' || c.status === 'Cleared',
+        approved_by: c.approved_by,
+        approved_at: c.approved_at
+      }));
+    }
+
+    // Fallback: if no request submitted yet, fetch applicable departments from DB
+    if (clearances.length === 0) {
+      const deptsRes = await db.query(
+        'SELECT * FROM departments WHERE is_active = 1 ORDER BY id ASC'
+      );
+      const applicable = deptsRes.rows.filter(d => isDepartmentApplicableToBranch(d.branch_code, branchCode));
+      clearances = applicable.map(d => ({
+        id: d.id,
+        name: d.name,
+        status: 'Pending',
+        is_cleared: false
+      }));
+    }
+
+    // STRICT RULE: No Dues Certificate can ONLY be generated after ALL department clearances are approved (100% cleared)
+    const totalCount = clearances.length;
+    const approvedCount = clearances.filter(c => c.is_cleared).length;
+    const isAllCleared = totalCount > 0 && approvedCount === totalCount;
+
+    if (!isAllCleared) {
+      return res.status(400).json({
+        success: false,
+        error: `No Dues Certificate cannot be generated until ALL department clearances are approved. (Currently ${approvedCount}/${totalCount} cleared).`
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        student_name: st.student_name,
+        student_pin: st.pin,
+        father_name: st.father_name,
+        course_branch: st.course_branch,
+        branch_code: branchCode,
+        department_title: `DEPARTMENT OF ${deptName}`,
+        admission_no: st.admission_no,
+        date_of_admission: st.date_of_admission,
+        study_period: studyPeriod,
+        clearances
+      }
+    });
+  } catch (err) {
+    console.error('getNoDuesFormData error:', err);
+    return res.status(500).json({ success: false, error: 'Failed to fetch No Dues form data.' });
+  }
+}
+
 module.exports = {
   getCertificateDetails,
-  getCertificateByVersion
+  getCertificateByVersion,
+  getNoDuesFormData
 };

@@ -154,14 +154,8 @@ async function switchClerkTab(tab) {
 }
 
 
-async function loadClerkDashboard() {
-  const res = await API.request('/clerk/dashboard');
-  if (!res.ok) {
-    API.showToast(res.data.error || 'Failed to load Clerk statistics.', 'error');
-    return;
-  }
-
-  const s = res.data.stats || {};
+function renderClerkStats(s) {
+  if (!s) return;
   const masterCount = s.total_students_master != null ? s.total_students_master : 0;
   const regCount = s.registered_students != null ? s.registered_students : 0;
   const pendingCount = s.pending_no_dues != null ? s.pending_no_dues : 0;
@@ -204,6 +198,26 @@ async function loadClerkDashboard() {
 
   const branchesBadge = document.getElementById('tab-badge-branches');
   if (branchesBadge) branchesBadge.innerText = 9;
+}
+
+async function loadClerkDashboard() {
+  // Strategy 6: Cache-First Instant Paint
+  const cachedStats = API.getCache('clerk_stats');
+  if (cachedStats) {
+    renderClerkStats(cachedStats);
+  }
+
+  const res = await API.request('/clerk/dashboard');
+  if (!res.ok) {
+    if (!cachedStats) {
+      API.showToast(res.data.error || 'Failed to load Clerk statistics.', 'error');
+    }
+    return;
+  }
+
+  const s = res.data.stats || {};
+  API.setCache('clerk_stats', s);
+  renderClerkStats(s);
 
   // Refresh live overview role roster
   loadOverviewData();
@@ -879,8 +893,8 @@ async function loadCertificateStudents() {
 
     if (hasGenerated) {
       actionButtons += `
-        <a href="certificate-view.html?pin=${encodeURIComponent(st.pin)}" target="_blank" class="btn btn-sm btn-success" style="margin-left:0.3rem; text-decoration:none;">
-          🖨️ View / Print TC
+        <a href="certificate-view.html?pin=${encodeURIComponent(st.pin)}" target="_blank" class="btn btn-sm btn-success" style="margin-left:0.3rem; text-decoration:none;" title="View and print official Transfer Certificate, Conduct Certificate, and No-Dues Form">
+          🖨️ View / Print Certificates
         </a>
         <button class="btn btn-sm btn-secondary" style="margin-left:0.3rem;" onclick="viewAuditHistory('${st.pin}')">
           📜 History
@@ -1238,20 +1252,26 @@ function renderFacultyAccounts() {
     const deptName = f.department_name || 'Department';
     const deptType = f.department_type || 'Online';
     const isCommon = f.branch_code === 'ALL' || f.is_common;
-    const branchCode = f.branch_code || 'ALL';
+    const branchCode = (f.branch_code || 'ALL').trim().toUpperCase();
 
-    const scopeBadge = isCommon
-      ? '<span class="badge badge-info" style="font-size:0.78rem;">🌐 Common (All Branches)</span>'
-      : `<span class="badge badge-approved" style="font-family:var(--font-mono); font-size:0.78rem;">🏛️ ${escapeHtml(branchCode)}</span>`;
+    let scopeBadge = '';
+    if (branchCode === 'ALL') {
+      scopeBadge = '<span class="badge badge-info" style="font-size:0.78rem;">🌐 Common (All Branches)</span>';
+    } else if (branchCode === 'ENG') {
+      scopeBadge = '<span class="badge" style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; font-size:0.78rem; font-weight:600;">⚙️ Engineering (Excl. Pharmacy)</span>';
+    } else if (branchCode === 'PHARM') {
+      scopeBadge = '<span class="badge" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-size:0.78rem; font-weight:600;">💊 Pharmacy Only</span>';
+    } else {
+      const parts = branchCode.split(',').map(s => s.trim()).filter(Boolean);
+      scopeBadge = parts.map(p => `<span class="badge badge-approved" style="font-family:var(--font-mono); font-size:0.78rem; margin-right:2px;">🏛️ ${escapeHtml(p)}</span>`).join('');
+    }
 
-    // Scope toggle button: If Common -> button to Make Branch Separated; If Branch -> button to Make Common
-    const scopeBtn = isCommon
-      ? `<button class="btn btn-sm btn-outline" style="font-size:0.75rem; padding:0.25rem 0.5rem;" onclick="openSetFacultyScopeModal(${f.id})">
-           🏛️ Make Branch Separated
-         </button>`
-      : `<button class="btn btn-sm btn-outline" style="font-size:0.75rem; padding:0.25rem 0.5rem;" onclick="makeFacultyCommon(${f.id})">
-           🌐 Make Common
-         </button>`;
+    const scopeBtn = `
+      <button class="btn btn-sm btn-outline" style="font-size:0.75rem; padding:0.25rem 0.5rem;" onclick="openSetFacultyScopeModal(${f.id})">
+        🏛️ Set Scope
+      </button>
+      ${branchCode !== 'ALL' ? `<button class="btn btn-sm btn-outline" style="font-size:0.75rem; padding:0.25rem 0.5rem; margin-left:0.2rem;" onclick="makeFacultyCommon(${f.id})">🌐 Common</button>` : ''}
+    `;
 
     tr.innerHTML = `
       <td style="font-weight:600; color:var(--text-muted);">${index + 1}</td>
@@ -1319,36 +1339,58 @@ async function makeFacultyCommon(id) {
   }
 }
 
+function onEditScopeTypeChange(val) {
+  const container = document.getElementById('scope-edit-custom-container');
+  if (container) {
+    container.style.display = val === 'CUSTOM' ? 'block' : 'none';
+  }
+}
+
 async function openSetFacultyScopeModal(id) {
   changingFacultyScopeId = id;
   changingDeptScopeId = null;
   const f = (cachedFacultyAccounts || []).find(x => Number(x.id) === Number(id));
   const username = f ? f.username : `Faculty #${id}`;
-  const currentBranch = f ? (f.branch_code || 'ALL') : 'ALL';
+  const currentBranch = (f ? (f.branch_code || 'ALL') : 'ALL').trim().toUpperCase();
+
+  const titleEl = document.getElementById('scope-modal-title');
+  if (titleEl) titleEl.innerText = '🏛️ Set Faculty Account Branch Scope';
 
   const userEl = document.getElementById('scope-fac-username');
-  if (userEl) userEl.innerText = username;
+  if (userEl) userEl.innerText = `${username} (${f ? f.department_name : ''})`;
 
-  const select = document.getElementById('scope-branch-select');
-  select.innerHTML = '';
+  // Reset custom checkboxes
+  const cbs = document.querySelectorAll('input[name="scope-edit-custom-branch"]');
+  cbs.forEach(cb => cb.checked = false);
 
-  // Fetch current branches
-  const res = await API.request('/clerk/branches');
-  const branches = (res.ok && res.data.branches) || cachedBranches || [];
-
-  branches.forEach(b => {
-    const opt = document.createElement('option');
-    opt.value = b.code;
-    opt.innerText = `${b.code} - ${b.name}`;
-    if (b.code === currentBranch) opt.selected = true;
-    select.appendChild(opt);
-  });
+  if (currentBranch === 'ALL') {
+    const r = document.querySelector('input[name="scope-edit-type"][value="ALL"]');
+    if (r) r.checked = true;
+    onEditScopeTypeChange('ALL');
+  } else if (currentBranch === 'ENG') {
+    const r = document.querySelector('input[name="scope-edit-type"][value="ENG"]');
+    if (r) r.checked = true;
+    onEditScopeTypeChange('ENG');
+  } else if (currentBranch === 'PHARM') {
+    const r = document.querySelector('input[name="scope-edit-type"][value="PHARM"]');
+    if (r) r.checked = true;
+    onEditScopeTypeChange('PHARM');
+  } else {
+    const r = document.querySelector('input[name="scope-edit-type"][value="CUSTOM"]');
+    if (r) r.checked = true;
+    onEditScopeTypeChange('CUSTOM');
+    const branchList = currentBranch.split(',').map(b => b.trim().toUpperCase());
+    cbs.forEach(cb => {
+      if (branchList.includes(cb.value.toUpperCase())) {
+        cb.checked = true;
+      }
+    });
+  }
 
   document.getElementById('modal-set-faculty-scope').style.display = 'flex';
 }
 
 function closeSetFacultyScopeModal() {
-
   document.getElementById('modal-set-faculty-scope').style.display = 'none';
   changingFacultyScopeId = null;
   changingDeptScopeId = null;
@@ -1356,7 +1398,22 @@ function closeSetFacultyScopeModal() {
 
 async function submitSetFacultyScope(e) {
   e.preventDefault();
-  const branch_code = document.getElementById('scope-branch-select').value;
+  const scopeTypeRadio = document.querySelector('input[name="scope-edit-type"]:checked');
+  const scopeType = scopeTypeRadio ? scopeTypeRadio.value : 'ALL';
+
+  let branch_code = 'ALL';
+  if (scopeType === 'ENG') {
+    branch_code = 'ENG';
+  } else if (scopeType === 'PHARM') {
+    branch_code = 'PHARM';
+  } else if (scopeType === 'CUSTOM') {
+    const checked = Array.from(document.querySelectorAll('input[name="scope-edit-custom-branch"]:checked')).map(cb => cb.value);
+    if (checked.length === 0) {
+      API.showToast('Please select at least one branch for custom scope.', 'warning');
+      return;
+    }
+    branch_code = checked.join(',');
+  }
 
   if (changingDeptScopeId) {
     const res = await API.request(`/clerk/departments/${changingDeptScopeId}`, {
@@ -1365,7 +1422,7 @@ async function submitSetFacultyScope(e) {
     });
 
     if (res.ok && res.data.success) {
-      API.showToast(`Department "${changingDeptScopeName}" scope set to branch ${branch_code}!`, 'success');
+      API.showToast(`Department "${changingDeptScopeName}" scope updated to: ${branch_code}!`, 'success');
       closeSetFacultyScopeModal();
       changingDeptScopeId = null;
       await loadDepartments();
@@ -1489,26 +1546,55 @@ async function submitResetFacultyPassword(e) {
 }
 
 // --- BRANCHES & DEPARTMENTS TAB ---
+const ENGINEERING_BRANCHES = ['CIVIL', 'MECH', 'EEE', 'ECE', 'CME', 'BME', 'CHE', 'ECE-II'];
 
-async function loadBranches() {
-  const res = await API.request('/clerk/branches');
+function isDeptApplicableToBranchClient(deptBranchCode, targetBranch) {
+  if (!targetBranch || targetBranch === 'ALL') return true;
+  if (!deptBranchCode) return true;
+  const raw = deptBranchCode.trim().toUpperCase();
+  if (raw === 'ALL') return true;
+  const tgt = targetBranch.trim().toUpperCase();
+  if (raw === 'ENG') return ENGINEERING_BRANCHES.includes(tgt);
+  const branches = raw.split(',').map(b => b.trim().toUpperCase());
+  if (branches.includes(tgt)) return true;
+  if (branches.includes('ALL')) return true;
+  if (branches.includes('ENG') && ENGINEERING_BRANCHES.includes(tgt)) return true;
+  return false;
+}
+
+function renderBranchesUI(branches) {
+  if (!branches || !Array.isArray(branches)) return;
   const tbody = document.getElementById('branches-table-body');
   const chips = document.getElementById('branches-chips-container');
-  const deptSelect = document.getElementById('dept-branch-select');
   const filterSelect = document.getElementById('filter-dept-branch');
+  const deptCheckboxes = document.getElementById('dept-branch-checkboxes');
+  const scopeCheckboxes = document.getElementById('scope-edit-checkboxes');
 
-  tbody.innerHTML = '';
-  chips.innerHTML = '';
+  if (tbody) tbody.innerHTML = '';
+  if (chips) chips.innerHTML = '';
 
-  if (res.ok && res.data.branches) {
-    cachedBranches = res.data.branches;
+  if (filterSelect) {
+    const prev = filterSelect.value || 'ALL';
+    filterSelect.innerHTML = `
+      <option value="ALL">Filter: All Branches &amp; Common</option>
+      <option value="ENG">Filter: Engineering Branches (Excl. Pharmacy)</option>
+      <option value="PHARM">Filter: Pharmacy Only (D.Pharma)</option>
+    `;
+    branches.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.code;
+      opt.innerText = `Branch: ${b.code} (${b.name})`;
+      if (b.code === prev) opt.selected = true;
+      filterSelect.appendChild(opt);
+    });
+  }
 
-    // Reset dropdowns
-    if (deptSelect) deptSelect.innerHTML = '<option value="ALL">All Branches (Common: Library, Accounts, Hostel, etc.)</option>';
-    if (filterSelect) filterSelect.innerHTML = '<option value="ALL">Filter: All Branches &amp; Common</option>';
+  if (deptCheckboxes) deptCheckboxes.innerHTML = '';
+  if (scopeCheckboxes) scopeCheckboxes.innerHTML = '';
 
-    cachedBranches.forEach(b => {
-      // 1. Branch Chip
+  branches.forEach(b => {
+    // 1. Branch Chip
+    if (chips) {
       const chip = document.createElement('div');
       chip.className = 'user-badge';
       chip.style.borderColor = b.is_active ? 'var(--border-highlight)' : 'var(--status-due)';
@@ -1517,23 +1603,26 @@ async function loadBranches() {
         ${!b.is_active ? '<span style="color:var(--status-due); font-size:0.7rem; margin-left:0.3rem;">(Inactive)</span>' : ''}
       `;
       chips.appendChild(chip);
+    }
 
-      // 2. Populate Dropdowns
-      if (deptSelect) {
-        const opt1 = document.createElement('option');
-        opt1.value = b.code;
-        opt1.innerText = `${b.code} - ${b.name}`;
-        deptSelect.appendChild(opt1);
-      }
+    // 2. Populate Checkboxes for Add Dept Modal
+    if (deptCheckboxes) {
+      const lbl = document.createElement('label');
+      lbl.style.cssText = 'display:flex; align-items:center; gap:0.35rem; font-size:0.8rem; cursor:pointer; background:var(--bg-card); padding:0.3rem 0.5rem; border:1px solid var(--border-color); border-radius:4px;';
+      lbl.innerHTML = `<input type="checkbox" name="dept-custom-branch" value="${escapeHtml(b.code)}"> <strong>${escapeHtml(b.code)}</strong>`;
+      deptCheckboxes.appendChild(lbl);
+    }
 
-      if (filterSelect) {
-        const opt2 = document.createElement('option');
-        opt2.value = b.code;
-        opt2.innerText = `Branch: ${b.code} (${b.name})`;
-        filterSelect.appendChild(opt2);
-      }
+    // 3. Populate Checkboxes for Edit Scope Modal
+    if (scopeCheckboxes) {
+      const lbl = document.createElement('label');
+      lbl.style.cssText = 'display:flex; align-items:center; gap:0.35rem; font-size:0.8rem; cursor:pointer; background:var(--bg-card); padding:0.3rem 0.5rem; border:1px solid var(--border-color); border-radius:4px;';
+      lbl.innerHTML = `<input type="checkbox" name="scope-edit-custom-branch" value="${escapeHtml(b.code)}"> <strong>${escapeHtml(b.code)}</strong>`;
+      scopeCheckboxes.appendChild(lbl);
+    }
 
-      // 3. Table Row
+    // 4. Table Row
+    if (tbody) {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td style="font-family:var(--font-mono); font-weight:bold; color:var(--accent-gold);">${escapeHtml(b.code)}</td>
@@ -1549,7 +1638,23 @@ async function loadBranches() {
         </td>
       `;
       tbody.appendChild(tr);
-    });
+    }
+  });
+}
+
+async function loadBranches() {
+  // Strategy 6: Cache-First Instant Paint
+  const cached = API.getCache('branches');
+  if (cached && Array.isArray(cached) && cached.length > 0) {
+    cachedBranches = cached;
+    renderBranchesUI(cached);
+  }
+
+  const res = await API.request('/clerk/branches');
+  if (res.ok && res.data.branches) {
+    cachedBranches = res.data.branches;
+    API.setCache('branches', res.data.branches);
+    renderBranchesUI(cachedBranches);
   }
 }
 
@@ -1574,7 +1679,6 @@ async function deleteBranch(id) {
     API.showToast(res.data.error || 'Failed to delete branch.', 'error');
   }
 }
-
 
 function openAddBranchModal() {
   document.getElementById('branch-code-input').value = '';
@@ -1623,11 +1727,20 @@ async function toggleBranchStatus(id, newStatus) {
 
 // --- DEPARTMENTS MANAGEMENT ---
 async function loadDepartments() {
+  const filterEl = document.getElementById('filter-dept-branch');
+  const currentFilter = (filterEl && filterEl.value) || 'ALL';
+
+  // Strategy 6: Cache-First Instant Paint
+  const cached = API.getCache('departments');
+  if (cached && Array.isArray(cached) && cached.length > 0) {
+    cachedDepartments = cached;
+    filterDeptsByBranch(currentFilter);
+  }
+
   const res = await API.request('/clerk/departments');
   if (res.ok && res.data.departments) {
     cachedDepartments = res.data.departments;
-    const filterEl = document.getElementById('filter-dept-branch');
-    const currentFilter = (filterEl && filterEl.value) || 'ALL';
+    API.setCache('departments', res.data.departments);
     filterDeptsByBranch(currentFilter);
   }
 }
@@ -1640,7 +1753,7 @@ function filterDeptsByBranch(branchCode) {
 
   let deptsToShow = cachedDepartments;
   if (branchCode && branchCode !== 'ALL') {
-    deptsToShow = cachedDepartments.filter(d => (d.branch_code || 'ALL') === branchCode || (d.branch_code || 'ALL') === 'ALL');
+    deptsToShow = cachedDepartments.filter(d => isDeptApplicableToBranchClient(d.branch_code, branchCode));
   }
 
   if (deptsToShow.length === 0) {
@@ -1650,24 +1763,32 @@ function filterDeptsByBranch(branchCode) {
 
   deptsToShow.forEach((d, index) => {
     const tr = document.createElement('tr');
-    const bCode = d.branch_code || 'ALL';
-    const branchBadge = bCode === 'ALL'
-      ? '<span class="badge badge-info">All Branches (Common)</span>'
-      : `<span class="badge badge-approved" style="font-family:var(--font-mono);">${escapeHtml(bCode)}</span>`;
+    const bCode = (d.branch_code || 'ALL').trim().toUpperCase();
+    let branchBadge = '';
+
+    if (bCode === 'ALL') {
+      branchBadge = '<span class="badge badge-info">🌐 All Branches (Common)</span>';
+    } else if (bCode === 'ENG') {
+      branchBadge = '<span class="badge" style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; font-weight:600;">⚙️ Engineering (Excl. Pharmacy)</span>';
+    } else if (bCode === 'PHARM') {
+      branchBadge = '<span class="badge" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-weight:600;">💊 Pharmacy Only</span>';
+    } else {
+      const parts = bCode.split(',').map(s => s.trim()).filter(Boolean);
+      branchBadge = parts.map(p => `<span class="badge badge-approved" style="font-family:var(--font-mono); font-size:0.75rem; margin-right:3px;">${escapeHtml(p)}</span>`).join('');
+    }
 
     const isCommon = bCode === 'ALL';
-    const scopeBtn = isCommon
-      ? `<button class="btn btn-sm btn-outline" style="font-size:0.75rem; padding:0.2rem 0.4rem;" onclick="openSetDeptScopeModal(${d.id})">
-           🏛️ Set Branch
-         </button>`
-      : `<button class="btn btn-sm btn-outline" style="font-size:0.75rem; padding:0.2rem 0.4rem;" onclick="makeDeptCommon(${d.id})">
-           🌐 Make Common
-         </button>`;
+    const scopeBtn = `
+      <button class="btn btn-sm btn-outline" style="font-size:0.75rem; padding:0.2rem 0.45rem;" onclick="openSetDeptScopeModal(${d.id})">
+        🏛️ Scope
+      </button>
+      ${!isCommon ? `<button class="btn btn-sm btn-outline" style="font-size:0.75rem; padding:0.2rem 0.45rem; margin-left:0.2rem;" onclick="makeDeptCommon(${d.id})" title="Make section common to all branches">🌐 Common</button>` : ''}
+    `;
 
     tr.innerHTML = `
       <td style="font-weight:600; color:var(--text-muted);">${index + 1}</td>
       <td><strong>${escapeHtml(d.name)}</strong></td>
-      <td>${branchBadge} <span style="margin-left:0.3rem;">${scopeBtn}</span></td>
+      <td><div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.25rem;">${branchBadge} <span style="margin-left:0.3rem;">${scopeBtn}</span></div></td>
       <td><span class="badge ${d.type === 'Online' ? 'badge-info' : 'badge-pending'}">${escapeHtml(d.type)}</span></td>
       <td>${d.is_active ? '<span class="badge badge-approved">Active</span>' : '<span class="badge badge-due">Inactive</span>'}</td>
       <td>
@@ -1735,32 +1856,63 @@ function openSetDeptScopeModal(id) {
   const dept = (cachedDepartments || []).find(x => Number(x.id) === Number(id));
   const name = dept ? dept.name : `Department #${id}`;
   const type = dept ? dept.type : 'Online';
-  const currentBranch = dept ? (dept.branch_code || 'ALL') : 'ALL';
+  const currentBranch = (dept ? (dept.branch_code || 'ALL') : 'ALL').trim().toUpperCase();
 
   changingDeptScopeName = name;
   changingDeptScopeType = type;
 
-  const select = document.getElementById('scope-branch-select');
-  select.innerHTML = '';
-
-  (cachedBranches || []).forEach(b => {
-    const opt = document.createElement('option');
-    opt.value = b.code;
-    opt.innerText = `${b.code} - ${b.name}`;
-    if (b.code === currentBranch) opt.selected = true;
-    select.appendChild(opt);
-  });
+  const titleEl = document.getElementById('scope-modal-title');
+  if (titleEl) titleEl.innerText = '🏛️ Set Clearance Section Branch Scope';
 
   const userEl = document.getElementById('scope-fac-username');
-  if (userEl) userEl.innerText = `Department: ${name}`;
+  if (userEl) userEl.innerText = `Department / Lab: ${name}`;
+
+  // Reset custom checkboxes
+  const cbs = document.querySelectorAll('input[name="scope-edit-custom-branch"]');
+  cbs.forEach(cb => cb.checked = false);
+
+  if (currentBranch === 'ALL') {
+    const r = document.querySelector('input[name="scope-edit-type"][value="ALL"]');
+    if (r) r.checked = true;
+    onEditScopeTypeChange('ALL');
+  } else if (currentBranch === 'ENG') {
+    const r = document.querySelector('input[name="scope-edit-type"][value="ENG"]');
+    if (r) r.checked = true;
+    onEditScopeTypeChange('ENG');
+  } else if (currentBranch === 'PHARM') {
+    const r = document.querySelector('input[name="scope-edit-type"][value="PHARM"]');
+    if (r) r.checked = true;
+    onEditScopeTypeChange('PHARM');
+  } else {
+    const r = document.querySelector('input[name="scope-edit-type"][value="CUSTOM"]');
+    if (r) r.checked = true;
+    onEditScopeTypeChange('CUSTOM');
+    const branchList = currentBranch.split(',').map(b => b.trim().toUpperCase());
+    cbs.forEach(cb => {
+      if (branchList.includes(cb.value.toUpperCase())) {
+        cb.checked = true;
+      }
+    });
+  }
 
   document.getElementById('modal-set-faculty-scope').style.display = 'flex';
 }
 
+function onDeptScopeTypeChange(val) {
+  const container = document.getElementById('dept-custom-branches-container');
+  if (container) {
+    container.style.display = val === 'CUSTOM' ? 'block' : 'none';
+  }
+}
+
 function openAddDeptModal() {
   document.getElementById('dept-name-input').value = '';
-  document.getElementById('dept-branch-select').value = 'ALL';
   document.getElementById('dept-type-select').value = 'Online';
+  const allRadio = document.querySelector('input[name="dept-scope-type"][value="ALL"]');
+  if (allRadio) allRadio.checked = true;
+  onDeptScopeTypeChange('ALL');
+  const cbs = document.querySelectorAll('input[name="dept-custom-branch"]');
+  cbs.forEach(cb => cb.checked = false);
   document.getElementById('modal-add-dept').style.display = 'flex';
 }
 
@@ -1771,8 +1923,23 @@ function closeAddDeptModal() {
 async function submitAddDepartment(e) {
   e.preventDefault();
   const name = document.getElementById('dept-name-input').value.trim();
-  const branch_code = document.getElementById('dept-branch-select').value;
   const type = document.getElementById('dept-type-select').value;
+  const scopeTypeRadio = document.querySelector('input[name="dept-scope-type"]:checked');
+  const scopeType = scopeTypeRadio ? scopeTypeRadio.value : 'ALL';
+
+  let branch_code = 'ALL';
+  if (scopeType === 'ENG') {
+    branch_code = 'ENG';
+  } else if (scopeType === 'PHARM') {
+    branch_code = 'PHARM';
+  } else if (scopeType === 'CUSTOM') {
+    const checked = Array.from(document.querySelectorAll('input[name="dept-custom-branch"]:checked')).map(cb => cb.value);
+    if (checked.length === 0) {
+      API.showToast('Please select at least one branch for custom scope.', 'warning');
+      return;
+    }
+    branch_code = checked.join(',');
+  }
 
   const res = await API.request('/clerk/departments', {
     method: 'POST',
@@ -1842,6 +2009,8 @@ window.deleteDepartment = deleteDepartment;
 window.openAddDeptModal = openAddDeptModal;
 window.closeAddDeptModal = closeAddDeptModal;
 window.submitAddDepartment = submitAddDepartment;
+window.onDeptScopeTypeChange = onDeptScopeTypeChange;
+window.onEditScopeTypeChange = onEditScopeTypeChange;
 window.deleteSingleStudent = deleteSingleStudent;
 window.purgeAllStudentData = purgeAllStudentData;
 

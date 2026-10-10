@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Official Transfer & Study Certificate</title>
   <link rel="stylesheet" href="css/style.css">
+  <script src="js/config.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -34,10 +35,13 @@
 
   <!-- Top Action Bar (Hidden when printing) -->
   <div class="print-bar no-print">
-    <div style="display:flex; align-items:center; gap:1rem;">
-      <a href="javascript:window.close()" class="btn btn-sm btn-secondary">&larr; Close / Return</a>
-      <span style="font-size:0.9rem; color:#94a3b8;">
-        Official Certificate Document | <strong id="doc-version-banner" style="color:#d97706;">Current Version</strong>
+    <div style="display:flex; align-items:center; gap:0.8rem; flex-wrap:wrap;">
+      <a href="javascript:window.close()" class="btn btn-sm btn-secondary">&larr; Close</a>
+      <a href="#tc-document" class="btn btn-sm btn-secondary" style="font-size:0.82rem; background:#334155; color:#fff;">🎓 Transfer Cert (TC)</a>
+      <a href="#conduct-document" class="btn btn-sm btn-secondary" style="font-size:0.82rem; background:#334155; color:#fff;">📜 Conduct Cert</a>
+      <a href="#nodues-document" class="btn btn-sm btn-secondary" style="font-size:0.82rem; background:#334155; color:#fff;">📄 No-Dues Form</a>
+      <span style="font-size:0.85rem; color:#94a3b8; margin-left:0.4rem;">
+        <strong id="doc-version-banner" style="color:#d97706;">Official Record</strong>
       </span>
     </div>
     <div style="display:flex; gap:0.6rem; align-items:center;">
@@ -234,10 +238,48 @@
       </div>
     </div>
 
+
+    <!-- ======================================================== -->
+    <!-- 3. OFFICIAL NO DUES CERTIFICATE (MATCHING PHYSICAL PHOTO) -->
+    <!-- ======================================================== -->
+    <div class="cert-container" id="nodues-document" style="margin-top: 3rem;">
+      <img id="nd-watermark" src="assets/logo.png" class="cert-watermark" alt="SVGP Crest">
+
+      <!-- Official Department Header -->
+      <div class="nd-official-header">
+        <div class="nd-college-title" id="nd-college-title">S V GOVERNMENT POLYTECHNIC TIRUPATI</div>
+        <div class="nd-dept-title" id="nd-dept-title">DEPARTMENT OF COMPUTER ENGINEERING</div>
+        <div class="nd-main-title">NO DUES CERTIFICATE</div>
+      </div>
+
+      <!-- Main Body Statement -->
+      <div class="nd-body-statement">
+        This certificate belongs to <span class="nd-fill-field" id="nd-student-name">--</span>
+        bearing PIN Number <span class="nd-fill-field" id="nd-pin-number" style="font-family:monospace;">--</span>. He/ She studied in S.V.
+        Government Polytechnic, Tirupati during <span class="nd-fill-field" id="nd-study-period">--</span> in <span class="nd-fill-field" id="nd-branch-name">--</span> Department.
+      </div>
+
+      <!-- Numbered Department Clearance List -->
+      <ol class="nd-clearance-list" id="nd-clearance-list">
+        <!-- Dynamically populated from JS -->
+      </ol>
+
+      <!-- Signature Footer -->
+      <div class="nd-official-footer">
+        <div class="nd-footer-col left">
+          <div class="nd-sig-line"></div>
+          <div class="nd-sig-label">Signature of Student</div>
+        </div>
+        <div class="nd-footer-col right">
+          <div class="nd-sig-line"></div>
+          <div class="nd-sig-label">Head of Department</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <script src="js/config.js?v=2.2"></script>
-  <script src="js/api.js?v=2.2"></script>
-  <script src="js/certificate.js?v=2.2"></script>
+  <script src="js/api.js?v=2.8"></script>
+  <script src="js/certificate.js?v=2.8"></script>
 </body>
 </html>
