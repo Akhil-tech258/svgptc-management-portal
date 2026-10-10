@@ -2467,3 +2467,105 @@ input[type="date"].form-control::-webkit-calendar-picker-indicator:hover {
     max-width: none;
   }
 }
+
+/* ========================================================
+   LIVE CLOUD SERVER CONNECTION STATUS PILL (RENDER COLD-START UX)
+   ======================================================== */
+.server-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.32rem 0.8rem;
+  border-radius: 9999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  white-space: nowrap;
+  font-family: var(--font-main, sans-serif);
+}
+
+.server-status-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+/* Standby / Waking up state (Warm amber) */
+.server-status-pill.standby {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+[data-theme="dark"] .server-status-pill.standby {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.server-status-pill .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.server-status-pill .status-dot.pulsing-amber {
+  background: #f59e0b;
+  box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+  animation: serverStatusPulse 1.6s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+
+/* Connected state (Fresh vibrant green) */
+.server-status-pill.connected {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+[data-theme="dark"] .server-status-pill.connected {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.server-status-pill .status-dot.solid-green {
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+/* Minimized text after 4s */
+.server-status-pill.minimized .status-text-full {
+  display: none;
+}
+.server-status-pill.minimized .status-text-mini {
+  display: inline;
+}
+.server-status-pill:not(.minimized) .status-text-mini {
+  display: none;
+}
+
+@keyframes serverStatusPulse {
+  0% {
+    transform: scale(0.92);
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+  }
+  70% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 7px rgba(245, 158, 11, 0);
+  }
+  100% {
+    transform: scale(0.92);
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+}
+
+@media (max-width: 600px) {
+  .server-status-pill {
+    padding: 0.25rem 0.55rem;
+    font-size: 0.72rem;
+  }
+}

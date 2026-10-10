@@ -74,6 +74,107 @@ const API = {
     }
   },
 
+  // Live Cloud Server Connection Status Pill (Option 1 & 3)
+  initServerStatusPill() {
+    if (typeof document === 'undefined') return;
+    if (document.getElementById('server-status-pill')) return;
+
+    // Target header-actions, print-bar, or fallback to header container
+    const target = document.querySelector('.header-actions') || document.querySelector('.print-bar') || document.querySelector('.header-container');
+    if (!target) return;
+
+    const pill = document.createElement('div');
+    pill.id = 'server-status-pill';
+    pill.className = 'server-status-pill standby';
+    pill.title = 'Cloud server status. Click to test connection.';
+    pill.innerHTML = `
+      <span class="status-dot pulsing-amber"></span>
+      <span class="status-text-full">Waking up cloud server... (~25s)</span>
+      <span class="status-text-mini">Waking...</span>
+    `;
+
+    pill.addEventListener('click', () => {
+      this.checkServerConnection(true);
+    });
+
+    if (target.firstChild) {
+      target.insertBefore(pill, target.firstChild);
+    } else {
+      target.appendChild(pill);
+    }
+
+    this.checkServerConnection();
+  },
+
+  async checkServerConnection(isManual = false) {
+    if (isManual) {
+      this.showToast('Checking server connection...', 'info', 1800);
+    }
+
+    const baseUrl = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || 'http://localhost:5000/api';
+    let healthUrl = '/api/health';
+    if (baseUrl.startsWith('http')) {
+      healthUrl = baseUrl.replace(/\/api\/?$/, '') + '/health';
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 7000);
+
+      const res = await fetch(healthUrl, {
+        signal: controller.signal,
+        cache: 'no-store'
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        this.setServerConnected(true);
+        if (isManual) this.showToast('Server is online and ready! 🟢', 'success', 2500);
+        return true;
+      } else {
+        throw new Error('Not OK');
+      }
+    } catch (err) {
+      this.setServerConnected(false);
+      // Auto-poll every 3.5 seconds until server boots
+      if (!this._pollTimer) {
+        this._pollTimer = setTimeout(() => {
+          this._pollTimer = null;
+          this.checkServerConnection();
+        }, 3500);
+      }
+      return false;
+    }
+  },
+
+  setServerConnected(connected) {
+    const pill = document.getElementById('server-status-pill');
+    if (!pill) return;
+
+    if (connected) {
+      pill.className = 'server-status-pill connected';
+      pill.innerHTML = `
+        <span class="status-dot solid-green"></span>
+        <span class="status-text-full">🟢 Server Connected!</span>
+        <span class="status-text-mini">Online</span>
+      `;
+      if (this._minimizeTimer) clearTimeout(this._minimizeTimer);
+      this._minimizeTimer = setTimeout(() => {
+        if (pill) pill.classList.add('minimized');
+      }, 4000);
+
+      this.hideColdStartIndicator();
+    } else {
+      pill.classList.remove('minimized');
+      pill.className = 'server-status-pill standby';
+      pill.innerHTML = `
+        <span class="status-dot pulsing-amber"></span>
+        <span class="status-text-full">Waking up cloud server... (~25s)</span>
+        <span class="status-text-mini">Waking...</span>
+      `;
+    }
+  },
+
   // Strategy 3: Cold-Start UI Indicators
   showColdStartIndicator() {
     let el = document.getElementById('render-cold-start-banner');
@@ -161,7 +262,7 @@ const API = {
     }
 
     const retryCount = options._retryCount || 0;
-    const maxRetries = options.retries !== undefined ? options.retries : 2;
+    const maxRetries = options.retries !== undefined ? options.retries : 3;
 
     try {
       const res = await fetch(url, {
@@ -171,9 +272,12 @@ const API = {
 
       if (coldStartTimer) clearTimeout(coldStartTimer);
       this.hideColdStartIndicator();
+      this.setServerConnected(true);
 
       // Check for temporary Render 502/503 during boot
       if ((res.status === 502 || res.status === 503) && retryCount < maxRetries) {
+        this.setServerConnected(false);
+        this.showColdStartIndicator();
         await new Promise(r => setTimeout(r, 2500));
         return this.request(endpoint, { ...options, _retryCount: retryCount + 1 });
       }
@@ -195,6 +299,8 @@ const API = {
 
       // If connection dropped during container boot, retry up to maxRetries
       if (retryCount < maxRetries) {
+        this.setServerConnected(false);
+        this.showColdStartIndicator();
         await new Promise(r => setTimeout(r, 2500));
         return this.request(endpoint, { ...options, _retryCount: retryCount + 1 });
       }
@@ -519,13 +625,21 @@ const API = {
   initTheme() {
     const current = this.getTheme();
     document.documentElement.setAttribute('data-theme', current);
-    document.addEventListener('DOMContentLoaded', () => {
+
+    const runInits = () => {
       this.updateThemeButton();
       this.initBranding();
       this.initKeyboardShortcuts();
       this.initDesktopBanner();
       this.initBackToTop();
-    });
+      this.initServerStatusPill();
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', runInits);
+    } else {
+      runInits();
+    }
   },
 
   escapeHtml(str) {

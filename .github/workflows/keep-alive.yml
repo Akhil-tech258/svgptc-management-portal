@@ -1,9 +1,11 @@
-name: Supabase & Web Service Keep-Alive
+name: Render & Supabase College-Hours Keep-Alive
 
 on:
   schedule:
-    # Runs automatically every 14 minutes (Render free tier spins down after 15 min idle)
-    - cron: '*/14 * * * *'
+    # Runs every 14 minutes during College Working Hours ONLY (Mon-Fri, 8:30 AM - 5:30 PM IST / 03:00 - 11:59 UTC)
+    # Saves ~75% of Render free-tier monthly hours (only ~180 hrs/month used out of 750 free hours)!
+    # Nights and weekends sleep naturally to preserve quota.
+    - cron: '*/14 3-11 * * 1-5'
   workflow_dispatch: # Allows manual trigger anytime from GitHub Actions tab
 
 jobs:
