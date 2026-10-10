@@ -25,15 +25,53 @@ const API = {
     window.location.href = redirectPath;
   },
 
-  // Strategy 2: Pre-warm Render Free Tier Backend
+  // Strategy 2: Pre-warm & Keep-Alive Render Free Tier Backend
   prewarm() {
     try {
       const baseUrl = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || 'http://localhost:5000/api';
-      const healthUrl = baseUrl.endsWith('/api') ? `${baseUrl}/health` : `${baseUrl}/api/health`;
-      if (typeof fetch === 'function') {
-        fetch(healthUrl, { mode: 'no-cors', cache: 'no-store' }).catch(() => {});
+      let healthUrl = '/api/health';
+      if (baseUrl.startsWith('http')) {
+        healthUrl = baseUrl.replace(/\/api\/?$/, '') + '/health';
       }
+      if (typeof fetch === 'function') {
+        fetch(healthUrl, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(() => {});
+      }
+      this._lastPingTime = Date.now();
     } catch (e) {}
+  },
+
+  startHeartbeat() {
+    // 1. Initial wake-up ping immediately when script loads
+    this.prewarm();
+
+    // 2. Active keep-alive heartbeat every 8 minutes (Render sleeps after 15 min of inactivity)
+    if (!this._heartbeatInterval) {
+      this._heartbeatInterval = setInterval(() => {
+        this.prewarm();
+      }, 8 * 60 * 1000);
+    }
+
+    // 3. Re-ping when tab becomes active again if idle > 5 minutes
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          const elapsed = Date.now() - (this._lastPingTime || 0);
+          if (elapsed > 5 * 60 * 1000) {
+            this.prewarm();
+          }
+        }
+      });
+
+      // 4. Opportunistic pre-warming on interactive intent (hover/focus on buttons or forms)
+      document.addEventListener('mouseover', (e) => {
+        const target = e.target.closest('button, a, input, select');
+        if (target && !this._hoverPrewarmed) {
+          this._hoverPrewarmed = true;
+          this.prewarm();
+          setTimeout(() => { this._hoverPrewarmed = false; }, 60000);
+        }
+      }, { passive: true });
+    }
   },
 
   // Strategy 3: Cold-Start UI Indicators
@@ -518,6 +556,7 @@ function escapeHtml(str) {
 window.escapeHtml = escapeHtml;
 
 API.initTheme();
+API.startHeartbeat();
 window.API = API;
 
 
