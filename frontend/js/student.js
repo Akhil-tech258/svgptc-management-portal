@@ -694,13 +694,16 @@ function renderCertificateDetails(cert, student) {
 
   if (isGenerated) {
     btnContainer.innerHTML = `
-      <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
-        <a href="certificate-view.html?pin=${encodeURIComponent(pin)}" target="_blank" class="btn btn-sm btn-primary" style="text-decoration:none; font-weight:600;">
-          🖨️ View &amp; Print Transfer Certificate (TC) &rarr;
-        </a>
-        <a href="certificate-view.html?pin=${encodeURIComponent(pin)}#conduct-document" target="_blank" class="btn btn-sm btn-secondary" style="text-decoration:none;">
-          📜 Conduct Certificate
-        </a>
+      <div style="display:flex; flex-direction:column; gap:0.6rem; max-width:680px;">
+        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+          <span class="badge badge-approved" style="font-size:0.88rem; padding:0.45rem 0.9rem; background:#dcfce7; color:#166534; border:1px solid #bbf7d0; font-weight:700;">
+            ✅ Clearances 100% Cleared • Certificate Issued by Office
+          </span>
+        </div>
+        <div style="background:var(--bg-surface, #ffffff); border:1px solid #bbf7d0; border-left:4px solid #16a34a; border-radius:6px; padding:0.85rem 1.1rem; font-size:0.88rem; color:var(--text-primary); line-height:1.55;">
+          <strong style="color:#15803d; display:block; margin-bottom:0.25rem;">🏛️ Official Administrative Notice</strong>
+          <span>Your No-Dues clearance is complete and your Transfer Certificate has been officially issued in college records. Per institutional regulations, official physical certificates with the college seal and Principal's signature must be collected directly from the <strong>College Administrative Office (Clerk Desk)</strong> upon presenting your Student ID.</span>
+        </div>
       </div>
     `;
   } else {

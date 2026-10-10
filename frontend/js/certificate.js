@@ -64,17 +64,19 @@ async function loadCertificate() {
     return;
   }
 
-  // Allow Clerk or the specific student viewing their own certificate
-  const isAuthorized = user.role === 'clerk' || (user.role === 'student' && pin && user.pin.toLowerCase() === pin.toLowerCase());
+  // Institutional Rule: Only Clerk is authorized to view & print official certificates
+  const isAuthorized = user.role === 'clerk';
   if (!isAuthorized) {
     document.body.innerHTML = `
-      <div style="max-width:500px; margin:4rem auto; text-align:center; padding:2.5rem; background:var(--bg-card, #ffffff); border:1px solid var(--border-color, #cbd5e1); border-radius:12px; color:var(--text-primary, #0f172a); font-family:sans-serif;">
-        <div style="font-size:2.8rem; margin-bottom:1rem;">🏛️</div>
-        <h2 style="margin-bottom:0.6rem;">Access Restricted</h2>
-        <p style="color:var(--text-secondary, #475569); font-size:0.9rem; line-height:1.5; margin-bottom:1.5rem;">
-          You can only view your own verified institutional certificate.
+      <div style="max-width:540px; margin:4rem auto; text-align:center; padding:2.5rem; background:var(--bg-card, #ffffff); border:1px solid var(--border-color, #cbd5e1); border-radius:12px; color:var(--text-primary, #0f172a); font-family:sans-serif; box-shadow:0 10px 25px rgba(0,0,0,0.15);">
+        <div style="font-size:3rem; margin-bottom:1rem;">🏛️</div>
+        <h2 style="margin-bottom:0.6rem; color:#dc2626;">Access Restricted to Administrative Office</h2>
+        <p style="color:var(--text-secondary, #475569); font-size:0.92rem; line-height:1.6; margin-bottom:1.5rem;">
+          Per institutional regulations, official institutional certificates (Transfer Certificate, Study &amp; Conduct Certificate, No-Dues Certificate) can only be generated and printed by the <strong>College Administrative Office (Clerk Desk)</strong>.
+          <br><br>
+          Students must collect their signed &amp; stamped physical certificates directly from the administrative office.
         </p>
-        <a href="student.html" style="display:inline-block; padding:0.6rem 1.4rem; background:#1d4ed8; color:#fff; text-decoration:none; border-radius:6px; font-weight:600;">Go to Student Portal &rarr;</a>
+        <a href="student.html" style="display:inline-block; padding:0.65rem 1.5rem; background:#1d4ed8; color:#fff; text-decoration:none; border-radius:6px; font-weight:600;">&larr; Back to Student Dashboard</a>
       </div>
     `;
     return;

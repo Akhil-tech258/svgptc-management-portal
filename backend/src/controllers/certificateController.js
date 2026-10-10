@@ -6,9 +6,12 @@ async function getCertificateDetails(req, res) {
     const { student_pin } = req.params;
     const cleanPin = student_pin.trim();
 
-    // Security check: if student role, they can only view their own certificate
-    if (req.user && req.user.role === 'student' && req.user.pin !== cleanPin) {
-      return res.status(403).json({ success: false, error: 'Access denied: You can only view your own certificate.' });
+    // Security check: Only Clerk is authorized to access printable certificates
+    if (req.user && req.user.role === 'student') {
+      return res.status(403).json({
+        success: false,
+        error: 'Access restricted: Official certificates can only be generated and printed by the College Administrative Office (Clerk Desk).'
+      });
     }
 
     // Fetch current active certificate version
@@ -85,9 +88,12 @@ async function getNoDuesFormData(req, res) {
     }
     const st = masterRes.rows[0];
 
-    // Security check: if student role, they can only view their own certificate/nodues
-    if (req.user && req.user.role === 'student' && req.user.pin.toLowerCase() !== cleanPin.toLowerCase()) {
-      return res.status(403).json({ success: false, error: 'Access denied: You can only view your own No Dues form.' });
+    // Security check: Only Clerk is authorized to access printable No Dues forms
+    if (req.user && req.user.role === 'student') {
+      return res.status(403).json({
+        success: false,
+        error: 'Access restricted: Official No Dues forms can only be generated and printed by the College Administrative Office (Clerk Desk).'
+      });
     }
 
     // Determine branch code and full department title
