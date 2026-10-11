@@ -96,7 +96,7 @@ async function startServer() {
       console.log(`====================================================`);
       console.log(`  Student No-Dues & TC Generator Backend API`);
       console.log(`  Running on: http://localhost:${PORT} (0.0.0.0:${PORT})`);
-      console.log(`  Database:   PostgreSQL`);
+      console.log(`  Database:   ${db.isPostgres ? 'PostgreSQL' : 'SQLite'}`);
       console.log(`====================================================`);
     });
 

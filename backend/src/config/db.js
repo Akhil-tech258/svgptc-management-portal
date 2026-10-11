@@ -21,43 +21,95 @@ if (isPostgres) {
   });
   console.log('Connected to PostgreSQL database');
 } else {
-  // Use SQLite for local development
-  const sqlite3 = require('sqlite3').verbose();
+  // Use SQLite for local development (supports Node.js built-in node:sqlite without native compilation on Android/Termux)
   const dbFile = path.join(__dirname, '..', '..', 'database.sqlite');
-  const sqliteDb = new sqlite3.Database(dbFile);
-  console.log(`Connected to local SQLite database at ${dbFile}`);
+  let sqliteAdapter = null;
 
-  // Promisify SQLite to have uniform query() interface matching pg
-  dbClient = {
-    query: (text, params = []) => {
-      return new Promise((resolve, reject) => {
-        // Convert $1, $2, ... to ? for SQLite
-        let sql = text;
-        let paramIndex = 1;
-        while (sql.includes(`$${paramIndex}`)) {
-          sql = sql.replace(new RegExp(`\\$${paramIndex}\\b`, 'g'), '?');
-          paramIndex++;
-        }
+  try {
+    // 1. Primary: Built-in Node.js SQLite (Node 22+, zero npm binaries, works out-of-the-box on Android/Termux/ARM64)
+    const { DatabaseSync } = require('node:sqlite');
+    const sqliteDb = new DatabaseSync(dbFile);
+    console.log(`Connected to local SQLite (built-in node:sqlite) at ${dbFile}`);
 
-        const trimmed = sql.trim().toUpperCase();
-        if (trimmed.startsWith('SELECT') || trimmed.startsWith('PRAGMA') || trimmed.includes('RETURNING')) {
-          sqliteDb.all(sql, params, (err, rows) => {
-            if (err) return reject(err);
-            resolve({ rows: rows || [] });
-          });
-        } else {
-          sqliteDb.run(sql, params, function (err) {
-            if (err) return reject(err);
-            resolve({
-              rows: [],
-              rowCount: this.changes,
-              lastID: this.lastID
-            });
+    sqliteAdapter = {
+      query: (text, params = []) => {
+        return new Promise((resolve, reject) => {
+          try {
+            let sql = text;
+            let paramIndex = 1;
+            while (sql.includes(`$${paramIndex}`)) {
+              sql = sql.replace(new RegExp(`\\$${paramIndex}\\b`, 'g'), '?');
+              paramIndex++;
+            }
+
+            const trimmed = sql.trim().toUpperCase();
+            if (trimmed.startsWith('SELECT') || trimmed.startsWith('PRAGMA') || trimmed.includes('RETURNING')) {
+              const stmt = sqliteDb.prepare(sql);
+              const rows = stmt.all(...params);
+              resolve({ rows: rows || [] });
+            } else {
+              if (params.length === 0) {
+                sqliteDb.exec(sql);
+                resolve({ rows: [], rowCount: 1, lastID: null });
+              } else {
+                const stmt = sqliteDb.prepare(sql);
+                const result = stmt.run(...params);
+                resolve({
+                  rows: [],
+                  rowCount: result.changes,
+                  lastID: result.lastInsertRowid
+                });
+              }
+            }
+          } catch (err) {
+            reject(err);
+          }
+        });
+      }
+    };
+  } catch (builtinErr) {
+    // 2. Fallback: Legacy sqlite3 npm package for Node < 22 runtimes
+    try {
+      const sqlite3 = require('sqlite3').verbose();
+      const sqliteDb = new sqlite3.Database(dbFile);
+      console.log(`Connected to local SQLite (legacy sqlite3) at ${dbFile}`);
+
+      sqliteAdapter = {
+        query: (text, params = []) => {
+          return new Promise((resolve, reject) => {
+            let sql = text;
+            let paramIndex = 1;
+            while (sql.includes(`$${paramIndex}`)) {
+              sql = sql.replace(new RegExp(`\\$${paramIndex}\\b`, 'g'), '?');
+              paramIndex++;
+            }
+
+            const trimmed = sql.trim().toUpperCase();
+            if (trimmed.startsWith('SELECT') || trimmed.startsWith('PRAGMA') || trimmed.includes('RETURNING')) {
+              sqliteDb.all(sql, params, (err, rows) => {
+                if (err) return reject(err);
+                resolve({ rows: rows || [] });
+              });
+            } else {
+              sqliteDb.run(sql, params, function (err) {
+                if (err) return reject(err);
+                resolve({
+                  rows: [],
+                  rowCount: this.changes,
+                  lastID: this.lastID
+                });
+              });
+            }
           });
         }
-      });
+      };
+    } catch (legacyErr) {
+      console.error('[SQLite Error] Could not load built-in node:sqlite or legacy sqlite3:', legacyErr.message);
+      throw legacyErr;
     }
-  };
+  }
+
+  dbClient = sqliteAdapter;
 }
 
 async function initDB() {
