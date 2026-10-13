@@ -3,17 +3,30 @@
 
 const APP_CONFIG = {
   // If backend & frontend run on same server (Render Web Service or port 5000), /api is used automatically.
-  // If frontend is deployed separately to GitHub Pages, set this to: "https://your-backend.onrender.com/api"
+  // If frontend is deployed separately to GitHub Pages, it connects to your Render backend API.
   API_BASE_URL: (() => {
+    try {
+      const stored = localStorage.getItem('svgp_api_base_url');
+      if (stored) return stored.trim();
+    } catch (e) {}
+
+    // 1. Same-origin or full-stack Render deployment
     if (window.location.port === '5000' || (window.location.hostname && window.location.hostname.includes('onrender.com'))) {
       return '/api';
     }
+
+    // 2. Localhost development
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:' || !window.location.hostname) {
       return 'http://localhost:5000/api';
     }
+
+    // 3. GitHub Pages deployment: connect to Render backend
+    if (window.location.hostname && window.location.hostname.includes('github.io')) {
+      return 'https://svgptc-management.onrender.com/api';
+    }
+
     return '/api';
   })(),
-
 
   // College Branding & Certificate Header Data
   COLLEGE: {
@@ -29,3 +42,16 @@ const APP_CONFIG = {
 };
 
 window.APP_CONFIG = APP_CONFIG;
+
+// Strategy 2: Immediate Early Pre-warm Ping for Render Free Tier
+// Wakes up Render backend immediately when user arrives on GitHub Pages
+(function earlyPrewarmBackend() {
+  try {
+    const base = APP_CONFIG.API_BASE_URL || '/api';
+    const healthUrl = base.endsWith('/api') ? `${base}/health` : `${base}/api/health`;
+    if (typeof fetch === 'function') {
+      fetch(healthUrl, { mode: 'no-cors', cache: 'no-store' }).catch(() => {});
+    }
+  } catch (e) {}
+})();
+

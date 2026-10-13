@@ -64,17 +64,19 @@ async function loadCertificate() {
     return;
   }
 
-  // Allow Clerk or the specific student viewing their own certificate
-  const isAuthorized = user.role === 'clerk' || (user.role === 'student' && pin && user.pin.toLowerCase() === pin.toLowerCase());
+  // Institutional Rule: Only Clerk is authorized to view & print official certificates
+  const isAuthorized = user.role === 'clerk';
   if (!isAuthorized) {
     document.body.innerHTML = `
-      <div style="max-width:500px; margin:4rem auto; text-align:center; padding:2.5rem; background:var(--bg-card, #ffffff); border:1px solid var(--border-color, #cbd5e1); border-radius:12px; color:var(--text-primary, #0f172a); font-family:sans-serif;">
-        <div style="font-size:2.8rem; margin-bottom:1rem;">🏛️</div>
-        <h2 style="margin-bottom:0.6rem;">Access Restricted</h2>
-        <p style="color:var(--text-secondary, #475569); font-size:0.9rem; line-height:1.5; margin-bottom:1.5rem;">
-          You can only view your own verified institutional certificate.
+      <div style="max-width:540px; margin:4rem auto; text-align:center; padding:2.5rem; background:var(--bg-card, #ffffff); border:1px solid var(--border-color, #cbd5e1); border-radius:12px; color:var(--text-primary, #0f172a); font-family:sans-serif; box-shadow:0 10px 25px rgba(0,0,0,0.15);">
+        <div style="font-size:3rem; margin-bottom:1rem;">🏛️</div>
+        <h2 style="margin-bottom:0.6rem; color:#dc2626;">Access Restricted to Administrative Office</h2>
+        <p style="color:var(--text-secondary, #475569); font-size:0.92rem; line-height:1.6; margin-bottom:1.5rem;">
+          Per institutional regulations, official institutional certificates (Transfer Certificate, Study &amp; Conduct Certificate, No-Dues Certificate) can only be generated and printed by the <strong>College Administrative Office (Clerk Desk)</strong>.
+          <br><br>
+          Students must collect their signed &amp; stamped physical certificates directly from the administrative office.
         </p>
-        <a href="student.html" style="display:inline-block; padding:0.6rem 1.4rem; background:#1d4ed8; color:#fff; text-decoration:none; border-radius:6px; font-weight:600;">Go to Student Portal &rarr;</a>
+        <a href="student.html" style="display:inline-block; padding:0.65rem 1.5rem; background:#1d4ed8; color:#fff; text-decoration:none; border-radius:6px; font-weight:600;">&larr; Back to Student Dashboard</a>
       </div>
     `;
     return;
@@ -87,25 +89,96 @@ async function loadCertificate() {
     return;
   }
 
+  // 1. Fetch No Dues Form Data (Generated only after ALL department clearances are 100% approved)
+  try {
+    const ndRes = await API.request(`/certificates/${encodeURIComponent(pin)}/nodues-form`);
+    if (ndRes.ok && ndRes.data && ndRes.data.data) {
+      populateNoDuesForm(ndRes.data.data);
+    } else {
+      const ndDoc = document.getElementById('nodues-document');
+      if (ndDoc) {
+        const errorMsg = (ndRes.data && ndRes.data.error) ? ndRes.data.error : 'No Dues Certificate cannot be generated until ALL department clearances are approved.';
+        ndDoc.innerHTML = `
+          <div style="padding:2.5rem 1.5rem; text-align:center; background:#fff1f2; border:1px solid #fecdd3; border-radius:8px; color:#9f1239; font-family:sans-serif; margin:1rem auto; max-width:650px;">
+            <div style="font-size:3rem; margin-bottom:0.8rem;">🔒</div>
+            <h3 style="margin-bottom:0.6rem; color:#881337; font-size:1.25rem;">No Dues Certificate Generation Restricted</h3>
+            <p style="font-size:0.95rem; line-height:1.6; color:#9f1239; margin-bottom:1.2rem;">${errorMsg}</p>
+            <div style="font-size:0.85rem; background:#ffe4e6; padding:0.6rem 1rem; border-radius:6px; display:inline-block; font-weight:600;">
+              ⚠️ Requires 100% Department Approvals from all Laboratories &amp; Administrative Units
+            </div>
+          </div>
+        `;
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to load No Dues Form data:', err);
+  }
+
+  // 2. Fetch TC & Conduct Certificate Details (Available after Clerk issuance)
   let endpoint = `/certificates/${encodeURIComponent(pin)}`;
   if (version) {
     endpoint += `/version/${encodeURIComponent(version)}`;
   }
 
   const res = await API.request(endpoint);
-  if (!res.ok) {
-    alert(res.data.error || 'Failed to load official certificate record.');
-    return;
+  if (res.ok && res.data && res.data.certificate) {
+    populateTC(res.data.certificate);
+    populateConduct(res.data.certificate);
+  } else {
+    const tcDoc = document.getElementById('tc-document');
+    if (tcDoc) {
+      const tcNotice = document.createElement('div');
+      tcNotice.style.cssText = 'padding:1.5rem; text-align:center; color:#94a3b8; font-style:italic; background:#f8fafc; border:1px dashed #cbd5e1; margin-bottom:2rem; font-family:sans-serif;';
+      tcNotice.innerHTML = '🎓 <strong>Transfer Certificate (TC) & Conduct Certificate:</strong> Pending issuance by Administrative Office (Clerk). Complete all department clearances first.';
+      tcDoc.parentNode.insertBefore(tcNotice, tcDoc);
+    }
   }
+}
 
-  const cert = res.data.certificate;
-  if (!cert) {
-    alert('Certificate data is empty.');
-    return;
+function populateNoDuesForm(nd) {
+  if (!nd) return;
+
+  const elDeptTitle = document.getElementById('nd-dept-title');
+  if (elDeptTitle) elDeptTitle.innerText = nd.department_title || 'DEPARTMENT OF COMPUTER ENGINEERING';
+
+  const elName = document.getElementById('nd-student-name');
+  if (elName) elName.innerText = (nd.student_name || '--').toUpperCase();
+
+  const elPin = document.getElementById('nd-pin-number');
+  if (elPin) elPin.innerText = nd.student_pin || '--';
+
+  const elPeriod = document.getElementById('nd-study-period');
+  if (elPeriod) elPeriod.innerText = nd.study_period || '2023 - 2026';
+
+  const elBranch = document.getElementById('nd-branch-name');
+  if (elBranch) elBranch.innerText = (nd.branch_code || 'CME').toUpperCase();
+
+  const listEl = document.getElementById('nd-clearance-list');
+  if (listEl && Array.isArray(nd.clearances)) {
+    listEl.innerHTML = '';
+    nd.clearances.forEach((c, idx) => {
+      const li = document.createElement('li');
+      li.className = 'nd-clearance-item';
+
+      const deptNameUpper = (c.name || `DEPARTMENT ${idx + 1}`).toUpperCase();
+
+      // Per user prompt requirement: "with only marked as cleared"
+      // Only items that are approved/cleared in system get marked as "NO DUES"!
+      let statusHtml = '';
+      if (c.is_cleared || c.status === 'Approved' || c.status === 'Cleared') {
+        statusHtml = `<span class="nd-status-val cleared">: NO DUES</span>`;
+      } else {
+        // Uncleared / Pending items are NOT marked as cleared (left with blank line for physical signature)
+        statusHtml = `<span class="nd-status-val pending">: _______________________</span>`;
+      }
+
+      li.innerHTML = `
+        <span class="nd-dept-label">${deptNameUpper}</span>
+        ${statusHtml}
+      `;
+      listEl.appendChild(li);
+    });
   }
-
-  populateTC(cert);
-  populateConduct(cert);
 }
 
 const digitWords = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE'];

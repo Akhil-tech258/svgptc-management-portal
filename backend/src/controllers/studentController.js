@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { isDepartmentApplicableToBranch } = require('../utils/helpers');
 
 async function getApplicableDepartments(studentCourse) {
   const branchesRes = await db.query('SELECT * FROM branches WHERE is_active = 1');
@@ -36,11 +37,7 @@ async function getApplicableDepartments(studentCourse) {
   const deptRes = await db.query('SELECT * FROM departments WHERE is_active = 1 ORDER BY id ASC');
 
   return deptRes.rows.filter(dept => {
-    if (!dept.branch_code || dept.branch_code === 'ALL') return true;
-    if (studentBranchCode && dept.branch_code.toUpperCase() === studentBranchCode.toUpperCase()) return true;
-    if (sCourse.includes(dept.branch_code.toLowerCase())) return true;
-    if (dept.name.toLowerCase().includes(sCourse) || sCourse.includes(dept.name.toLowerCase())) return true;
-    return false;
+    return isDepartmentApplicableToBranch(dept.branch_code, studentBranchCode);
   });
 }
 

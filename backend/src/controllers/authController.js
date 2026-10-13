@@ -299,12 +299,12 @@ async function clerkLogin(req, res) {
       [username]
     );
 
-    // Fallback: allow 'clerk' or 'admin' as shorthand for 'clerk@svgp'
+    // Fallback: allow 'clerk' or 'admin' as shorthand if there is only 1 clerk account configured
     if (clerkRes.rows.length === 0 && (username.toLowerCase() === 'clerk' || username.toLowerCase() === 'admin')) {
-      clerkRes = await db.query(
-        'SELECT * FROM clerks WHERE LOWER(username) = LOWER($1)',
-        ['clerk@svgp']
-      );
+      const allClerks = await db.query('SELECT * FROM clerks LIMIT 2');
+      if (allClerks.rows.length === 1) {
+        clerkRes = allClerks;
+      }
     }
 
     if (clerkRes.rows.length === 0) {
