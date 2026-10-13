@@ -7,7 +7,7 @@ async function getCertificateDetails(req, res) {
     const cleanPin = student_pin.trim();
 
     // Security check: Only Clerk is authorized to access printable certificates
-    if (req.user && req.user.role === 'student') {
+    if (!req.user || req.user.role !== 'clerk') {
       return res.status(403).json({
         success: false,
         error: 'Access restricted: Official certificates can only be generated and printed by the College Administrative Office (Clerk Desk).'
@@ -89,7 +89,7 @@ async function getNoDuesFormData(req, res) {
     const st = masterRes.rows[0];
 
     // Security check: Only Clerk is authorized to access printable No Dues forms
-    if (req.user && req.user.role === 'student') {
+    if (!req.user || req.user.role !== 'clerk') {
       return res.status(403).json({
         success: false,
         error: 'Access restricted: Official No Dues forms can only be generated and printed by the College Administrative Office (Clerk Desk).'
