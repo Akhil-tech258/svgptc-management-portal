@@ -20,8 +20,10 @@ const PORT = process.env.PORT || 5000;
 
 // 1. Security Headers (Clickjacking protection, MIME sniffing protection, HSTS)
 app.use(helmet({
-  contentSecurityPolicy: false, // Ensures Google Fonts and CDN resources render without interference
-  crossOriginEmbedderPolicy: false
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginOpenerPolicy: { policy: "unsafe-none" }
 }));
 
 // 2. Strict CORS Whitelisting
@@ -35,8 +37,8 @@ app.use(cors({
     // Allow non-browser requests (Postman, curl, Termux mobile tests, local file://)
     if (!origin) return callback(null, true);
 
-    const isAllowed = allowedOrigins.includes(origin) ||
-                      origin.endsWith('.github.io') ||
+    const isAllowed = origin.includes('github.io') ||
+                      origin.includes('onrender.com') ||
                       /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 
     if (isAllowed) {
