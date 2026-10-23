@@ -1,9 +1,11 @@
-name: Supabase & Web Service Keep-Alive
+name: Render & Supabase College-Hours Keep-Alive
 
 on:
   schedule:
-    # Runs automatically every 3 days at 06:00 UTC (11:30 AM IST)
-    - cron: '0 6 */3 * *'
+    # Runs every 14 minutes during College Working Hours ONLY (Mon-Fri, 8:30 AM - 5:30 PM IST / 03:00 - 11:59 UTC)
+    # Saves ~75% of Render free-tier monthly hours (only ~180 hrs/month used out of 750 free hours)!
+    # Nights and weekends sleep naturally to preserve quota.
+    - cron: '*/14 3-11 * * 1-5'
   workflow_dispatch: # Allows manual trigger anytime from GitHub Actions tab
 
 jobs:
@@ -12,22 +14,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Ping Live Web Service Health API
+      - name: Ping Live Render Backend Service
         run: |
           URL="${{ secrets.APP_URL }}"
-          if [ -n "$URL" ]; then
-            echo "📡 Pinging live application at $URL/api/health..."
-            curl -s -f "$URL/api/health" || echo "⚠️ Ping failed or server is waking up."
+          if [ -z "$URL" ]; then
+            URL="https://svgptc-management.onrender.com"
+          fi
+          echo "📡 Pinging live Render web service at $URL/health..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -m 25 "$URL/health" || echo "000")
+          echo "Render response code: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "✅ Render backend is active and awake!"
           else
-            echo "ℹ️ APP_URL secret is not configured in GitHub Secrets. Skipping HTTP health ping."
+            echo "⚠️ Ping received status $HTTP_STATUS (Render waking up or ping registered to reset 15-min idle timer)."
           fi
 
       - name: Direct Database Keep-Alive Query (PostgreSQL / Supabase)

@@ -18,7 +18,7 @@ async function studentRegister(req, res) {
 
     // 1. Verify existence in students_master
     const masterRes = await db.query(
-      'SELECT * FROM students_master WHERE pin = $1',
+      'SELECT * FROM students_master WHERE LOWER(pin) = LOWER($1)',
       [cleanPin]
     );
 
@@ -149,7 +149,9 @@ async function studentLogin(req, res) {
     if (regRes.rows.length > 0) {
       student = regRes.rows[0];
       // Case-insensitive name comparison
-      if (student.student_name.trim().toLowerCase() !== cleanName.toLowerCase()) {
+      const normReg = (student.student_name || '').trim().replace(/\s+/g, ' ').toLowerCase();
+      const normInput = cleanName.replace(/\s+/g, ' ').toLowerCase();
+      if (normReg !== normInput) {
         return res.status(400).json({
           success: false,
           error: `Invalid credentials: Name does not match registered student record for PIN "${cleanPin}".`
@@ -172,7 +174,9 @@ async function studentLogin(req, res) {
       const master = masterRes.rows[0];
 
       // Case-insensitive name check against master
-      if (master.student_name.trim().toLowerCase() !== cleanName.toLowerCase()) {
+      const normMaster = (master.student_name || '').trim().replace(/\s+/g, ' ').toLowerCase();
+      const normInput = cleanName.replace(/\s+/g, ' ').toLowerCase();
+      if (normMaster !== normInput) {
         return res.status(400).json({
           success: false,
           error: `Student Name "${cleanName}" does not match the college master record for PIN "${cleanPin}".`
@@ -180,10 +184,9 @@ async function studentLogin(req, res) {
       }
 
       // Auto-activate registration from master record
-      const today = getTodayFormatted();
       await db.query(
-        'INSERT INTO students_registered (pin, student_name, course_branch, registered_at) VALUES ($1, $2, $3, $4)',
-        [master.pin, master.student_name, master.course_branch, today]
+        'INSERT INTO students_registered (pin, student_name, course_branch) VALUES ($1, $2, $3)',
+        [master.pin, master.student_name, master.course_branch]
       );
 
       student = {
@@ -299,12 +302,12 @@ async function clerkLogin(req, res) {
       [username]
     );
 
-    // Fallback: allow 'clerk' or 'admin' as shorthand for 'clerk@svgp'
+    // Fallback: allow 'clerk' or 'admin' as shorthand if there is only 1 clerk account configured
     if (clerkRes.rows.length === 0 && (username.toLowerCase() === 'clerk' || username.toLowerCase() === 'admin')) {
-      clerkRes = await db.query(
-        'SELECT * FROM clerks WHERE LOWER(username) = LOWER($1)',
-        ['clerk@svgp']
-      );
+      const allClerks = await db.query('SELECT * FROM clerks LIMIT 2');
+      if (allClerks.rows.length === 1) {
+        clerkRes = allClerks;
+      }
     }
 
     if (clerkRes.rows.length === 0) {

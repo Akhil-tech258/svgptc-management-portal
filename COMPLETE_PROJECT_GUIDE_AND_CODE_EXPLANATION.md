@@ -18,6 +18,7 @@
    - [Module 4: Faculty Department Dues & Actionable Logging](#module-4-faculty-department-dues--actionable-logging)
    - [Module 5: Clerk Administration & Smart Excel Ingestion](#module-5-clerk-administration--smart-excel-ingestion)
    - [Module 6: Certificate Generation, Hard Locks & A4 Printing](#module-6-certificate-generation-hard-locks--a4-printing)
+   - [Module 7: Render Free-Tier Performance Engine (AK_v2 Optimization Suite)](#module-7-render-free-tier-performance-engine-ak_v2-optimization-suite)
 6. [👥 Team Member Roles & Module Distribution](#6-team-member-roles--module-distribution)
 7. [🧪 Automated Testing & Production Deployment](#7-automated-testing--production-deployment)
 
@@ -280,6 +281,54 @@ if (pendingCheck.rows.length > 0) {
 ```
 
 ---
+
+### Module 7: Render Free-Tier Performance Engine (AK_v2 Optimization Suite)
+
+#### 📄 Files:
+- Frontend: [`frontend/js/config.js`](file:///frontend/js/config.js), [`frontend/js/api.js`](file:///frontend/js/api.js), [`frontend/css/style.css`](file:///frontend/css/style.css)
+- Backend: [`backend/src/server.js`](file:///backend/src/server.js)
+
+#### 📝 Code Walkthrough & Architecture:
+
+1. **Early Pre-warming Ping in `<head>` (Strategy 2):**
+   ```javascript
+   // frontend/js/config.js (loaded immediately inside <head>)
+   (function earlyPrewarmBackend() {
+     try {
+       const base = APP_CONFIG.API_BASE_URL || '/api';
+       const healthUrl = base.endsWith('/api') ? `${base}/health` : `${base}/api/health`;
+       if (typeof fetch === 'function') {
+         fetch(healthUrl, { mode: 'no-cors', cache: 'no-store' }).catch(() => {});
+       }
+     } catch (e) {}
+   })();
+   ```
+   *Wakes up Render's idle container ~2–4 seconds earlier before DOM parsing completes.*
+
+2. **Cold-Start UX Reassurance & Auto-Retry Loop (Strategy 3):**
+   ```javascript
+   // frontend/js/api.js
+   // Shows reassurance banner if request takes > 2.2s
+   const coldStartTimer = setTimeout(() => this.showColdStartIndicator(), 2200);
+
+   // Catches temporary 502/503 during Render spin-up and auto-retries with backoff
+   if ((res.status === 502 || res.status === 503) && retryCount < maxRetries) {
+     await new Promise(r => setTimeout(r, 2500));
+     return this.request(endpoint, { ...options, _retryCount: retryCount + 1 });
+   }
+   ```
+
+3. **Cache-First Stale-While-Revalidate (Strategy 6):**
+   ```javascript
+   // Instant 0ms paint from localStorage cache, followed by silent network revalidation
+   const cachedData = API.getCache(`student_dash_${user.pin.toLowerCase()}`);
+   if (cachedData) renderStudentDashboard(cachedData);
+   const res = await API.request('/students/dashboard');
+   if (res.ok) {
+     API.setCache(`student_dash_${user.pin.toLowerCase()}`, res.data);
+     renderStudentDashboard(res.data);
+   }
+   ```
 
 ## 6. 👥 Team Member Roles & Module Distribution
 

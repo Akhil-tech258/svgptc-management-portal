@@ -92,23 +92,20 @@ async function refreshFacultyDashboard() {
   API.showToast('Department clearance queue refreshed.', 'info');
 }
 
-async function loadFacultyDashboard() {
-  const res = await API.request('/faculty/dashboard');
-  if (!res.ok) {
-    API.showToast(res.data.error || 'Failed to load department submissions.', 'error');
-    return;
-  }
-
-
-  const data = res.data;
+function renderFacultyData(data) {
   currentRequests = data.requests || [];
 
   // Update stats
   const stats = data.stats || {};
-  document.getElementById('stat-pending').innerText = stats.pending_requests || 0;
-  document.getElementById('stat-dues').innerText = stats.active_dues || 0;
-  document.getElementById('stat-approved').innerText = stats.approved_requests || 0;
-  document.getElementById('stat-cleared').innerText = stats.cleared_dues || 0;
+  const setEl = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = val;
+  };
+
+  setEl('stat-pending', stats.pending_requests || 0);
+  setEl('stat-dues', stats.active_dues || 0);
+  setEl('stat-approved', stats.approved_requests || 0);
+  setEl('stat-cleared', stats.cleared_dues || 0);
   
   // Notification badge
   const badgeCount = stats.notification_badge_count || 0;
@@ -118,12 +115,31 @@ async function loadFacultyDashboard() {
     navBadge.style.display = badgeCount > 0 ? 'inline-flex' : 'none';
   }
 
-  const tabPending = document.getElementById('tab-badge-pending');
-  if (tabPending) tabPending.innerText = stats.pending_requests || 0;
-  const tabDues = document.getElementById('tab-badge-dues');
-  if (tabDues) tabDues.innerText = stats.active_dues || 0;
+  setEl('tab-badge-pending', stats.pending_requests || 0);
+  setEl('tab-badge-dues', stats.active_dues || 0);
 
   renderRequestsTable(currentRequests);
+}
+
+async function loadFacultyDashboard() {
+  const user = API.getUser();
+  const cacheKey = user && user.department_id ? `faculty_dash_${user.department_id}` : 'faculty_dash';
+
+  // Cache-First (Strategy 6): render immediately from cache if available
+  const cachedData = API.getCache(cacheKey);
+  if (cachedData) {
+    renderFacultyData(cachedData);
+  }
+
+  const res = await API.request('/faculty/dashboard');
+  if (!res.ok) {
+    API.showToast(res.data.error || 'Failed to load department submissions.', 'error');
+    return;
+  }
+
+  const data = res.data;
+  API.setCache(cacheKey, data);
+  renderFacultyData(data);
 }
 
 function renderRequestsTable(list) {

@@ -58,6 +58,28 @@ function getTodayFormatted() {
   return `${d}-${m}-${y}`;
 }
 
+const ENGINEERING_BRANCHES = ['CIVIL', 'MECH', 'EEE', 'ECE', 'CME', 'BME', 'CHE', 'ECE-II'];
+
+function isDepartmentApplicableToBranch(deptBranchCode, studentBranchCode) {
+  if (!deptBranchCode) return true;
+  const raw = deptBranchCode.trim().toUpperCase();
+  if (raw === 'ALL') return true;
+
+  const sBranch = (studentBranchCode || '').trim().toUpperCase();
+  if (!sBranch) return false;
+
+  if (raw === 'ENG') {
+    return ENGINEERING_BRANCHES.includes(sBranch);
+  }
+
+  const branches = raw.split(',').map(b => b.trim().toUpperCase());
+  if (branches.includes(sBranch)) return true;
+  if (branches.includes('ALL')) return true;
+  if (branches.includes('ENG') && ENGINEERING_BRANCHES.includes(sBranch)) return true;
+
+  return false;
+}
+
 module.exports = {
   deriveTNo,
   isValidDateFormat,
@@ -65,5 +87,7 @@ module.exports = {
   comparePassword,
   generateToken,
   verifyToken,
-  getTodayFormatted
+  getTodayFormatted,
+  ENGINEERING_BRANCHES,
+  isDepartmentApplicableToBranch
 };

@@ -35,8 +35,8 @@ async function seed() {
     { name: 'Scholarship', type: 'Online', branch_code: 'ALL' },
     { name: 'Hostel', type: 'Online', branch_code: 'ALL' },
     { name: 'Physical Director', type: 'Online', branch_code: 'ALL' },
-    { name: 'Physics Lab', type: 'Online', branch_code: 'ALL' },
-    { name: 'Chemistry Lab', type: 'Online', branch_code: 'ALL' },
+    { name: 'Physics Lab', type: 'Online', branch_code: 'ENG' },
+    { name: 'Chemistry Lab', type: 'Online', branch_code: 'ENG' },
     { name: 'NSS/NCC', type: 'Online', branch_code: 'ALL' }
   ];
 
@@ -51,21 +51,29 @@ async function seed() {
   console.log('Official 8 college departments verified (Library is Physical with dedicated Incharge).');
 
 
-  // 3. Remove all other test / demo clerk accounts (admin, clerk, clerk_admin)
-  await db.query("DELETE FROM clerks WHERE LOWER(username) != 'clerk@svgp'");
+  // Note: All custom departments and faculty accounts created by Clerk are permanently preserved across reboots.
 
-  // 4. Seed ONLY the single official Clerk account: clerk@svgp
-  const clerkUsername = (process.env.CLERK_USERNAME || 'clerk@svgp').trim();
-  const clerkPassword = process.env.CLERK_PASSWORD || 'Clerk@1957';
-  const clerkHash = hashPassword(clerkPassword);
 
-  const existingClerk = await db.query('SELECT id FROM clerks WHERE LOWER(username) = LOWER($1)', [clerkUsername]);
-  if (existingClerk.rows.length === 0) {
-    await db.query('INSERT INTO clerks (username, password_hash) VALUES ($1, $2)', [clerkUsername, clerkHash]);
-    console.log(`Official Clerk account created: ${clerkUsername}`);
+  // 3. Seed ONLY the single official Clerk account strictly from .env
+  const clerkUsername = process.env.CLERK_USERNAME ? process.env.CLERK_USERNAME.trim() : null;
+  const clerkPassword = process.env.CLERK_PASSWORD;
+
+  if (clerkUsername && clerkPassword) {
+    const clerkHash = hashPassword(clerkPassword);
+
+    // Remove any other clerk accounts not matching the .env configured username
+    await db.query('DELETE FROM clerks WHERE LOWER(username) != LOWER($1)', [clerkUsername]);
+
+    const existingClerk = await db.query('SELECT id FROM clerks WHERE LOWER(username) = LOWER($1)', [clerkUsername]);
+    if (existingClerk.rows.length === 0) {
+      await db.query('INSERT INTO clerks (username, password_hash) VALUES ($1, $2)', [clerkUsername, clerkHash]);
+      console.log(`Official Clerk account configured from .env: ${clerkUsername}`);
+    } else {
+      await db.query('UPDATE clerks SET password_hash = $1 WHERE LOWER(username) = LOWER($2)', [clerkHash, clerkUsername]);
+      console.log(`Official Clerk account password synced from .env: ${clerkUsername}`);
+    }
   } else {
-    await db.query('UPDATE clerks SET password_hash = $1 WHERE LOWER(username) = LOWER($2)', [clerkHash, clerkUsername]);
-    console.log(`Official Clerk account verified/updated: ${clerkUsername}`);
+    console.warn('⚠️ WARNING: CLERK_USERNAME or CLERK_PASSWORD not configured in .env! Clerk account seeding skipped.');
   }
 
   // 5. Clean up student data only when explicitly requested (e.g. --purge flag or PURGE_ON_SEED=true)

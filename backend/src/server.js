@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const path = require('path');
 require('dotenv').config();
 
@@ -17,9 +18,35 @@ const branchRoutes = require('./routes/branchRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS configuration - allows GitHub Pages and local development
+// 1. Security Headers (Clickjacking protection, MIME sniffing protection, HSTS)
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginOpenerPolicy: { policy: "unsafe-none" }
+}));
+
+// 2. Strict CORS Whitelisting
+const allowedOrigins = [
+  'https://akhil-tech258.github.io',
+  'https://svgptc-management.onrender.com'
+];
+
 app.use(cors({
-  origin: '*',
+  origin: (origin, callback) => {
+    // Allow non-browser requests (Postman, curl, Termux mobile tests, local file://)
+    if (!origin) return callback(null, true);
+
+    const isAllowed = origin.includes('github.io') ||
+                      origin.includes('onrender.com') ||
+                      /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(null, false); // Blocked: reject unknown third-party origin
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -27,8 +54,8 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check
-app.get('/api/health', (req, res) => {
+// Health check (supports both /health and /api/health for pre-warming pings)
+app.get(['/health', '/api/health'], (req, res) => {
   res.json({
     status: 'online',
     timestamp: new Date().toISOString(),
@@ -96,7 +123,7 @@ async function startServer() {
       console.log(`====================================================`);
       console.log(`  Student No-Dues & TC Generator Backend API`);
       console.log(`  Running on: http://localhost:${PORT} (0.0.0.0:${PORT})`);
-      console.log(`  Database:   PostgreSQL`);
+      console.log(`  Database:   ${db.isPostgres ? 'PostgreSQL' : 'SQLite'}`);
       console.log(`====================================================`);
     });
 
